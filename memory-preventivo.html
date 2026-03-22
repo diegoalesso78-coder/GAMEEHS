@@ -1,0 +1,603 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Preventivo: Señalética ISO 45001</title>
+    <!-- CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/motion@11.11.13/dist/motion.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@300;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide-react@0.454.0/dist/umd/lucide-react.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import "tailwindcss";
+
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-display: "Space Grotesk", sans-serif;
+            --font-mono: "JetBrains Mono", monospace;
+            --color-primary: #1a1a1a;
+            --color-accent: #f59e0b;
+            --color-success: #10b981;
+            --color-danger: #f43f5e;
+            --color-industrial-gray: #2d2d2d;
+        }
+
+        :root {
+            --bg: #121212;
+            --ink: #e5e7eb;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+        }
+
+        .bg-hex-grid {
+            background-image: radial-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glass-hud {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(245, 158, 11, 0.1);
+        }
+
+        .card-container {
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.4s;
+            transform-style: preserve-3d;
+        }
+
+        .card-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .card-front {
+            background-color: #1a1a1a;
+            border: 2px solid #333;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .pulse-success {
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .block-shadow {
+            box-shadow: 4px 4px 0px #f59e0b;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-hex-grid min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useCallback } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        const { 
+            Shield, 
+            Users, 
+            Trophy, 
+            RotateCcw, 
+            ChevronRight, 
+            Play, 
+            Info, 
+            CheckCircle2, 
+            AlertTriangle,
+            User,
+            LayoutGrid,
+            ArrowRight
+        } = lucideReact;
+
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1346735467&single=true&output=csv';
+
+        const FALLBACK_DATA = [
+            { emoji: '🦺', descripcion: 'Uso obligatorio de chaleco', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M015', desc_larga: 'El chaleco de alta visibilidad es obligatorio para ser visto en zonas de tránsito vehicular o maquinaria.' },
+            { emoji: '🥽', descripcion: 'Protección ocular obligatoria', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M004', desc_larga: 'Protege tus ojos de proyecciones, chispas o químicos mediante el uso de gafas certificadas.' },
+            { emoji: '🎧', descripcion: 'Protección auditiva obligatoria', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M003', desc_larga: 'En zonas con ruido superior a 85dB, el uso de protectores es vital para evitar hipoacusia.' },
+            { emoji: '🧤', descripcion: 'Uso de guantes de seguridad', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M009', desc_larga: 'Protege tus manos de cortes, abrasiones o contacto térmico según el riesgo específico.' },
+            { emoji: '🥾', descripcion: 'Calzado de seguridad obligatorio', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M008', desc_larga: 'Botas con puntera de acero y suela antideslizante para evitar aplastamientos y caídas.' },
+            { emoji: '😷', descripcion: 'Protección respiratoria obligatoria', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M016', desc_larga: 'Uso de mascarilla o respirador en ambientes con polvos, humos o vapores tóxicos.' },
+            { emoji: '🚭', descripcion: 'Prohibido fumar', tipo_señal: 'Prohibición', color_fondo: '#d71920', norma: 'ISO 7010-P002', desc_larga: 'Prohibición absoluta de fumar para evitar incendios y proteger la salud en el ambiente laboral.' },
+            { emoji: '🚫', descripcion: 'Prohibido el paso', tipo_señal: 'Prohibición', color_fondo: '#d71920', norma: 'ISO 7010-P001', desc_larga: 'Zona restringida. Solo personal autorizado puede ingresar a esta área de trabajo.' },
+            { emoji: '🔥', descripcion: 'Riesgo de incendio', tipo_señal: 'Advertencia', color_fondo: '#ffcc00', norma: 'ISO 7010-W021', desc_larga: 'Presencia de materiales inflamables. Mantener alejado de fuentes de calor o chispas.' },
+            { emoji: '⚡', descripcion: 'Riesgo eléctrico', tipo_señal: 'Advertencia', color_fondo: '#ffcc00', norma: 'ISO 7010-W012', desc_larga: 'Peligro de electrocución. No manipular tableros sin la debida capacitación y EPP.' },
+            { emoji: '💀', descripcion: 'Sustancias tóxicas', tipo_señal: 'Advertencia', color_fondo: '#ffcc00', norma: 'ISO 7010-W016', desc_larga: 'Peligro de muerte por ingestión, inhalación o contacto con químicos altamente peligrosos.' },
+            { emoji: '☢️', descripcion: 'Radiación ionizante', tipo_señal: 'Advertencia', color_fondo: '#ffcc00', norma: 'ISO 7010-W003', desc_larga: 'Zona con presencia de fuentes radiactivas. Seguir protocolos de tiempo, distancia y blindaje.' },
+            { emoji: '🩹', descripcion: 'Primeros auxilios', tipo_señal: 'Salvamento', color_fondo: '#008a44', norma: 'ISO 7010-E003', desc_larga: 'Ubicación del botiquín o estación de primeros auxilios para atención inmediata.' },
+            { emoji: '🏃', descripcion: 'Ruta de evacuación', tipo_señal: 'Salvamento', color_fondo: '#008a44', norma: 'ISO 7010-E001', desc_larga: 'Dirección de salida segura en caso de emergencia. Mantener siempre despejada.' },
+            { emoji: '🧯', descripcion: 'Extintor de incendios', tipo_señal: 'Incendio', color_fondo: '#d71920', norma: 'ISO 7010-F001', desc_larga: 'Ubicación del equipo de extinción manual. Verificar carga y acceso libre.' },
+            { emoji: '🪜', descripcion: 'Riesgo de caídas', tipo_señal: 'Advertencia', color_fondo: '#ffcc00', norma: 'ISO 7010-W008', desc_larga: 'Peligro de caída a distinto nivel. Uso obligatorio de arnés por encima de 1.8 metros.' },
+            { emoji: '👷', descripcion: 'Casco obligatorio', tipo_señal: 'Obligación', color_fondo: '#0054a6', norma: 'ISO 7010-M001', desc_larga: 'Protección craneal contra impactos, caída de objetos y riesgos eléctricos.' },
+            { emoji: '☣️', descripcion: 'Riesgo biológico', tipo_señal: 'Advertencia', color_fondo: '#ffcc00', norma: 'ISO 7010-W009', desc_larga: 'Presencia de agentes biológicos patógenos. Seguir protocolos de bioseguridad.' },
+            { emoji: '🚿', descripcion: 'Ducha de emergencia', tipo_señal: 'Salvamento', color_fondo: '#008a44', norma: 'ISO 7010-E012', desc_larga: 'Uso inmediato en caso de salpicaduras químicas en el cuerpo o ropa.' },
+            { emoji: '👁️', descripcion: 'Lavaojos de emergencia', tipo_señal: 'Salvamento', color_fondo: '#008a44', norma: 'ISO 7010-E011', desc_larga: 'Estación para lavado ocular rápido tras contacto con sustancias irritantes.' }
+        ];
+
+        function App() {
+            const [view, setView] = useState('INTRO');
+            const [players, setPlayers] = useState([{ id: 1, name: 'Operador 1', score: 0, turns: 0 }]);
+            const [difficulty, setDifficulty] = useState(6); // 6, 12, 20
+            const [cards, setCards] = useState([]);
+            const [flipped, setFlipped] = useState([]);
+            const [matched, setMatched] = useState([]);
+            const [currentPlayerIdx, setCurrentPlayerIdx] = useState(0);
+            const [gameData, setGameData] = useState([]);
+            const [showMatchInfo, setShowMatchInfo] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
+
+            // Fetch data
+            useEffect(() => {
+                fetch(SHEETS_URL)
+                    .then(res => res.text())
+                    .then(csv => {
+                        const rows = csv.split('\n').slice(1);
+                        const data = rows.map(row => {
+                            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                            return {
+                                emoji: cols[0],
+                                descripcion: cols[1],
+                                tipo_señal: cols[2],
+                                color_fondo: cols[3],
+                                norma: cols[4],
+                                desc_larga: cols[5]
+                            };
+                        }).filter(d => d.emoji);
+                        setGameData(data.length >= 6 ? data : FALLBACK_DATA);
+                    })
+                    .catch(() => setGameData(FALLBACK_DATA));
+            }, []);
+
+            const shuffle = (array) => {
+                let currentIndex = array.length, randomIndex;
+                while (currentIndex !== 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            };
+
+            const startGame = () => {
+                const selectedData = shuffle([...gameData]).slice(0, difficulty);
+                const gameCards = [];
+                
+                selectedData.forEach((item, idx) => {
+                    // Card A: Visual
+                    gameCards.push({
+                        id: `A-${idx}`,
+                        pairId: idx,
+                        type: 'visual',
+                        content: item.emoji,
+                        bgColor: item.color_fondo,
+                        signalType: item.tipo_señal,
+                        data: item
+                    });
+                    // Card B: Text
+                    gameCards.push({
+                        id: `B-${idx}`,
+                        pairId: idx,
+                        type: 'text',
+                        content: item.descripcion,
+                        norm: item.norma,
+                        bgColor: '#ffffff',
+                        data: item
+                    });
+                });
+
+                setCards(shuffle(gameCards));
+                setFlipped([]);
+                setMatched([]);
+                setCurrentPlayerIdx(0);
+                setPlayers(players.map(p => ({ ...p, score: 0, turns: 0 })));
+                setView('GAME');
+            };
+
+            const handleCardClick = (cardIdx) => {
+                if (isProcessing || flipped.includes(cardIdx) || matched.includes(cardIdx)) return;
+
+                const newFlipped = [...flipped, cardIdx];
+                setFlipped(newFlipped);
+
+                if (newFlipped.length === 2) {
+                    setIsProcessing(true);
+                    const [firstIdx, secondIdx] = newFlipped;
+                    const firstCard = cards[firstIdx];
+                    const secondCard = cards[secondIdx];
+
+                    // Update turns for current player
+                    const newPlayers = [...players];
+                    newPlayers[currentPlayerIdx].turns += 1;
+                    setPlayers(newPlayers);
+
+                    if (firstCard.pairId === secondCard.pairId) {
+                        // Match!
+                        setTimeout(() => {
+                            setMatched([...matched, firstIdx, secondIdx]);
+                            setFlipped([]);
+                            setShowMatchInfo(firstCard.data);
+                            
+                            // Update score
+                            const updatedPlayers = [...players];
+                            updatedPlayers[currentPlayerIdx].score += 1;
+                            setPlayers(updatedPlayers);
+
+                            setTimeout(() => {
+                                setShowMatchInfo(null);
+                                setIsProcessing(false);
+                                // Check if game over
+                                if (matched.length + 2 === cards.length) {
+                                    setView('END');
+                                }
+                            }, 1500);
+                        }, 500);
+                    } else {
+                        // No match
+                        setTimeout(() => {
+                            setFlipped([]);
+                            setCurrentPlayerIdx((currentPlayerIdx + 1) % players.length);
+                            setIsProcessing(false);
+                        }, 1500);
+                    }
+                }
+            };
+
+            const addPlayer = () => {
+                if (players.length < 4) {
+                    setPlayers([...players, { id: players.length + 1, name: `Operador ${players.length + 1}`, score: 0, turns: 0 }]);
+                }
+            };
+
+            const removePlayer = () => {
+                if (players.length > 1) {
+                    setPlayers(players.slice(0, -1));
+                }
+            };
+
+            const updatePlayerName = (id, name) => {
+                setPlayers(players.map(p => p.id === id ? { ...p, name } : p));
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <AnimatePresence mode="wait">
+                        {view === 'INTRO' && (
+                            <IntroScreen 
+                                players={players} 
+                                difficulty={difficulty}
+                                setDifficulty={setDifficulty}
+                                addPlayer={addPlayer}
+                                removePlayer={removePlayer}
+                                updatePlayerName={updatePlayerName}
+                                onStart={startGame} 
+                            />
+                        )}
+                        {view === 'GAME' && (
+                            <div className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full">
+                                {/* HUD Superior */}
+                                <div className="glass-hud p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center gap-6 border-b-2 border-accent/30">
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-accent">Entrenamiento ISO 45001</span>
+                                            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Memory Preventivo</h2>
+                                        </div>
+                                        <div className="h-10 w-px bg-white/10 hidden md:block"></div>
+                                        <div className="flex gap-4">
+                                            {players.map((p, idx) => (
+                                                <div 
+                                                    key={p.id} 
+                                                    className={`px-4 py-2 rounded-xl border-2 transition-all ${
+                                                        currentPlayerIdx === idx 
+                                                        ? 'bg-accent/20 border-accent scale-105' 
+                                                        : 'bg-white/5 border-white/10 opacity-50'
+                                                    }`}
+                                                >
+                                                    <p className="text-[8px] font-black uppercase text-accent">{p.name}</p>
+                                                    <p className="text-xl font-black text-white">{p.score} <span className="text-[10px] opacity-50">PARES</span></p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-accent">Progreso</p>
+                                            <p className="text-2xl font-mono font-bold text-white">
+                                                {matched.length / 2} / {difficulty}
+                                            </p>
+                                        </div>
+                                        <button 
+                                            onClick={() => setView('INTRO')}
+                                            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                                        >
+                                            <RotateCcw className="w-5 h-5 text-white" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Grilla de Cartas */}
+                                <div className={`flex-1 grid gap-4 ${
+                                    difficulty === 6 ? 'grid-cols-3 md:grid-cols-4' : 
+                                    difficulty === 12 ? 'grid-cols-4 md:grid-cols-6' : 
+                                    'grid-cols-5 md:grid-cols-8'
+                                } content-center`}>
+                                    {cards.map((card, idx) => (
+                                        <div 
+                                            key={card.id} 
+                                            className={`card-container aspect-[3/4] ${flipped.includes(idx) || matched.includes(idx) ? 'card-flipped' : ''}`}
+                                            onClick={() => handleCardClick(idx)}
+                                        >
+                                            <div className="card-inner">
+                                                {/* Parte Trasera (Oculta) */}
+                                                <div className="card-front">
+                                                    <Shield className="w-12 h-12 text-white/10" />
+                                                    <div className="absolute inset-2 border border-white/5 rounded-lg"></div>
+                                                </div>
+                                                {/* Parte Delantera (Visible) */}
+                                                <div 
+                                                    className={`card-back ${matched.includes(idx) ? 'pulse-success border-success border-4' : 'border-white/20 border-2'}`}
+                                                    style={{ backgroundColor: card.bgColor }}
+                                                >
+                                                    {card.type === 'visual' ? (
+                                                        <>
+                                                            <span className="text-5xl md:text-6xl mb-2">{card.content}</span>
+                                                            <span className="text-[8px] font-black uppercase tracking-widest text-white/80 bg-black/20 px-2 py-1 rounded">
+                                                                {card.signalType}
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <div className="h-full flex flex-col items-center justify-center text-center p-2 bg-white rounded-lg w-full">
+                                                            <p className="text-primary font-bold text-xs md:text-sm leading-tight mb-2">
+                                                                {card.content}
+                                                            </p>
+                                                            <p className="text-[8px] font-mono text-primary/60">
+                                                                {card.norm}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Overlay de Información de Par */}
+                                <AnimatePresence>
+                                    {showMatchInfo && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 50 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 50 }}
+                                            className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50"
+                                        >
+                                            <div className="glass-hud p-6 rounded-3xl border-2 border-success shadow-2xl flex items-center gap-6">
+                                                <div 
+                                                    className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl flex-shrink-0"
+                                                    style={{ backgroundColor: showMatchInfo.color_fondo }}
+                                                >
+                                                    {showMatchInfo.emoji}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <CheckCircle2 className="w-4 h-4 text-success" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-success">¡PAR ENCONTRADO!</span>
+                                                    </div>
+                                                    <h4 className="text-xl font-black text-white uppercase tracking-tighter mb-2">{showMatchInfo.descripcion}</h4>
+                                                    <p className="text-xs text-on-surface-variant leading-relaxed italic">
+                                                        {showMatchInfo.desc_larga}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        )}
+                        {view === 'END' && (
+                            <EndScreen 
+                                players={players} 
+                                onRestart={() => setView('INTRO')} 
+                            />
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        }
+
+        function IntroScreen({ players, difficulty, setDifficulty, addPlayer, removePlayer, updatePlayerName, onStart }) {
+            return (
+                <div className="flex-1 flex items-center justify-center p-6">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="max-w-4xl w-full glass-hud p-12 rounded-[3rem] border border-accent/20 shadow-2xl"
+                    >
+                        <div className="text-center mb-12">
+                            <div className="mb-6 inline-block p-4 bg-accent/10 rounded-full border-2 border-accent/30">
+                                <LayoutGrid className="w-12 h-12 text-accent" />
+                            </div>
+                            <h1 className="text-6xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
+                                MEMORY <span className="text-accent">PREVENTIVO</span>
+                            </h1>
+                            <p className="text-accent font-black uppercase tracking-[0.4em] text-xs">Señalética ISO 45001 / 7010</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            {/* Configuración de Jugadores */}
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-accent" /> Operadores
+                                    </h3>
+                                    <div className="flex gap-2">
+                                        <button onClick={removePlayer} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10">-</button>
+                                        <button onClick={addPlayer} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10">+</button>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    {players.map(p => (
+                                        <div key={p.id} className="flex gap-4 items-center bg-black/20 p-4 rounded-xl border border-white/5">
+                                            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-black text-xs">
+                                                {p.id}
+                                            </div>
+                                            <input 
+                                                type="text" 
+                                                value={p.name}
+                                                onChange={(e) => updatePlayerName(p.id, e.target.value)}
+                                                className="bg-transparent border-b border-white/10 focus:border-accent outline-none text-white font-bold flex-1"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Configuración de Dificultad */}
+                            <div className="space-y-6">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                                    <Shield className="w-4 h-4 text-accent" /> Nivel de Entrenamiento
+                                </h3>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {[
+                                        { val: 6, label: 'FÁCIL', desc: '6 Pares - Entrenamiento Básico' },
+                                        { val: 12, label: 'MEDIO', desc: '12 Pares - Operador Calificado' },
+                                        { val: 20, label: 'DIFÍCIL', desc: '20 Pares - Experto en Seguridad' }
+                                    ].map(d => (
+                                        <button 
+                                            key={d.val}
+                                            onClick={() => setDifficulty(d.val)}
+                                            className={`p-6 rounded-2xl border-2 text-left transition-all ${difficulty === d.val ? 'bg-accent/20 border-accent' : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'}`}
+                                        >
+                                            <p className="text-xs font-black text-accent mb-1">{d.label}</p>
+                                            <p className="text-white font-bold">{d.desc}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={onStart}
+                            className="mt-12 w-full py-6 bg-accent text-primary font-black rounded-sm block-shadow hover:translate-y-[-4px] active:translate-y-0 transition-all uppercase tracking-widest text-2xl"
+                        >
+                            Iniciar Jornada
+                        </button>
+                    </motion.div>
+                </div>
+            );
+        }
+
+        function EndScreen({ players, onRestart }) {
+            const sorted = [...players].sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.turns - b.turns;
+            });
+
+            useEffect(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f59e0b', '#10b981', '#ffffff']
+                });
+            }, []);
+
+            return (
+                <div className="flex-1 flex items-center justify-center p-6">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="max-w-2xl w-full glass-hud p-12 rounded-[3rem] border border-success/20 text-center shadow-2xl"
+                    >
+                        <div className="mb-8 inline-block p-4 bg-success/10 rounded-full border-2 border-success/30">
+                            <Trophy className="w-12 h-12 text-success" />
+                        </div>
+                        <h2 className="text-5xl font-black text-white mb-2 tracking-tighter uppercase">¡ENTRENAMIENTO COMPLETADO!</h2>
+                        <p className="text-on-surface-variant font-black uppercase tracking-[0.4em] text-[10px] mb-12">Resultados de la Auditoría</p>
+                        
+                        <div className="space-y-4 mb-12">
+                            {sorted.map((p, idx) => (
+                                <div 
+                                    key={p.id} 
+                                    className={`flex items-center justify-between p-6 rounded-2xl border-2 ${idx === 0 ? 'bg-accent/20 border-accent scale-105' : 'bg-white/5 border-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-2xl font-black text-accent">{idx + 1}°</span>
+                                        <div className="text-left">
+                                            <p className="text-white font-black uppercase">{p.name}</p>
+                                            <p className="text-[10px] text-on-surface-variant uppercase">{p.turns} turnos realizados</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-3xl font-black text-white">{p.score}</p>
+                                        <p className="text-[10px] text-accent font-black uppercase">PARES</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <button 
+                            onClick={onRestart}
+                            className="w-full py-6 bg-success text-primary font-black rounded-sm block-shadow hover:translate-y-[-4px] transition-all uppercase tracking-widest text-xl"
+                        >
+                            Nueva Partida
+                        </button>
+                    </motion.div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

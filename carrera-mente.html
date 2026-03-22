@@ -1,0 +1,539 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrera de la Mente Preventiva - PrevenEHS</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <style>
+    @import "tailwindcss";
+
+    @theme {
+      --font-sans: 'Inter', sans-serif;
+      --font-display: 'Space Grotesk', sans-serif;
+      --color-primary: #3b82f6;
+      --color-secondary: #10b981;
+      --color-tertiary: #f59e0b;
+      --color-error-rose: #f43f5e;
+      --color-ehs-purple: #a855f7;
+    }
+
+    body {
+      background-color: #020617;
+      color: #f8fafc;
+      font-family: var(--font-sans);
+      overflow: hidden;
+    }
+
+    .tv-studio-bg {
+      background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+
+    .roulette-spin {
+      transition: transform 3s cubic-bezier(0.15, 0, 0.15, 1);
+    }
+
+    .progress-bar-animate {
+      transition: width 1s linear, background-color 0.5s ease;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #f59e0b;
+      animation: fall 3s linear infinite;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(100vh) rotate(360deg); }
+    }
+
+    .option-btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .option-btn:active {
+      transform: scale(0.95);
+    }
+
+    .podium-step {
+      transition: height 1s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div class="tv-studio-bg"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=373988263&single=true&output=csv';
+
+    const CATEGORIES = {
+      epp: { id: 'epp', label: 'EPP', icon: '🦺', color: '#3b82f6', bg: 'bg-blue-500' },
+      legislacion: { id: 'legislacion', label: 'Legislación', icon: '⚖️', color: '#10b981', bg: 'bg-emerald-500' },
+      senaletica: { id: 'senaletica', label: 'Señalética', icon: '🔴', color: '#f43f5e', bg: 'bg-rose-500' },
+      emergencias: { id: 'emergencias', label: 'Emergencias', icon: '🚨', color: '#f59e0b', bg: 'bg-orange-500' },
+      gestion: { id: 'gestion', label: 'Gestión EHS', icon: '📋', color: '#a855f7', bg: 'bg-purple-500' }
+    };
+
+    const FALLBACK_DATA = [
+      // EPP
+      { cat: 'epp', q: "¿Qué EPP es obligatorio para trabajos en altura?", a: "Arnés de seguridad", o: ["Casco", "Arnés de seguridad", "Guantes", "Lentes"], exp: "El arnés previene caídas a distinto nivel." },
+      { cat: 'epp', q: "¿Cuándo se deben usar protectores auditivos?", a: "Sobre los 85 dB", o: ["Siempre", "Sobre los 85 dB", "Solo en obras", "Nunca"], exp: "El ruido excesivo causa daño irreversible." },
+      { cat: 'epp', q: "¿Qué protege el calzado de seguridad con puntera?", a: "Los dedos del pie", o: ["El tobillo", "Los dedos del pie", "La planta", "El talón"], exp: "Evita lesiones por caída de objetos pesados." },
+      { cat: 'epp', q: "¿Qué significa la sigla EPP?", a: "Elemento de Protección Personal", o: ["Equipo Para Personas", "Elemento de Protección Personal", "Estándar de Prevención", "Equipo de Primeros Pasos"], exp: "Son la última barrera de defensa del trabajador." },
+      { cat: 'epp', q: "¿Cómo se debe limpiar un lente de seguridad?", a: "Con agua y jabón neutro", o: ["Con alcohol", "Con la ropa", "Con agua y jabón neutro", "Con solventes"], exp: "Los solventes pueden dañar el tratamiento del lente." },
+      // Legislación
+      { cat: 'legislacion', q: "¿Cuál es la ley de Higiene y Seguridad en Argentina?", a: "19.587", o: ["24.557", "19.587", "20.744", "26.773"], exp: "Es la ley base de la prevención en el país." },
+      { cat: 'legislacion', q: "¿Qué cubre la Ley de Riesgos del Trabajo (24.557)?", a: "Accidentes y enfermedades profesionales", o: ["Solo despidos", "Accidentes y enfermedades profesionales", "Vacaciones", "Sueldos"], exp: "Regula la prevención y reparación de daños laborales." },
+      { cat: 'legislacion', q: "¿Qué es un accidente 'in itinere'?", a: "Ocurrido en el trayecto al trabajo", o: ["Ocurrido en la oficina", "Ocurrido en el trayecto al trabajo", "Ocurrido en vacaciones", "Ocurrido por negligencia"], exp: "Es el trayecto directo entre el domicilio y el trabajo." },
+      { cat: 'legislacion', q: "¿Quién debe proveer los EPP según la ley?", a: "El empleador", o: ["El trabajador", "El sindicato", "El empleador", "La ART"], exp: "Es obligación legal del empleador proveer seguridad." },
+      { cat: 'legislacion', q: "¿Qué significa ART?", a: "Aseguradora de Riesgos del Trabajo", o: ["Asociación de Riesgos Totales", "Aseguradora de Riesgos del Trabajo", "Administración de Recursos", "Área de Riesgo Técnico"], exp: "Son entidades privadas contratadas por empleadores." },
+      // Señalética
+      { cat: 'senaletica', q: "¿Qué indica el color azul en seguridad?", a: "Obligación", o: ["Prohibición", "Advertencia", "Obligación", "Información"], exp: "El azul indica una acción obligatoria (ej. usar casco)." },
+      { cat: 'senaletica', q: "¿De qué color son las señales de advertencia?", a: "Amarillo", o: ["Rojo", "Verde", "Amarillo", "Azul"], exp: "El amarillo con negro indica precaución o riesgo." },
+      { cat: 'senaletica', q: "¿Qué forma tienen las señales de prohibición?", a: "Circular con banda transversal", o: ["Triangular", "Cuadrada", "Circular con banda transversal", "Rectangular"], exp: "El círculo rojo tachado prohíbe una acción." },
+      { cat: 'senaletica', q: "¿Qué indica una señal verde rectangular?", a: "Salida de emergencia / Auxilio", o: ["Peligro", "Obligación", "Salida de emergencia / Auxilio", "Incendio"], exp: "El verde se usa para condiciones seguras y rutas de escape." },
+      { cat: 'senaletica', q: "¿Qué color identifica a los equipos contra incendio?", a: "Rojo", o: ["Rojo", "Naranja", "Amarillo", "Blanco"], exp: "El rojo identifica extintores, hidrantes y alarmas." },
+      // Emergencias
+      { cat: 'emergencias', q: "¿Qué es lo primero que se debe hacer ante un incendio?", a: "Dar la voz de alarma", o: ["Correr", "Dar la voz de alarma", "Esconderse", "Abrir ventanas"], exp: "Alertar a los demás es vital para la evacuación." },
+      { cat: 'emergencias', q: "¿Qué significa la sigla PAS en primeros auxilios?", a: "Proteger, Avisar, Socorrer", o: ["Prevenir, Actuar, Salvar", "Proteger, Avisar, Socorrer", "Parar, Analizar, Seguir", "Prudencia, Apoyo, Salud"], exp: "Es el protocolo básico de actuación en emergencias." },
+      { cat: 'emergencias', q: "¿Cómo se debe usar un extintor?", a: "Apuntar a la base del fuego", o: ["Apuntar a las llamas", "Apuntar a la base del fuego", "Moverlo en círculos", "Lanzarlo al fuego"], exp: "Atacar la base extingue el combustible." },
+      { cat: 'emergencias', q: "¿Qué tipo de fuego es Clase A?", a: "Sólidos (madera, papel)", o: ["Líquidos inflamables", "Equipos eléctricos", "Sólidos (madera, papel)", "Metales"], exp: "Clase A son materiales que dejan brasas." },
+      { cat: 'emergencias', q: "¿Cuál es el número de emergencias médicas en Argentina?", a: "107", o: ["911", "100", "107", "101"], exp: "El 107 es el servicio de emergencias médicas (SAME)." },
+      // Gestión
+      { cat: 'gestion', q: "¿Qué es un 'incidente'?", a: "Suceso que pudo ser un accidente", o: ["Un accidente grave", "Suceso que pudo ser un accidente", "Una multa", "Una reunión"], exp: "Es un aviso de que algo anda mal antes de que alguien se lastime." },
+      { cat: 'gestion', q: "¿Qué significa la sigla EHS?", a: "Environment, Health and Safety", o: ["Essential Health System", "Environment, Health and Safety", "Emergency Help Service", "Engineering High Standard"], exp: "Ambiente, Salud y Seguridad." },
+      { cat: 'gestion', q: "¿Para qué sirve una matriz de riesgos?", a: "Identificar y evaluar peligros", o: ["Calcular sueldos", "Identificar y evaluar peligros", "Controlar horarios", "Comprar EPP"], exp: "Es la herramienta principal para priorizar la prevención." },
+      { cat: 'gestion', q: "¿Qué es la mejora continua?", a: "Ciclo PDCA (Planear, Hacer, Verificar, Actuar)", o: ["Trabajar más horas", "Ciclo PDCA (Planear, Hacer, Verificar, Actuar)", "Comprar máquinas nuevas", "No tener accidentes"], exp: "Es un proceso constante de optimización de la gestión." },
+      { cat: 'gestion', q: "¿Qué es un ATS?", a: "Análisis de Trabajo Seguro", o: ["Aviso de Tiempo Sucio", "Análisis de Trabajo Seguro", "Acuerdo de Tareas Simples", "Área de Trabajo Social"], exp: "Es el análisis previo a realizar una tarea específica." }
+    ];
+
+    const EMOJIS = ['👷', '👩‍🚒', '👨‍🔬', '👮', '👷‍♀️', '🕵️', '👩‍🏭', '👨‍🔧'];
+
+    const App = () => {
+      const [view, setView] = useState('SETUP'); // SETUP, GAME, WINNER
+      const [players, setPlayers] = useState([]);
+      const [questions, setQuestions] = useState([]);
+      const [currentRound, setCurrentRound] = useState(1);
+      const [currentPlayerIdx, setCurrentPlayerIdx] = useState(0);
+      const [gameState, setGameState] = useState('IDLE'); // IDLE, SPINNING, QUESTION, FEEDBACK
+      const [selectedCategory, setSelectedCategory] = useState(null);
+      const [currentQuestion, setCurrentQuestion] = useState(null);
+      const [timer, setTimer] = useState(20);
+      const [scoreEarned, setScoreEarned] = useState(0);
+      const [rotation, setRotation] = useState(0);
+
+      useEffect(() => {
+        fetch(SHEETS_URL)
+          .then(r => r.text())
+          .then(csv => {
+            const lines = csv.split('\n').slice(1);
+            const parsed = lines.map(line => {
+              const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+              if (cols.length < 4) return null;
+              return {
+                cat: cols[0].toLowerCase(),
+                q: cols[1],
+                a: cols[2],
+                o: cols[3].split('|').map(o => o.trim()),
+                diff: cols[4],
+                exp: cols[5]
+              };
+            }).filter(q => q && CATEGORIES[q.cat]);
+            
+            if (parsed.length > 0) setQuestions(parsed);
+            else setQuestions(FALLBACK_DATA);
+          })
+          .catch(() => setQuestions(FALLBACK_DATA));
+      }, []);
+
+      const handleStart = (newPlayers) => {
+        setPlayers(newPlayers.map(p => ({ ...p, score: 0 })));
+        setView('GAME');
+      };
+
+      const spinRoulette = () => {
+        if (gameState !== 'IDLE') return;
+        setGameState('SPINNING');
+        const extraRots = 5 + Math.random() * 5;
+        const newRot = rotation + extraRots * 360;
+        setRotation(newRot);
+
+        setTimeout(() => {
+          const finalAngle = newRot % 360;
+          const catKeys = Object.keys(CATEGORIES);
+          // 360 / 5 = 72 degrees per sector
+          // Arrow is at top (0 deg). Roulette rotates clockwise.
+          // Sector 0: 0-72, Sector 1: 72-144, etc.
+          // But since the roulette rotates, we need to find which sector is at the top.
+          // (360 - (finalAngle % 360)) / 72
+          const idx = Math.floor(((360 - (finalAngle % 360)) % 360) / 72);
+          const cat = CATEGORIES[catKeys[idx]];
+          setSelectedCategory(cat);
+          
+          const catQuestions = questions.filter(q => q.cat === cat.id);
+          const q = catQuestions[Math.floor(Math.random() * catQuestions.length)];
+          setCurrentQuestion(q);
+          
+          setGameState('QUESTION');
+          setTimer(20);
+        }, 3000);
+      };
+
+      useEffect(() => {
+        let interval;
+        if (gameState === 'QUESTION' && timer > 0) {
+          interval = setInterval(() => setTimer(t => t - 1), 1000);
+        } else if (gameState === 'QUESTION' && timer === 0) {
+          handleAnswer(null);
+        }
+        return () => clearInterval(interval);
+      }, [gameState, timer]);
+
+      const handleAnswer = (option) => {
+        if (gameState !== 'QUESTION') return;
+        
+        let points = 0;
+        if (option === currentQuestion.a) {
+          points = timer > 10 ? 3 : 1;
+        }
+        
+        setScoreEarned(points);
+        setPlayers(prev => {
+          const next = [...prev];
+          next[currentPlayerIdx].score += points;
+          return next;
+        });
+        
+        setGameState('FEEDBACK');
+        
+        setTimeout(() => {
+          // Next turn logic
+          if (currentPlayerIdx < players.length - 1) {
+            setCurrentPlayerIdx(currentPlayerIdx + 1);
+            setGameState('IDLE');
+          } else {
+            if (currentRound < 5) {
+              setCurrentRound(currentRound + 1);
+              setCurrentPlayerIdx(0);
+              setGameState('IDLE');
+            } else {
+              setView('WINNER');
+            }
+          }
+          setSelectedCategory(null);
+          setCurrentQuestion(null);
+        }, 3500);
+      };
+
+      if (view === 'SETUP') return <SetupView onStart={handleStart} />;
+      if (view === 'WINNER') return <WinnerView players={players} />;
+
+      return (
+        <div className="h-screen flex flex-col p-6 max-w-6xl mx-auto">
+          {/* Header Panel */}
+          <div className="flex justify-between items-center bg-slate-900/80 backdrop-blur p-4 rounded-2xl border border-white/10 shadow-2xl mb-6">
+            <div className="flex gap-6">
+              {players.map((p, i) => (
+                <div key={i} className={`flex items-center gap-3 p-2 rounded-xl transition-all ${i === currentPlayerIdx ? 'bg-white/10 ring-2 ring-primary' : 'opacity-50'}`}>
+                  <span className="text-3xl">{p.emoji}</span>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{p.name}</p>
+                    <p className="text-xl font-display text-white">{p.score} <span className="text-sm font-normal text-slate-500">PTS</span></p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">Ronda</p>
+              <p className="text-4xl font-display text-white">{currentRound}<span className="text-xl text-slate-500">/5</span></p>
+            </div>
+          </div>
+
+          {/* Main Stage */}
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            {gameState === 'IDLE' || gameState === 'SPINNING' ? (
+              <div className="flex flex-col items-center gap-8">
+                <h2 className="text-2xl font-bold text-slate-300 uppercase tracking-widest animate-pulse">
+                  Turno de {players[currentPlayerIdx]?.name}
+                </h2>
+                <div className="relative">
+                  {/* Arrow Indicator */}
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 text-white text-4xl drop-shadow-lg">▼</div>
+                  <svg 
+                    width="400" height="400" viewBox="0 0 400 400" 
+                    className="roulette-spin drop-shadow-[0_0_50px_rgba(59,130,246,0.3)]"
+                    style={{ transform: `rotate(${rotation}deg)` }}
+                  >
+                    {Object.keys(CATEGORIES).map((key, i) => {
+                      const angle = 72;
+                      const startAngle = i * angle;
+                      const endAngle = (i + 1) * angle;
+                      const x1 = 200 + 180 * Math.cos((startAngle - 90) * Math.PI / 180);
+                      const y1 = 200 + 180 * Math.sin((startAngle - 90) * Math.PI / 180);
+                      const x2 = 200 + 180 * Math.cos((endAngle - 90) * Math.PI / 180);
+                      const y2 = 200 + 180 * Math.sin((endAngle - 90) * Math.PI / 180);
+                      
+                      return (
+                        <g key={key}>
+                          <path 
+                            d={`M 200 200 L ${x1} ${y1} A 180 180 0 0 1 ${x2} ${y2} Z`} 
+                            fill={CATEGORIES[key].color}
+                            stroke="#020617"
+                            strokeWidth="4"
+                          />
+                          <text 
+                            x="200" y="80" 
+                            transform={`rotate(${startAngle + 36}, 200, 200)`}
+                            fill="white" textAnchor="middle" fontSize="32"
+                          >
+                            {CATEGORIES[key].icon}
+                          </text>
+                        </g>
+                      );
+                    })}
+                    <circle cx="200" cy="200" r="40" fill="#020617" />
+                    <circle cx="200" cy="200" r="35" fill="none" stroke="white" strokeWidth="2" strokeDasharray="4 4" />
+                  </svg>
+                </div>
+                <button 
+                  onClick={spinRoulette}
+                  disabled={gameState === 'SPINNING'}
+                  className="px-12 py-4 bg-primary hover:bg-blue-600 disabled:opacity-50 text-white font-display text-2xl rounded-full shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all transform hover:scale-110 active:scale-95 uppercase tracking-widest"
+                >
+                  {gameState === 'SPINNING' ? 'Girando...' : '¡GIRAR!'}
+                </button>
+              </div>
+            ) : (
+              <div className="w-full max-w-3xl bg-slate-900/50 backdrop-blur-xl p-10 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden">
+                {/* Timer Bar */}
+                <div className="absolute top-0 left-0 w-full h-2 bg-slate-800">
+                  <div 
+                    className="h-full progress-bar-animate"
+                    style={{ 
+                      width: `${(timer / 20) * 100}%`,
+                      backgroundColor: timer > 10 ? '#10b981' : timer > 5 ? '#f59e0b' : '#f43f5e'
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center gap-4 mb-8">
+                  <div className={`w-16 h-16 rounded-2xl ${selectedCategory.bg} flex items-center justify-center text-4xl shadow-lg`}>
+                    {selectedCategory.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-slate-400 font-bold uppercase tracking-widest text-sm">{selectedCategory.label}</h3>
+                    <p className="text-white font-display text-2xl">Pregunta de Desafío</p>
+                  </div>
+                  <div className="ml-auto flex flex-col items-end">
+                    <span className={`text-4xl font-display ${timer <= 5 ? 'text-error-rose animate-pulse' : 'text-white'}`}>
+                      {timer}s
+                    </span>
+                  </div>
+                </div>
+
+                <h2 className="text-3xl font-bold text-white mb-10 leading-tight">
+                  {currentQuestion.q}
+                </h2>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {currentQuestion.o.map((opt, i) => {
+                    let btnClass = "bg-slate-800/50 hover:bg-slate-700 text-white border-white/5";
+                    if (gameState === 'FEEDBACK') {
+                      if (opt === currentQuestion.a) btnClass = "bg-emerald-500/20 border-emerald-500 text-emerald-400";
+                      else btnClass = "bg-slate-800/20 border-white/5 opacity-50";
+                    }
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleAnswer(opt)}
+                        disabled={gameState === 'FEEDBACK'}
+                        className={`option-btn w-full p-6 text-left rounded-2xl border-2 text-xl font-medium flex items-center gap-4 ${btnClass}`}
+                      >
+                        <span className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-sm font-bold border border-white/10">
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {gameState === 'FEEDBACK' && (
+                  <div className="mt-8 p-6 bg-white/5 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={scoreEarned > 0 ? 'text-emerald-400' : 'text-error-rose'}>
+                        {scoreEarned > 0 ? '✅ ¡Correcto!' : '❌ Incorrecto'}
+                      </span>
+                      {scoreEarned > 0 && <span className="text-emerald-400 font-bold">+{scoreEarned} PTS</span>}
+                    </div>
+                    <p className="text-slate-300 italic">
+                      {currentQuestion.exp}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const SetupView = ({ onStart }) => {
+      const [playerCount, setPlayerCount] = useState(2);
+      const [names, setNames] = useState(['Jugador 1', 'Jugador 2', 'Jugador 3', 'Jugador 4']);
+      const [emojis, setEmojis] = useState(['👷', '👩‍🚒', '👨‍🔬', '👮']);
+
+      return (
+        <div className="h-screen flex items-center justify-center p-6">
+          <div className="w-full max-w-2xl bg-slate-900/80 backdrop-blur-xl p-12 rounded-[3rem] border border-white/10 shadow-2xl text-center">
+            <h1 className="text-5xl font-display font-bold text-white mb-2 tracking-tight">
+              CARRERA DE LA <span className="text-primary">MENTE</span>
+            </h1>
+            <p className="text-slate-400 font-bold uppercase tracking-widest mb-12">Desafío de Seguridad Industrial</p>
+            
+            <div className="mb-10">
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mb-4">Cantidad de Jugadores</p>
+              <div className="flex justify-center gap-4">
+                {[1, 2, 3, 4].map(n => (
+                  <button 
+                    key={n}
+                    onClick={() => setPlayerCount(n)}
+                    className={`w-16 h-16 rounded-2xl font-display text-2xl transition-all ${playerCount === n ? 'bg-primary text-white shadow-lg scale-110' : 'bg-slate-800 text-slate-500 hover:bg-slate-700'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-12">
+              {Array.from({ length: playerCount }).map((_, i) => (
+                <div key={i} className="flex gap-4 items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <button 
+                    onClick={() => {
+                      const nextEmoji = EMOJIS[(EMOJIS.indexOf(emojis[i]) + 1) % EMOJIS.length];
+                      const next = [...emojis];
+                      next[i] = nextEmoji;
+                      setEmojis(next);
+                    }}
+                    className="text-4xl hover:scale-125 transition-transform"
+                  >
+                    {emojis[i]}
+                  </button>
+                  <input 
+                    type="text" 
+                    value={names[i]}
+                    onChange={(e) => {
+                      const next = [...names];
+                      next[i] = e.target.value;
+                      setNames(next);
+                    }}
+                    className="bg-transparent border-b-2 border-white/10 focus:border-primary outline-none text-white text-xl font-bold w-full px-2 py-1"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => onStart(Array.from({ length: playerCount }).map((_, i) => ({ name: names[i], emoji: emojis[i] })))}
+              className="w-full py-6 bg-primary hover:bg-blue-600 text-white font-display text-2xl rounded-2xl shadow-xl transition-all transform hover:scale-105 active:scale-95 uppercase tracking-widest"
+            >
+              ¡Comenzar Carrera!
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const WinnerView = ({ players }) => {
+      const sorted = [...players].sort((a, b) => b.score - a.score);
+      
+      useEffect(() => {
+        // Simple confetti effect
+        const container = document.getElementById('confetti-container');
+        for(let i=0; i<100; i++) {
+          const c = document.createElement('div');
+          c.className = 'confetti';
+          c.style.left = Math.random() * 100 + 'vw';
+          c.style.backgroundColor = ['#3b82f6', '#10b981', '#f59e0b', '#f43f5e'][Math.floor(Math.random()*4)];
+          c.style.animationDelay = Math.random() * 3 + 's';
+          container.appendChild(c);
+        }
+      }, []);
+
+      return (
+        <div className="h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+          <div id="confetti-container" className="fixed inset-0 pointer-events-none"></div>
+          
+          <h1 className="text-6xl font-display font-bold text-white mb-20 tracking-tight z-10">
+            PODIO DE <span className="text-tertiary">CAMPEONES</span>
+          </h1>
+
+          <div className="flex items-end gap-4 z-10">
+            {/* 2nd Place */}
+            {sorted[1] && (
+              <div className="flex flex-col items-center">
+                <span className="text-5xl mb-4">{sorted[1].emoji}</span>
+                <p className="text-slate-400 font-bold uppercase mb-2">{sorted[1].name}</p>
+                <div className="w-40 h-48 bg-slate-800 rounded-t-3xl flex flex-col items-center justify-center border-x border-t border-white/10 shadow-2xl podium-step">
+                  <span className="text-4xl font-display text-slate-500 mb-2">2°</span>
+                  <p className="text-xl font-bold text-white">{sorted[1].score} PTS</p>
+                </div>
+              </div>
+            )}
+
+            {/* 1st Place */}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 text-4xl animate-bounce">👑</span>
+                <span className="text-7xl mb-4 block">{sorted[0].emoji}</span>
+              </div>
+              <p className="text-white font-bold text-2xl uppercase mb-2">{sorted[0].name}</p>
+              <div className="w-48 h-72 bg-tertiary rounded-t-3xl flex flex-col items-center justify-center shadow-[0_0_50px_rgba(245,158,11,0.3)] podium-step">
+                <span className="text-6xl font-display text-white mb-4">1°</span>
+                <p className="text-2xl font-bold text-white">{sorted[0].score} PTS</p>
+              </div>
+            </div>
+
+            {/* 3rd Place */}
+            {sorted[2] && (
+              <div className="flex flex-col items-center">
+                <span className="text-5xl mb-4">{sorted[2].emoji}</span>
+                <p className="text-slate-400 font-bold uppercase mb-2">{sorted[2].name}</p>
+                <div className="w-40 h-32 bg-slate-900 rounded-t-3xl flex flex-col items-center justify-center border-x border-t border-white/10 shadow-2xl podium-step">
+                  <span className="text-4xl font-display text-slate-600 mb-2">3°</span>
+                  <p className="text-xl font-bold text-white">{sorted[2].score} PTS</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-20 px-12 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full border border-white/10 transition-all z-10"
+          >
+            Nueva Partida
+          </button>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

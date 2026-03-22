@@ -1,0 +1,609 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JENGA SEGURO | PrevenEHS</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/motion@11.11.13/dist/motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        headline: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        charcoal: '#121212',
+                        primary: '#10b981', // emerald-500
+                        secondary: '#f59e0b', // amber-500
+                        error: '#f43f5e', // rose-500
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import "tailwindcss";
+
+        :root {
+            --bg-wood: #1a1410;
+            --wood-grain: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            background-color: var(--bg-wood);
+            background-image: 
+                linear-gradient(90deg, var(--wood-grain) 1px, transparent 1px),
+                linear-gradient(var(--wood-grain) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .glass-hud {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .block-shadow {
+            box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.5);
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-grid { 
+                display: grid !important; 
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 0 !important;
+            }
+            .card-print {
+                border: 1px dashed #ccc !important;
+                page-break-inside: avoid;
+                color: black !important;
+                background: white !important;
+            }
+        }
+
+        .jenga-block {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            cursor: pointer;
+        }
+        .jenga-block:hover {
+            transform: scale(1.05) translateZ(10px);
+            filter: brightness(1.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        const { 
+            Shield, Printer, Monitor, ChevronLeft, 
+            CheckCircle2, XCircle, RotateCcw, Info,
+            AlertTriangle, Zap, HelpCircle, Filter,
+            Download, Layers
+        } = lucide;
+
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1277101713&single=true&output=csv';
+
+        const JENGA_FALLBACK = Array.from({ length: 54 }, (_, i) => {
+            const level = i < 18 ? 'Básico' : i < 36 ? 'Medio' : 'Experto';
+            const categories = ['EPP', 'Alturas', 'Incendio', 'Ergonomía', 'Gestión', 'Químicos'];
+            return {
+                numero: i + 1,
+                pregunta: `Pregunta de seguridad nivel ${level} #${i + 1}: ¿Cuál es el procedimiento correcto ante un riesgo detectado?`,
+                respuesta: `Respuesta para el nivel ${level}.`,
+                nivel: level,
+                categoria: categories[i % categories.length],
+                explicacion: `Explicación técnica detallada sobre la normativa aplicable al nivel ${level}.`
+            };
+        });
+
+        const JengaApp = () => {
+            const [view, setView] = useState('START');
+            const [data, setData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [score, setScore] = useState({ correct: 0, incorrect: 0 });
+            const [answeredIds, setAnsweredIds] = useState(new Set());
+            const [selectedBlock, setSelectedBlock] = useState(null);
+            const [revealAnswer, setRevealAnswer] = useState(false);
+            
+            // Filters for Print Mode
+            const [printFilters, setPrintFilters] = useState({
+                niveles: ['Básico', 'Medio', 'Experto'],
+                categorias: []
+            });
+
+            useEffect(() => {
+                fetch(SHEETS_URL)
+                    .then(res => res.text())
+                    .then(csv => {
+                        const rows = csv.split('\n').slice(1);
+                        const parsed = rows.map(row => {
+                            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                            return {
+                                numero: parseInt(cols[0]),
+                                pregunta: cols[1],
+                                respuesta: cols[2],
+                                nivel: cols[3],
+                                categoria: cols[4],
+                                explicacion: cols[5]
+                            };
+                        }).filter(d => !isNaN(d.numero));
+                        setData(parsed.length > 0 ? parsed : JENGA_FALLBACK);
+                        setLoading(false);
+                    })
+                    .catch(() => {
+                        setData(JENGA_FALLBACK);
+                        setLoading(false);
+                    });
+            }, []);
+
+            const categories = useMemo(() => [...new Set(data.map(d => d.categoria))], [data]);
+
+            const filteredData = useMemo(() => {
+                return data.filter(d => 
+                    printFilters.niveles.includes(d.nivel) && 
+                    (printFilters.categorias.length === 0 || printFilters.categorias.includes(d.categoria))
+                );
+            }, [data, printFilters]);
+
+            const handleBlockClick = (block) => {
+                if (answeredIds.has(block.numero)) return;
+                setSelectedBlock(block);
+                setRevealAnswer(false);
+            };
+
+            const handleAnswer = (correct) => {
+                setScore(prev => ({
+                    correct: prev.correct + (correct ? 1 : 0),
+                    incorrect: prev.incorrect + (correct ? 0 : 1)
+                }));
+                setAnsweredIds(prev => new Set(prev).add(selectedBlock.numero));
+                setSelectedBlock(null);
+                if (correct) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            };
+
+            const resetGame = () => {
+                setScore({ correct: 0, incorrect: 0 });
+                setAnsweredIds(new Set());
+                setSelectedBlock(null);
+            };
+
+            const getLevelColor = (nivel) => {
+                switch(nivel) {
+                    case 'Básico': return '#10b981';
+                    case 'Medio': return '#f59e0b';
+                    case 'Experto': return '#f43f5e';
+                    default: return '#666';
+                }
+            };
+
+            if (loading) return (
+                <div className="h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+                        <p className="font-mono text-xs uppercase tracking-widest opacity-50">Cargando Protocolos...</p>
+                    </div>
+                </div>
+            );
+
+            if (view === 'START') return (
+                <div className="h-screen flex items-center justify-center p-6">
+                    <div className="max-w-4xl w-full grid md:grid-cols-2 gap-8">
+                        <motion.div 
+                            initial={{ x: -50, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            className="glass-hud p-12 rounded-[3rem] border border-white/10 flex flex-col items-center text-center space-y-8"
+                        >
+                            <div className="p-6 bg-emerald-500/10 rounded-full border border-emerald-500/30">
+                                <Printer className="w-12 h-12 text-emerald-500" />
+                            </div>
+                            <div>
+                                <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">MODO IMPRESIÓN</h2>
+                                <p className="text-sm text-white/60">Genera etiquetas físicas para tu torre Jenga de madera.</p>
+                            </div>
+                            <button 
+                                onClick={() => setView('PRINT')}
+                                className="w-full py-4 bg-emerald-500 text-charcoal font-black rounded-xl block-shadow hover:translate-y-[-4px] transition-all uppercase tracking-widest"
+                            >
+                                CONFIGURAR ETIQUETAS
+                            </button>
+                        </motion.div>
+
+                        <motion.div 
+                            initial={{ x: 50, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            className="glass-hud p-12 rounded-[3rem] border border-white/10 flex flex-col items-center text-center space-y-8"
+                        >
+                            <div className="p-6 bg-amber-500/10 rounded-full border border-amber-500/30">
+                                <Monitor className="w-12 h-12 text-amber-500" />
+                            </div>
+                            <div>
+                                <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">MODO DIGITAL</h2>
+                                <p className="text-sm text-white/60">Usa la torre virtual proyectada para tu taller grupal.</p>
+                            </div>
+                            <button 
+                                onClick={() => setView('DIGITAL')}
+                                className="w-full py-4 bg-amber-500 text-charcoal font-black rounded-xl block-shadow hover:translate-y-[-4px] transition-all uppercase tracking-widest"
+                            >
+                                INICIAR TALLER
+                            </button>
+                        </motion.div>
+                    </div>
+                    <div className="fixed top-8 text-center w-full pointer-events-none">
+                        <h1 className="text-6xl font-black tracking-tighter uppercase">JENGA<span className="text-emerald-500">SEGURO</span></h1>
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] opacity-40">Industrial Safety Training System</p>
+                    </div>
+                </div>
+            );
+
+            if (view === 'PRINT') return (
+                <div className="min-h-screen p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <header className="flex justify-between items-center mb-12 no-print">
+                            <button onClick={() => setView('START')} className="flex items-center gap-2 text-white/60 hover:text-white transition-all uppercase font-black text-xs tracking-widest">
+                                <ChevronLeft size={16} /> Volver
+                            </button>
+                            <div className="text-center">
+                                <h2 className="text-3xl font-black uppercase tracking-tighter">CONFIGURACIÓN DE ETIQUETAS</h2>
+                                <p className="text-[10px] opacity-40 uppercase tracking-widest">Ajusta los parámetros antes de imprimir</p>
+                            </div>
+                            <button 
+                                onClick={() => window.print()}
+                                className="px-8 py-3 bg-emerald-500 text-charcoal font-black rounded-sm block-shadow flex items-center gap-2 uppercase text-sm tracking-widest"
+                            >
+                                <Printer size={18} /> IMPRIMIR AHORA
+                            </button>
+                        </header>
+
+                        <div className="grid lg:grid-cols-4 gap-8">
+                            {/* Sidebar Filters */}
+                            <aside className="space-y-8 no-print">
+                                <div className="glass-hud p-6 rounded-2xl border border-white/10">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-4 flex items-center gap-2">
+                                        <Layers size={14} /> Niveles
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {['Básico', 'Medio', 'Experto'].map(lvl => (
+                                            <label key={lvl} className="flex items-center gap-3 cursor-pointer group">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={printFilters.niveles.includes(lvl)}
+                                                    onChange={(e) => {
+                                                        const next = e.target.checked 
+                                                            ? [...printFilters.niveles, lvl]
+                                                            : printFilters.niveles.filter(n => n !== lvl);
+                                                        setPrintFilters(prev => ({ ...prev, niveles: next }));
+                                                    }}
+                                                    className="w-4 h-4 rounded border-white/20 bg-white/5 text-emerald-500 focus:ring-emerald-500"
+                                                />
+                                                <span className="text-sm font-medium opacity-60 group-hover:opacity-100 transition-all">{lvl}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="glass-hud p-6 rounded-2xl border border-white/10">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 flex items-center gap-2">
+                                        <Filter size={14} /> Categorías
+                                    </h3>
+                                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                                        {categories.map(cat => (
+                                            <label key={cat} className="flex items-center gap-3 cursor-pointer group">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={printFilters.categorias.includes(cat)}
+                                                    onChange={(e) => {
+                                                        const next = e.target.checked 
+                                                            ? [...printFilters.categorias, cat]
+                                                            : printFilters.categorias.filter(c => c !== cat);
+                                                        setPrintFilters(prev => ({ ...prev, categorias: next }));
+                                                    }}
+                                                    className="w-4 h-4 rounded border-white/20 bg-white/5 text-amber-500 focus:ring-amber-500"
+                                                />
+                                                <span className="text-sm font-medium opacity-60 group-hover:opacity-100 transition-all">{cat}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {printFilters.categorias.length > 0 && (
+                                        <button 
+                                            onClick={() => setPrintFilters(prev => ({ ...prev, categorias: [] }))}
+                                            className="mt-4 text-[10px] uppercase font-black text-white/40 hover:text-white transition-all"
+                                        >
+                                            Limpiar Filtros
+                                        </button>
+                                    )}
+                                </div>
+                            </aside>
+
+                            {/* Labels Grid */}
+                            <div className="lg:col-span-3">
+                                <div className="print-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {filteredData.map(item => (
+                                        <div key={item.numero} className="card-print bg-white text-black p-4 border-2 border-dashed border-black/10 flex flex-col min-h-[120px] relative overflow-hidden">
+                                            {/* Front Side */}
+                                            <div className="flex-1 border-b border-dashed border-black/20 pb-2 mb-2">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="text-2xl font-black leading-none">#{item.numero}</span>
+                                                    <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-black/20" style={{ backgroundColor: getLevelColor(item.nivel) + '22', color: getLevelColor(item.nivel) }}>
+                                                        {item.categoria}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[10px] font-bold leading-tight">{item.pregunta}</p>
+                                            </div>
+                                            {/* Back Side */}
+                                            <div className="flex-1">
+                                                <p className="text-[8px] font-black uppercase opacity-40 mb-1">Respuesta:</p>
+                                                <p className="text-[9px] font-bold leading-tight mb-1">{item.respuesta}</p>
+                                                <p className="text-[7px] italic leading-none opacity-60">{item.explicacion}</p>
+                                            </div>
+                                            {/* Level Indicator */}
+                                            <div className="absolute right-0 top-0 bottom-0 w-1" style={{ backgroundColor: getLevelColor(item.nivel) }}></div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {filteredData.length === 0 && (
+                                    <div className="text-center py-20 glass-hud rounded-3xl border border-white/10">
+                                        <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                                        <p className="text-white/60 font-black uppercase tracking-widest">No hay etiquetas que coincidan con los filtros.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (view === 'DIGITAL') return (
+                <div className="h-screen flex flex-col overflow-hidden">
+                    <header className="glass-hud p-6 flex justify-between items-center border-b border-white/10 z-10">
+                        <div className="flex items-center gap-6">
+                            <button onClick={() => setView('START')} className="p-2 hover:bg-white/5 rounded-lg transition-all">
+                                <ChevronLeft size={24} />
+                            </button>
+                            <div>
+                                <h1 className="text-2xl font-black tracking-tighter uppercase">JENGA<span className="text-emerald-500">SEGURO</span></h1>
+                                <p className="text-[8px] font-black uppercase tracking-[0.4em] opacity-40">Taller Digital Interactivo</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-8">
+                            <div className="flex gap-4">
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black uppercase text-emerald-500 tracking-widest">Correctas</p>
+                                    <p className="text-2xl font-black">{score.correct}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black uppercase text-rose-500 tracking-widest">Incorrectas</p>
+                                    <p className="text-2xl font-black">{score.incorrect}</p>
+                                </div>
+                            </div>
+                            <button onClick={resetGame} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10">
+                                <RotateCcw size={20} />
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 flex items-center justify-center p-8 relative">
+                        {/* Jenga Tower SVG */}
+                        <div className="w-full max-w-2xl h-full max-h-[80vh]">
+                            <svg viewBox="0 0 400 800" className="w-full h-full drop-shadow-2xl">
+                                {Array.from({ length: 18 }).map((_, rowIdx) => {
+                                    const y = 750 - (rowIdx * 40);
+                                    const isHorizontal = rowIdx % 2 === 0;
+                                    
+                                    return (
+                                        <g key={rowIdx}>
+                                            {Array.from({ length: 3 }).map((_, colIdx) => {
+                                                const blockNum = (rowIdx * 3) + colIdx + 1;
+                                                const block = data.find(d => d.numero === blockNum);
+                                                if (!block) return null;
+
+                                                const isAnswered = answeredIds.has(blockNum);
+                                                const color = getLevelColor(block.nivel);
+                                                
+                                                // Calculate block position
+                                                let x, width, height;
+                                                if (isHorizontal) {
+                                                    width = 120;
+                                                    height = 35;
+                                                    x = 20 + (colIdx * 125);
+                                                } else {
+                                                    width = 380;
+                                                    height = 35;
+                                                    x = 10;
+                                                    // Only show one big block or 3 vertical ones? 
+                                                    // Let's stick to 3 blocks per row for simplicity in clicking
+                                                    width = 120;
+                                                    x = 20 + (colIdx * 125);
+                                                }
+
+                                                // Slight rotation for 3D effect
+                                                const rot = (Math.random() - 0.5) * 2;
+
+                                                return (
+                                                    <rect 
+                                                        key={colIdx}
+                                                        x={x} y={y}
+                                                        width={width} height={height}
+                                                        rx="4"
+                                                        fill={color}
+                                                        fillOpacity={isAnswered ? 0.1 : 0.8}
+                                                        stroke="rgba(0,0,0,0.3)"
+                                                        strokeWidth="2"
+                                                        className="jenga-block"
+                                                        style={{ transform: `rotate(${rot}deg)`, transformOrigin: `${x + width/2}px ${y + height/2}px` }}
+                                                        onClick={() => handleBlockClick(block)}
+                                                    />
+                                                );
+                                            })}
+                                            {/* Block Numbers Overlay */}
+                                            {Array.from({ length: 3 }).map((_, colIdx) => {
+                                                const blockNum = (rowIdx * 3) + colIdx + 1;
+                                                const isAnswered = answeredIds.has(blockNum);
+                                                const x = 20 + (colIdx * 125) + 60;
+                                                return (
+                                                    <text 
+                                                        key={`txt-${colIdx}`}
+                                                        x={x} y={y + 22}
+                                                        textAnchor="middle"
+                                                        fill="white"
+                                                        fontSize="12"
+                                                        fontWeight="900"
+                                                        className="pointer-events-none opacity-60"
+                                                        style={{ opacity: isAnswered ? 0.1 : 0.6 }}
+                                                    >
+                                                        {blockNum}
+                                                    </text>
+                                                );
+                                            })}
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+
+                        {/* Legend */}
+                        <div className="absolute bottom-8 left-8 glass-hud p-6 rounded-2xl border border-white/10 space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Referencia de Niveles</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-4 h-4 rounded bg-emerald-500"></div>
+                                <span className="text-xs font-bold uppercase tracking-wider">Básico</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-4 h-4 rounded bg-amber-500"></div>
+                                <span className="text-xs font-bold uppercase tracking-wider">Medio</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-4 h-4 rounded bg-rose-500"></div>
+                                <span className="text-xs font-bold uppercase tracking-wider">Experto</span>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Question Modal */}
+                    <AnimatePresence>
+                        {selectedBlock && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90 backdrop-blur-md"
+                            >
+                                <motion.div 
+                                    initial={{ scale: 0.9, y: 20 }}
+                                    animate={{ scale: 1, y: 0 }}
+                                    className="max-w-4xl w-full glass-hud p-12 rounded-[3rem] border border-white/10 relative overflow-hidden"
+                                >
+                                    {/* Modal Background Decor */}
+                                    <div className="absolute top-0 right-0 p-12 opacity-5">
+                                        <Shield size={200} />
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <header className="flex justify-between items-center mb-12">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-5xl font-black text-white/20">#{selectedBlock.numero}</span>
+                                                <div>
+                                                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border" style={{ borderColor: getLevelColor(selectedBlock.nivel), color: getLevelColor(selectedBlock.nivel) }}>
+                                                        {selectedBlock.nivel}
+                                                    </span>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mt-1">{selectedBlock.categoria}</p>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setSelectedBlock(null)} className="p-2 hover:bg-white/5 rounded-full transition-all">
+                                                <XCircle size={32} className="opacity-20 hover:opacity-100" />
+                                            </button>
+                                        </header>
+
+                                        <div className="space-y-12">
+                                            <div className="space-y-4">
+                                                <p className="text-xs font-black uppercase tracking-[0.5em] text-emerald-500">Consigna</p>
+                                                <h2 className="text-4xl md:text-5xl font-black leading-tight tracking-tighter uppercase">
+                                                    {selectedBlock.pregunta}
+                                                </h2>
+                                            </div>
+
+                                            {revealAnswer ? (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="space-y-8"
+                                                >
+                                                    <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
+                                                        <p className="text-xs font-black uppercase tracking-[0.5em] text-amber-500 mb-4">Respuesta Oficial</p>
+                                                        <p className="text-2xl font-bold text-white mb-4">{selectedBlock.respuesta}</p>
+                                                        <div className="flex gap-3 items-start opacity-60">
+                                                            <Info size={16} className="mt-1 shrink-0" />
+                                                            <p className="text-sm italic">{selectedBlock.explicacion}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <button 
+                                                            onClick={() => handleAnswer(true)}
+                                                            className="py-6 bg-emerald-500 text-charcoal font-black rounded-2xl block-shadow flex items-center justify-center gap-3 uppercase tracking-widest hover:translate-y-[-4px] transition-all"
+                                                        >
+                                                            <CheckCircle2 size={24} /> CORRECTO
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleAnswer(false)}
+                                                            className="py-6 bg-rose-500 text-charcoal font-black rounded-2xl block-shadow flex items-center justify-center gap-3 uppercase tracking-widest hover:translate-y-[-4px] transition-all"
+                                                        >
+                                                            <XCircle size={24} /> INCORRECTO
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => setRevealAnswer(true)}
+                                                    className="w-full py-8 bg-white/5 border-2 border-dashed border-white/20 rounded-3xl text-white/40 font-black uppercase tracking-[0.5em] hover:bg-white/10 hover:border-white/40 transition-all flex items-center justify-center gap-4"
+                                                >
+                                                    <Zap className="text-amber-500" /> REVELAR RESPUESTA
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<JengaApp />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,703 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room EHS: Operación Causa Raíz</title>
+    <!-- CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/motion@11.11.13/dist/motion.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@300;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide-react@0.454.0/dist/umd/lucide-react.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import "tailwindcss";
+
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-display: "Space Grotesk", sans-serif;
+            --font-mono: "JetBrains Mono", monospace;
+            --color-primary: #1a1a1a; /* Carbón */
+            --color-accent: #f59e0b;  /* Ámbar */
+            --color-success: #10b981; /* Esmeralda */
+            --color-danger: #f43f5e;  /* Rosa */
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --ink: #e5e7eb;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+        }
+
+        .bg-hex-grid {
+            background-image: radial-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glass-hud {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(245, 158, 11, 0.1);
+        }
+
+        .dossier-paper {
+            background: #fdf6e3;
+            color: #1a1a1a;
+            font-family: var(--font-mono);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .block-shadow {
+            box-shadow: 4px 4px 0px #f59e0b;
+        }
+
+        .active-step {
+            animation: pulse-amber 2s infinite;
+        }
+
+        @keyframes pulse-amber {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 10px;
+        }
+
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid orange;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: .15em;
+            animation: 
+              typing 3.5s steps(40, end),
+              blink-caret .75s step-end infinite;
+        }
+
+        @keyframes typing {
+          from { width: 0 }
+          to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+          from, to { border-color: transparent }
+          50% { border-color: orange; }
+        }
+    </style>
+</head>
+<body class="bg-hex-grid min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        const { 
+            Search, 
+            FileText, 
+            AlertCircle, 
+            Clock, 
+            ChevronRight, 
+            HelpCircle, 
+            CheckCircle2, 
+            Lock, 
+            Unlock,
+            ArrowRight,
+            Camera,
+            User,
+            Zap,
+            ClipboardList
+        } = lucideReact;
+
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=833467272&single=true&output=csv';
+
+        const FALLBACK_DATA = [
+            // Etapa 1: Evidencias
+            { etapa: 1, tipo: 'evidencia', texto: 'Arnés de seguridad con fecha de inspección vencida', es_correcto: 'SI', pista: 'Revisa las etiquetas de los equipos.', explicacion: 'El equipo no estaba apto para el uso.' },
+            { etapa: 1, tipo: 'evidencia', texto: 'Andamio sin barandas perimetrales completas', es_correcto: 'SI', pista: 'Mira la estructura de trabajo.', explicacion: 'Falta de protección colectiva básica.' },
+            { etapa: 1, tipo: 'evidencia', texto: 'Falta de permiso de trabajo en altura firmado', es_correcto: 'SI', pista: 'Busca la documentación administrativa.', explicacion: 'No se evaluaron los riesgos antes de iniciar.' },
+            { etapa: 1, tipo: 'evidencia', texto: 'Casco de seguridad con barbijo colocado', es_correcto: 'NO', pista: '¿Esto es un problema?', explicacion: 'El casco estaba bien utilizado, no es evidencia de falla.' },
+            { etapa: 1, tipo: 'evidencia', texto: 'Botiquín de primeros auxilios completo', es_correcto: 'NO', pista: '¿Influye en la caída?', explicacion: 'Es una medida de respuesta, no causa del accidente.' },
+            
+            // Etapa 2: Inconsistencias
+            { etapa: 2, tipo: 'testigo', texto: '"El operario estaba usando su arnés enganchado a la línea de vida"', es_correcto: 'SI', pista: 'Compara con la evidencia del arnés roto.', explicacion: 'Inconsistencia: El arnés se encontró en el suelo sin rastros de tensión.' },
+            { etapa: 2, tipo: 'testigo', texto: '"Habíamos realizado la charla de 5 minutos esa mañana"', es_correcto: 'SI', pista: 'Revisa el registro de firmas.', explicacion: 'Inconsistencia: No existe registro de charla para esa fecha.' },
+            { etapa: 2, tipo: 'testigo', texto: '"La supervisión estuvo presente durante toda la maniobra"', es_correcto: 'SI', pista: '¿Dónde estaba el capataz?', explicacion: 'Inconsistencia: El capataz estaba en el obrador al momento del suceso.' },
+            { etapa: 2, tipo: 'testigo', texto: '"El clima estaba despejado y sin viento"', es_correcto: 'NO', pista: '¿El clima fue factor?', explicacion: 'Esto coincide con el reporte meteorológico.' },
+            
+            // Etapa 3: Árbol de Causas
+            { etapa: 3, tipo: 'causa_inmediata', texto: 'Uso de equipo defectuoso', es_correcto: 'SI', pista: 'Actos o condiciones inseguras.', explicacion: 'Causa Inmediata: Condición peligrosa directa.' },
+            { etapa: 3, tipo: 'causa_basica', texto: 'Falta de programa de mantenimiento', es_correcto: 'SI', pista: 'Factores personales o de trabajo.', explicacion: 'Causa Básica: Falla en el sistema de gestión.' },
+            
+            // Etapa 4: 5 Por Qué
+            { etapa: 4, tipo: 'porque', texto: '¿Por qué cayó? Porque falló el punto de anclaje.', es_correcto: 'SI', pista: 'Sigue la cadena lógica.', explicacion: 'Paso 1: La falla física.' },
+            
+            // Etapa 5: Medidas
+            { etapa: 5, tipo: 'medida', texto: 'Implementar software de gestión de activos', es_correcto: 'SI', pista: 'Control administrativo y técnico.', explicacion: 'Asegura trazabilidad de inspecciones.' },
+            { etapa: 5, tipo: 'medida', texto: 'Sancionar al operario accidentado', es_correcto: 'NO', pista: '¿Esto previene futuros casos?', explicacion: 'La sanción no ataca la causa raíz sistémica.' }
+        ];
+
+        function App() {
+            const [view, setView] = useState('INTRO');
+            const [stage, setStage] = useState(1);
+            const [gameData, setGameData] = useState([]);
+            const [timeLeft, setTimeLeft] = useState(45 * 60); // 45 minutos en segundos
+            const [score, setScore] = useState(0);
+            const [hintsUsed, setHintsUsed] = useState(0);
+            const [completedStages, setCompletedStages] = useState([]);
+            const [showHint, setShowHint] = useState(false);
+            const [explanation, setExplanation] = useState(null);
+
+            // Cargar datos
+            useEffect(() => {
+                fetch(SHEETS_URL)
+                    .then(res => res.text())
+                    .then(csv => {
+                        const rows = csv.split('\n').slice(1);
+                        const data = rows.map(row => {
+                            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                            return {
+                                etapa: parseInt(cols[0]),
+                                tipo: cols[1],
+                                texto: cols[2],
+                                es_correcto: cols[3],
+                                pista: cols[4],
+                                explicacion: cols[5]
+                            };
+                        }).filter(d => !isNaN(d.etapa));
+                        setGameData(data.length > 0 ? data : FALLBACK_DATA);
+                    })
+                    .catch(() => setGameData(FALLBACK_DATA));
+            }, []);
+
+            // Timer
+            useEffect(() => {
+                if (view === 'GAME') {
+                    const timer = setInterval(() => {
+                        setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
+                    }, 1000);
+                    return () => clearInterval(timer);
+                }
+            }, [view]);
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            };
+
+            const handleUseHint = () => {
+                setShowHint(true);
+                setHintsUsed(prev => prev + 1);
+                setTimeLeft(prev => Math.max(0, prev - 30));
+            };
+
+            const nextStage = () => {
+                setExplanation(null);
+                setShowHint(false);
+                if (stage < 6) {
+                    setCompletedStages([...completedStages, stage]);
+                    setStage(prev => prev + 1);
+                } else {
+                    setScore(timeLeft * 10);
+                    setView('END');
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <AnimatePresence mode="wait">
+                        {view === 'INTRO' && <IntroScreen onStart={() => setView('GAME')} />}
+                        {view === 'GAME' && (
+                            <div className="flex-1 flex flex-col p-4 md:p-8 max-w-6xl mx-auto w-full">
+                                {/* HUD Superior */}
+                                <div className="glass-hud p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center gap-4 border-b-2 border-accent/30">
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-accent">Investigación en curso</span>
+                                            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Operación Causa Raíz</h2>
+                                        </div>
+                                        <div className="h-10 w-px bg-white/10 hidden md:block"></div>
+                                        <div className="flex gap-2">
+                                            {[1,2,3,4,5,6].map(s => (
+                                                <div 
+                                                    key={s} 
+                                                    className={`w-8 h-2 rounded-full transition-all duration-500 ${
+                                                        completedStages.includes(s) ? 'bg-success' : 
+                                                        stage === s ? 'bg-accent active-step' : 'bg-white/10'
+                                                    }`}
+                                                ></div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-8">
+                                        <div className="text-center">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-accent">Tiempo SRT</p>
+                                            <div className="flex items-center gap-2">
+                                                <Clock className={`w-5 h-5 ${timeLeft < 300 ? 'text-danger animate-pulse' : 'text-white'}`} />
+                                                <span className={`text-3xl font-mono font-bold ${timeLeft < 300 ? 'text-danger' : 'text-white'}`}>
+                                                    {formatTime(timeLeft)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={handleUseHint}
+                                            className="p-3 bg-accent/10 hover:bg-accent/20 border border-accent/30 rounded-xl transition-all group"
+                                            title="Pedir Pista (-30s)"
+                                        >
+                                            <HelpCircle className="w-6 h-6 text-accent group-hover:scale-110 transition-transform" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Área de Juego Principal */}
+                                <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-hidden">
+                                    {/* Panel de Información / Dossier */}
+                                    <div className="lg:col-span-1 flex flex-col gap-6">
+                                        <div className="dossier-paper p-6 rounded-sm rotate-[-1deg] flex-1 overflow-y-auto custom-scrollbar">
+                                            <div className="border-b-2 border-black/10 pb-4 mb-4">
+                                                <h3 className="text-xl font-black uppercase">Expediente #COR-2026-03</h3>
+                                                <p className="text-[10px] opacity-60">CONFIDENCIAL - SOLO PERSONAL EHS</p>
+                                            </div>
+                                            <div className="space-y-4 text-sm leading-relaxed">
+                                                <div className="flex items-start gap-2">
+                                                    <AlertCircle className="w-4 h-4 mt-1 flex-shrink-0" />
+                                                    <p><strong>Evento:</strong> Caída de altura (3 metros) durante montaje de vigas.</p>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <Search className="w-4 h-4 mt-1 flex-shrink-0" />
+                                                    <p><strong>Ubicación:</strong> Obra Civil "Nuevos Horizontes", Córdoba.</p>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <User className="w-4 h-4 mt-1 flex-shrink-0" />
+                                                    <p><strong>Estado:</strong> Operario estable, fractura de fémur. Fuera de peligro.</p>
+                                                </div>
+                                                <div className="pt-4 border-t border-black/5">
+                                                    <p className="font-bold mb-2">Objetivo Etapa {stage}:</p>
+                                                    <p className="italic">
+                                                        {stage === 1 && "Recopila las 3 evidencias físicas que demuestren fallas en el sistema."}
+                                                        {stage === 2 && "Analiza el testimonio y encuentra las 3 mentiras o inconsistencias."}
+                                                        {stage === 3 && "Clasifica los hallazgos entre causas inmediatas y causas básicas."}
+                                                        {stage === 4 && "Aplica la técnica de los 5 Por Qué para llegar al origen."}
+                                                        {stage === 5 && "Define el plan de acción preventivo efectivo."}
+                                                        {stage === 6 && "Redacta el informe final para la autoridad."}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {showHint && (
+                                            <motion.div 
+                                                initial={{ x: -20, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                className="bg-accent/20 border-l-4 border-accent p-4 rounded-r-xl"
+                                            >
+                                                <p className="text-xs font-black uppercase text-accent mb-1">Pista del Analista:</p>
+                                                <p className="text-sm text-white italic">
+                                                    {gameData.find(d => d.etapa === stage)?.pista || "Analiza los detalles con cuidado."}
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                    </div>
+
+                                    {/* Panel de Interacción */}
+                                    <div className="lg:col-span-2 flex flex-col gap-6">
+                                        <div className="glass-hud flex-1 rounded-3xl p-8 border border-white/5 relative overflow-hidden">
+                                            <AnimatePresence mode="wait">
+                                                {explanation ? (
+                                                    <motion.div 
+                                                        key="explanation"
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="h-full flex flex-col items-center justify-center text-center"
+                                                    >
+                                                        <div className="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mb-6">
+                                                            <CheckCircle2 className="w-12 h-12 text-success" />
+                                                        </div>
+                                                        <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">Etapa {stage} Superada</h3>
+                                                        <p className="text-on-surface-variant max-w-md mb-8 leading-relaxed">
+                                                            {explanation}
+                                                        </p>
+                                                        <button 
+                                                            onClick={nextStage}
+                                                            className="bg-accent text-primary font-black px-10 py-4 rounded-sm block-shadow hover:translate-x-2 transition-all flex items-center gap-2 uppercase tracking-widest"
+                                                        >
+                                                            Siguiente Fase <ArrowRight className="w-5 h-5" />
+                                                        </button>
+                                                    </motion.div>
+                                                ) : (
+                                                    <motion.div 
+                                                        key={`stage-${stage}`}
+                                                        initial={{ opacity: 0, x: 20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        exit={{ opacity: 0, x: -20 }}
+                                                        className="h-full"
+                                                    >
+                                                        <StageRenderer 
+                                                            stage={stage} 
+                                                            data={gameData.filter(d => d.etapa === stage)} 
+                                                            onComplete={(exp) => setExplanation(exp)}
+                                                        />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {view === 'END' && <EndScreen score={score} onRestart={() => location.reload()} />}
+                    </AnimatePresence>
+                </div>
+            );
+        }
+
+        function IntroScreen({ onStart }) {
+            return (
+                <div className="flex-1 flex items-center justify-center p-6">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="max-w-3xl w-full glass-hud p-12 rounded-[3rem] border border-accent/20 text-center shadow-2xl"
+                    >
+                        <div className="mb-8 inline-block p-4 bg-accent/10 rounded-full border-2 border-accent/30">
+                            <Lock className="w-12 h-12 text-accent" />
+                        </div>
+                        <h1 className="text-6xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
+                            ESCAPE ROOM <span className="text-accent">EHS</span>
+                        </h1>
+                        <p className="text-accent font-black uppercase tracking-[0.4em] text-xs mb-8">Operación Causa Raíz</p>
+                        
+                        <div className="bg-black/40 p-8 rounded-2xl border border-white/5 text-left mb-12 space-y-4 font-mono text-sm">
+                            <p className="text-success">> INICIANDO PROTOCOLO DE INVESTIGACIÓN...</p>
+                            <p className="text-on-surface-variant">Un operario ha caído desde 3 metros en la obra de Córdoba. La SRT llegará en 45 minutos para una auditoría sorpresa.</p>
+                            <p className="text-on-surface-variant">Tu misión es encontrar la causa raíz y proponer medidas antes de que el tiempo se agote.</p>
+                            <p className="text-accent">> ¿ESTÁS LISTO PARA EL DESAFÍO?</p>
+                        </div>
+
+                        <button 
+                            onClick={onStart}
+                            className="w-full py-6 bg-accent text-primary font-black rounded-sm block-shadow hover:translate-y-[-4px] active:translate-y-0 transition-all uppercase tracking-widest text-2xl"
+                        >
+                            Comenzar Investigación
+                        </button>
+                    </motion.div>
+                </div>
+            );
+        }
+
+        function StageRenderer({ stage, data, onComplete }) {
+            const [selected, setSelected] = useState([]);
+            const [inputs, setInputs] = useState(['', '', '', '', '']);
+
+            // Etapa 1 y 2: Selección múltiple
+            if (stage === 1 || stage === 2) {
+                const handleToggle = (idx) => {
+                    if (selected.includes(idx)) {
+                        setSelected(selected.filter(i => i !== idx));
+                    } else if (selected.length < 3) {
+                        setSelected([...selected, idx]);
+                    }
+                };
+
+                const validate = () => {
+                    const correctIndices = data.map((d, i) => d.es_correcto === 'SI' ? i : null).filter(i => i !== null);
+                    const isAllCorrect = selected.length === 3 && selected.every(i => correctIndices.includes(i));
+                    if (isAllCorrect) {
+                        onComplete(data[0].explicacion);
+                    } else {
+                        alert("Algunos elementos seleccionados no son correctos o faltan evidencias.");
+                    }
+                };
+
+                return (
+                    <div className="flex flex-col h-full">
+                        <h3 className="text-xl font-bold text-accent mb-6 flex items-center gap-2">
+                            {stage === 1 ? <Camera className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                            {stage === 1 ? "Evidencias del Sitio" : "Declaración del Testigo"}
+                        </h3>
+                        <div className="flex-1 grid grid-cols-1 gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                            {data.map((item, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleToggle(i)}
+                                    className={`p-6 rounded-2xl border-2 text-left transition-all ${
+                                        selected.includes(i) 
+                                        ? 'bg-accent/20 border-accent text-white' 
+                                        : 'bg-white/5 border-white/10 text-on-surface-variant hover:border-white/30'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${selected.includes(i) ? 'bg-accent border-accent' : 'border-white/20'}`}>
+                                            {selected.includes(i) && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                                        </div>
+                                        <p className="font-mono text-sm">{item.texto}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                        <button 
+                            disabled={selected.length < 3}
+                            onClick={validate}
+                            className="mt-8 w-full py-4 bg-accent text-primary font-black rounded-sm block-shadow disabled:opacity-30 transition-all uppercase tracking-widest"
+                        >
+                            Validar Hallazgos
+                        </button>
+                    </div>
+                );
+            }
+
+            // Etapa 3: Clasificación (Simple click para este demo)
+            if (stage === 3) {
+                const [classified, setClassified] = useState({});
+
+                const handleClassify = (idx, type) => {
+                    setClassified({ ...classified, [idx]: type });
+                };
+
+                const validate = () => {
+                    const allCorrect = data.every((d, i) => classified[i] === d.tipo);
+                    if (allCorrect && Object.keys(classified).length === data.length) {
+                        onComplete("Excelente análisis. Has separado los síntomas (inmediatas) de la enfermedad (básicas).");
+                    } else {
+                        alert("La clasificación no es correcta. Revisa la lógica de causalidad.");
+                    }
+                };
+
+                return (
+                    <div className="flex flex-col h-full">
+                        <h3 className="text-xl font-bold text-accent mb-6 flex items-center gap-2">
+                            <Zap className="w-5 h-5" /> Clasificación de Causas
+                        </h3>
+                        <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+                            {data.map((item, i) => (
+                                <div key={i} className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                                    <p className="font-mono text-sm mb-4 text-white">{item.texto}</p>
+                                    <div className="flex gap-4">
+                                        <button 
+                                            onClick={() => handleClassify(i, 'causa_inmediata')}
+                                            className={`flex-1 py-2 rounded-lg border-2 font-black text-[10px] uppercase tracking-widest transition-all ${classified[i] === 'causa_inmediata' ? 'bg-danger/20 border-danger text-danger' : 'border-white/10 text-on-surface-variant'}`}
+                                        >
+                                            Causa Inmediata
+                                        </button>
+                                        <button 
+                                            onClick={() => handleClassify(i, 'causa_basica')}
+                                            className={`flex-1 py-2 rounded-lg border-2 font-black text-[10px] uppercase tracking-widest transition-all ${classified[i] === 'causa_basica' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'border-white/10 text-on-surface-variant'}`}
+                                        >
+                                            Causa Básica
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <button 
+                            onClick={validate}
+                            className="mt-8 w-full py-4 bg-accent text-primary font-black rounded-sm block-shadow transition-all uppercase tracking-widest"
+                        >
+                            Confirmar Árbol
+                        </button>
+                    </div>
+                );
+            }
+
+            // Etapa 4: 5 Por Qué
+            if (stage === 4) {
+                const validate = () => {
+                    if (inputs.every(v => v.length > 5)) {
+                        onComplete("Análisis profundo completado. Has llegado a la falla en el sistema de mantenimiento.");
+                    } else {
+                        alert("Completa todos los niveles del análisis con respuestas detalladas.");
+                    }
+                };
+
+                return (
+                    <div className="flex flex-col h-full">
+                        <h3 className="text-xl font-bold text-accent mb-6 flex items-center gap-2">
+                            <HelpCircle className="w-5 h-5" /> Técnica de los 5 Por Qué
+                        </h3>
+                        <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                            {inputs.map((val, i) => (
+                                <div key={i} className="flex gap-4 items-start">
+                                    <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-black flex-shrink-0">
+                                        {i + 1}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-[10px] uppercase font-black text-on-surface-variant mb-1">¿Por qué?</p>
+                                        <input 
+                                            type="text"
+                                            value={val}
+                                            onChange={(e) => {
+                                                const newInputs = [...inputs];
+                                                newInputs[i] = e.target.value;
+                                                setInputs(newInputs);
+                                            }}
+                                            placeholder={i === 0 ? "Ej: Falló el punto de anclaje..." : "Escribe la causa siguiente..."}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-mono text-sm focus:border-accent outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <button 
+                            onClick={validate}
+                            className="mt-8 w-full py-4 bg-accent text-primary font-black rounded-sm block-shadow transition-all uppercase tracking-widest"
+                        >
+                            Finalizar Análisis
+                        </button>
+                    </div>
+                );
+            }
+
+            // Etapa 5: Medidas Correctivas
+            if (stage === 5) {
+                const handleToggle = (idx) => {
+                    if (selected.includes(idx)) {
+                        setSelected(selected.filter(i => i !== idx));
+                    } else {
+                        setSelected([...selected, idx]);
+                    }
+                };
+
+                const validate = () => {
+                    const correctIndices = data.map((d, i) => d.es_correcto === 'SI' ? i : null).filter(i => i !== null);
+                    const hasCorrect = selected.every(i => correctIndices.includes(i));
+                    const hasTrap = selected.some(i => data[i].es_correcto === 'NO');
+                    
+                    if (hasCorrect && !hasTrap && selected.length > 0) {
+                        onComplete("Plan de acción validado. Estas medidas previenen la recurrencia.");
+                    } else if (hasTrap) {
+                        alert("Has seleccionado una medida 'trampa' que no ataca la causa raíz.");
+                    } else {
+                        alert("Selecciona las medidas preventivas correctas.");
+                    }
+                };
+
+                return (
+                    <div className="flex flex-col h-full">
+                        <h3 className="text-xl font-bold text-accent mb-6 flex items-center gap-2">
+                            <ClipboardList className="w-5 h-5" /> Plan de Acción
+                        </h3>
+                        <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                            {data.map((item, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleToggle(i)}
+                                    className={`p-6 rounded-2xl border-2 text-left transition-all w-full ${
+                                        selected.includes(i) 
+                                        ? 'bg-accent/20 border-accent text-white' 
+                                        : 'bg-white/5 border-white/10 text-on-surface-variant hover:border-white/30'
+                                    }`}
+                                >
+                                    <p className="font-mono text-sm">{item.texto}</p>
+                                </button>
+                            ))}
+                        </div>
+                        <button 
+                            onClick={validate}
+                            className="mt-8 w-full py-4 bg-accent text-primary font-black rounded-sm block-shadow transition-all uppercase tracking-widest"
+                        >
+                            Aprobar Plan
+                        </button>
+                    </div>
+                );
+            }
+
+            // Etapa 6: Informe Final
+            if (stage === 6) {
+                return (
+                    <div className="flex flex-col h-full">
+                        <h3 className="text-xl font-bold text-accent mb-6 flex items-center gap-2">
+                            <FileText className="w-5 h-5" /> Informe de Investigación Final
+                        </h3>
+                        <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-4">
+                                <label className="block">
+                                    <span className="text-[10px] uppercase font-black text-accent">Resumen del Hallazgo</span>
+                                    <textarea className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-mono text-sm h-24 focus:border-accent outline-none"></textarea>
+                                </label>
+                                <label className="block">
+                                    <span className="text-[10px] uppercase font-black text-accent">Causa Raíz Identificada</span>
+                                    <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-mono text-sm focus:border-accent outline-none" />
+                                </label>
+                                <div className="p-4 bg-success/10 border border-success/20 rounded-xl">
+                                    <p className="text-xs text-success italic">"Al firmar este informe, confirmo que la investigación se realizó bajo los estándares de la Ley 19587."</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => onComplete("Informe enviado con éxito. La SRT ha validado tu investigación.")}
+                            className="mt-8 w-full py-4 bg-success text-primary font-black rounded-sm block-shadow transition-all uppercase tracking-widest"
+                        >
+                            Firmar y Enviar Informe
+                        </button>
+                    </div>
+                );
+            }
+
+            return null;
+        }
+
+        function EndScreen({ score, onRestart }) {
+            useEffect(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f59e0b', '#10b981', '#ffffff']
+                });
+            }, []);
+
+            return (
+                <div className="flex-1 flex items-center justify-center p-6">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="max-w-xl w-full glass-hud p-12 rounded-[3rem] border border-success/20 text-center shadow-2xl"
+                    >
+                        <div className="mb-8 inline-block p-4 bg-success/10 rounded-full border-2 border-success/30">
+                            <Unlock className="w-12 h-12 text-success" />
+                        </div>
+                        <h2 className="text-5xl font-black text-white mb-2 tracking-tighter uppercase">¡CASO CERRADO!</h2>
+                        <p className="text-on-surface-variant font-black uppercase tracking-[0.4em] text-[10px] mb-12">Investigación Validada por la SRT</p>
+                        
+                        <div className="bg-black/40 p-8 rounded-2xl border border-white/5 mb-12">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2">Puntaje de Eficiencia</p>
+                            <p className="text-6xl font-black text-accent">{score.toString().padStart(4, '0')}</p>
+                        </div>
+
+                        <button 
+                            onClick={onRestart}
+                            className="w-full py-6 bg-success text-primary font-black rounded-sm block-shadow hover:translate-y-[-4px] transition-all uppercase tracking-widest text-xl"
+                        >
+                            Nueva Investigación
+                        </button>
+                    </motion.div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

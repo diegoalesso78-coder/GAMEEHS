@@ -1,0 +1,509 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>LA OCA DE LA PREVENCIÓN — PrevenEHS</title>
+  <script src='https://unpkg.com/react@18/umd/react.development.js'></script>
+  <script src='https://unpkg.com/react-dom@18/umd/react-dom.development.js'></script>
+  <script src='https://unpkg.com/@babel/standalone/babel.min.js'></script>
+  <script src='https://cdn.tailwindcss.com'></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary-container': '#0f1a14',
+            'on-primary-fixed': '#131e18',
+            'secondary': '#ffb690',
+            'secondary-container': '#ec6a06',
+            'tertiary': '#f7be1d',
+            'card-white': '#fdfbf7',
+            'error-rose': '#ffb4ab',
+            'error-dark': '#93000a',
+            'wood': '#1a120b',
+            'gold': '#d4af37',
+          },
+          fontFamily: {
+            headline: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #1a120b; /* Madera oscura */
+      background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png');
+      color: #e4e2de;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .block-shadow { box-shadow: 6px 6px 0px 0px #131e18; }
+    .glass-hud {
+      background: rgba(15, 26, 20, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(7, 1fr);
+      gap: 4px;
+      padding: 8px;
+      background: #0f1a14;
+      border: 8px solid #d4af37;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+    .dice-roll {
+      animation: roll 1.5s ease-out;
+    }
+    @keyframes roll {
+      0% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(90deg) scale(1.2); }
+      50% { transform: rotate(180deg) scale(1); }
+      75% { transform: rotate(270deg) scale(1.2); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .token {
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .serpentine-row-reverse {
+      flex-direction: row-reverse;
+    }
+  </style>
+</head>
+<body>
+  <div id='root'></div>
+  <script type='text/babel'>
+    const { useState, useEffect, useMemo } = React;
+
+    const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=0&single=true&output=csv';
+
+    const FALLBACK_DATA = {
+      riesgos: [6, 12, 19, 25, 31, 38, 44, 50, 56],
+      barreras: [9, 15, 22, 29, 35, 42, 48, 55],
+      trivias: [4, 10, 17, 24, 33, 40, 47, 53, 59],
+      preguntas: [
+        { q: "¿Cuál es el color de seguridad para prohibición?", a: "Rojo", o: ["Rojo", "Azul", "Amarillo", "Verde"] },
+        { q: "¿Qué significa LOTO?", a: "Bloqueo y Etiquetado", o: ["Luz y Todo", "Bloqueo y Etiquetado", "Logística Total", "Lote de Obra"] },
+        { q: "¿Cada cuánto se debe revisar un extintor?", a: "Mensualmente", o: ["Cada 2 años", "Nunca", "Mensualmente", "Semanalmente"] },
+        { q: "¿Qué EPP es vital para ruidos mayores a 85dB?", a: "Protección Auditiva", o: ["Casco", "Guantes", "Protección Auditiva", "Lentes"] },
+        { q: "¿Qué ley regula la HyS en Argentina?", a: "Ley 19.587", o: ["Ley 24.557", "Ley 19.587", "Ley de Contrato de Trabajo", "Ley 20.744"] }
+      ]
+    };
+
+    const AVATARS = ['👷', '👷‍♀️', '🧤', '🦺', '🥽', '🚒'];
+    const COLORS = ['#ec6a06', '#f7be1d', '#3b82f6', '#10b981', '#a855f7', '#f43f5e'];
+
+    const App = () => {
+      const [view, setView] = useState('SETUP'); // SETUP, GAME, WINNER
+      const [players, setPlayers] = useState([]);
+      const [currentPlayer, setCurrentPlayer] = useState(0);
+      const [dice, setDice] = useState(1);
+      const [isRolling, setIsRolling] = useState(false);
+      const [modal, setModal] = useState(null); // { type, title, text, options, callback }
+      const [board, setBoard] = useState([]);
+      const [gameData, setGameData] = useState(FALLBACK_DATA);
+
+      useEffect(() => {
+        fetch(SHEETS_URL)
+          .then(r => r.text())
+          .then(csv => {
+            const lines = csv.split('\n').slice(1); // Skip header
+            const parsed = { riesgos: [], barreras: [], trivias: [], preguntas: [] };
+            
+            lines.forEach(line => {
+              const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+              if (cols.length < 6) return;
+              
+              const [tipo, pregunta, respuesta, opciones, nivel, casilla] = cols;
+              const squareNum = parseInt(casilla);
+              
+              if (tipo.toLowerCase() === 'riesgo') {
+                parsed.riesgos.push(squareNum);
+              } else if (tipo.toLowerCase() === 'barrera') {
+                parsed.barreras.push(squareNum);
+              } else if (tipo.toLowerCase() === 'trivia') {
+                parsed.trivias.push(squareNum);
+                parsed.preguntas.push({
+                  q: pregunta,
+                  a: respuesta,
+                  o: opciones.split('|').map(o => o.trim()),
+                  sq: squareNum
+                });
+              }
+            });
+
+            if (parsed.preguntas.length > 0) {
+              setGameData(parsed);
+            }
+          })
+          .catch(err => console.warn("Usando fallback data:", err));
+      }, []);
+
+      useEffect(() => {
+        // Generar tablero 1-63 basado en gameData
+        const newBoard = [];
+        for (let i = 1; i <= 63; i++) {
+          let type = 'normal';
+          let icon = null;
+          if (gameData.riesgos.includes(i)) { type = 'riesgo'; icon = '⚠️'; }
+          else if (gameData.barreras.includes(i)) { type = 'barrera'; icon = '🛡️'; }
+          else if (gameData.trivias.includes(i)) { type = 'trivia'; icon = '❓'; }
+          newBoard.push({ id: i, type, icon });
+        }
+        setBoard(newBoard);
+      }, [gameData]);
+
+      const handleStart = (playerData) => {
+        setPlayers(playerData.map((p, i) => ({ ...p, pos: 1, color: COLORS[i] })));
+        setView('GAME');
+      };
+
+      const rollDice = () => {
+        if (isRolling || modal) return;
+        setIsRolling(true);
+        setTimeout(() => {
+          const result = Math.floor(Math.random() * 6) + 1;
+          setDice(result);
+          setIsRolling(false);
+          movePlayer(result);
+        }, 1500);
+      };
+
+      const movePlayer = (steps) => {
+        const p = players[currentPlayer];
+        let newPos = p.pos + steps;
+        
+        // Lógica de rebote
+        if (newPos > 63) {
+          const diff = newPos - 63;
+          newPos = 63 - diff;
+        }
+
+        updatePlayerPos(currentPlayer, newPos, () => {
+          checkSquare(newPos);
+        });
+      };
+
+      const updatePlayerPos = (idx, pos, cb) => {
+        setPlayers(prev => {
+          const next = [...prev];
+          next[idx].pos = pos;
+          return next;
+        });
+        if (cb) setTimeout(cb, 600);
+      };
+
+      const checkSquare = (pos) => {
+        const square = board[pos - 1];
+        if (pos === 63) {
+          setView('WINNER');
+          return;
+        }
+
+        if (square.type === 'riesgo') {
+          const back = Math.floor(Math.random() * 5) + 3;
+          setModal({
+            type: 'EVENT',
+            title: '¡RIESGO DETECTADO!',
+            text: `Caíste en una condición insegura. Retrocedés ${back} casillas.`,
+            icon: '⚠️',
+            color: 'text-error-rose',
+            onConfirm: () => {
+              setModal(null);
+              updatePlayerPos(currentPlayer, Math.max(1, pos - back), nextTurn);
+            }
+          });
+        } else if (square.type === 'barrera') {
+          const forward = Math.floor(Math.random() * 4) + 3;
+          setModal({
+            type: 'EVENT',
+            title: '¡BARRERA DE SEGURIDAD!',
+            text: `Implementaste un control efectivo. Avanzás ${forward} casillas.`,
+            icon: '🛡️',
+            color: 'text-emerald-400',
+            onConfirm: () => {
+              setModal(null);
+              updatePlayerPos(currentPlayer, Math.min(63, pos + forward), nextTurn);
+            }
+          });
+        } else if (square.type === 'trivia') {
+          const q = gameData.preguntas.find(p => p.sq === pos) || 
+                   gameData.preguntas[Math.floor(Math.random() * gameData.preguntas.length)];
+          setModal({
+            type: 'TRIVIA',
+            title: 'DESAFÍO TÉCNICO',
+            text: q.q,
+            options: q.o,
+            answer: q.a,
+            icon: '❓',
+            color: 'text-tertiary',
+            onConfirm: (selected) => {
+              if (selected === q.a) {
+                setModal({
+                  type: 'RESULT',
+                  title: '¡CORRECTO!',
+                  text: 'Excelente conocimiento. Avanzás 2 casillas extra.',
+                  icon: '✅',
+                  color: 'text-emerald-400',
+                  onConfirm: () => {
+                    setModal(null);
+                    updatePlayerPos(currentPlayer, Math.min(63, pos + 2), nextTurn);
+                  }
+                });
+              } else {
+                setModal({
+                  type: 'RESULT',
+                  title: 'INCORRECTO',
+                  text: `La respuesta era: ${q.a}. Te quedás en esta posición.`,
+                  icon: '❌',
+                  color: 'text-error-rose',
+                  onConfirm: () => {
+                    setModal(null);
+                    nextTurn();
+                  }
+                });
+              }
+            }
+          });
+        } else {
+          nextTurn();
+        }
+      };
+
+      const nextTurn = () => {
+        setCurrentPlayer((currentPlayer + 1) % players.length);
+      };
+
+      // Lógica de renderizado serpentina
+      const renderBoard = () => {
+        const rows = [];
+        for (let r = 0; r < 7; r++) {
+          const rowSquares = board.slice(r * 9, (r + 1) * 9);
+          if (r % 2 !== 0) rowSquares.reverse();
+          rows.push(rowSquares);
+        }
+        rows.reverse(); // Empezar desde abajo
+
+        return rows.map((row, rIdx) => (
+          <div key={rIdx} className="flex gap-1 mb-1">
+            {row.map(sq => (
+              <div 
+                key={sq.id} 
+                className={`relative w-full aspect-square flex flex-col items-center justify-center rounded-sm border border-white/5 transition-all
+                  ${sq.type === 'riesgo' ? 'bg-error-dark/40 border-error-rose/30' : 
+                    sq.type === 'barrera' ? 'bg-emerald-900/40 border-emerald-400/30' : 
+                    sq.type === 'trivia' ? 'bg-amber-900/40 border-amber-400/30' : 'bg-on-primary-fixed/60'}
+                `}
+              >
+                <span className="absolute top-1 left-1 text-[10px] font-black opacity-30">{sq.id}</span>
+                <span className="text-xl">{sq.icon}</span>
+                {sq.id === 63 && <span className="text-[10px] font-black text-gold">META</span>}
+                
+                {/* Tokens */}
+                <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-1 p-1">
+                  {players.map((p, pIdx) => p.pos === sq.id && (
+                    <div 
+                      key={pIdx} 
+                      className="token w-6 h-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-[10px] font-black text-white"
+                      style={{ backgroundColor: p.color }}
+                    >
+                      {p.name[0]}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ));
+      };
+
+      if (view === 'SETUP') return <SetupScreen onStart={handleStart} />;
+      if (view === 'WINNER') return <WinnerScreen player={players[currentPlayer]} />;
+
+      return (
+        <div className="min-h-screen flex flex-col lg:flex-row p-4 gap-4 max-w-[1600px] mx-auto">
+          {/* Panel Lateral */}
+          <aside className="w-full lg:w-80 glass-hud p-6 rounded-xl block-shadow flex flex-col gap-6">
+            <div className="text-center border-b border-white/10 pb-4">
+              <h1 className="text-2xl font-black text-white tracking-tighter">LA <span className="text-secondary">OCA</span></h1>
+              <p className="text-[10px] uppercase tracking-widest text-on-surface-variant">Prevención Industrial</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {players.map((p, i) => (
+                <div key={i} className={`p-3 rounded-lg border-2 transition-all flex items-center gap-3 ${currentPlayer === i ? 'bg-secondary/20 border-secondary' : 'bg-black/20 border-transparent opacity-60'}`}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner" style={{ backgroundColor: p.color }}>
+                    {p.avatar}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-black text-sm uppercase leading-none">{p.name}</p>
+                    <p className="text-[10px] text-on-surface-variant">Casilla: {p.pos}</p>
+                  </div>
+                  {currentPlayer === i && <div className="w-2 h-2 rounded-full bg-secondary animate-ping"></div>}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-auto flex flex-col items-center gap-4 py-6 bg-black/40 rounded-xl border border-white/5">
+              <div className={`w-20 h-20 bg-card-white rounded-xl block-shadow flex items-center justify-center text-4xl text-on-primary-fixed font-black ${isRolling ? 'dice-roll' : ''}`}>
+                {dice}
+              </div>
+              <button 
+                onClick={rollDice}
+                disabled={isRolling || modal}
+                className="w-full bg-secondary-container text-white font-black py-4 rounded-sm block-shadow active:translate-y-1 transition-all uppercase tracking-widest disabled:opacity-30"
+              >
+                {isRolling ? 'Lanzando...' : 'Lanzar Dado'}
+              </button>
+            </div>
+          </aside>
+
+          {/* Tablero Principal */}
+          <main className="flex-1 flex items-center justify-center">
+            <div className="w-full max-w-[1000px] board-grid rounded-lg">
+              {renderBoard()}
+            </div>
+          </main>
+
+          {/* Modales */}
+          <AnimatePresence>
+            {modal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="glass-hud w-full max-w-lg p-8 rounded-2xl border-2 border-secondary shadow-2xl text-center"
+                >
+                  <div className="text-6xl mb-4">{modal.icon}</div>
+                  <h2 className={`text-3xl font-black mb-2 tracking-tighter uppercase ${modal.color}`}>{modal.title}</h2>
+                  <p className="text-lg text-on-surface-variant mb-8">{modal.text}</p>
+                  
+                  {modal.type === 'TRIVIA' ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {modal.options.map((opt, i) => (
+                        <button 
+                          key={i}
+                          onClick={() => modal.onConfirm(opt)}
+                          className="w-full bg-surface-container-low hover:bg-surface-container-high text-white font-bold py-4 px-6 rounded-lg border border-white/10 transition-all text-left flex justify-between items-center group"
+                        >
+                          {opt} <ChevronRight className="opacity-0 group-hover:opacity-100 transition-all" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={modal.onConfirm}
+                      className="bg-secondary-container text-white font-black px-12 py-4 rounded-sm block-shadow active:translate-y-1 transition-all uppercase tracking-widest"
+                    >
+                      Continuar
+                    </button>
+                  )}
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    };
+
+    const SetupScreen = ({ onStart }) => {
+      const [count, setCount] = useState(2);
+      const [playerData, setPlayerData] = useState([
+        { name: 'Jugador 1', avatar: '👷' },
+        { name: 'Jugador 2', avatar: '👷‍♀️' },
+        { name: 'Jugador 3', avatar: '🧤' },
+        { name: 'Jugador 4', avatar: '🦺' },
+        { name: 'Jugador 5', avatar: '🥽' },
+        { name: 'Jugador 6', avatar: '🚒' },
+      ]);
+
+      const handleUpdate = (i, field, val) => {
+        const next = [...playerData];
+        next[i][field] = val;
+        setPlayerData(next);
+      };
+
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-hud w-full max-w-3xl p-12 rounded-2xl border-2 border-secondary shadow-2xl">
+            <h1 className="text-5xl font-black text-center mb-2 tracking-tighter">LA <span className="text-secondary">OCA</span></h1>
+            <p className="text-center text-on-surface-variant uppercase tracking-widest mb-12">Configuración de Operación</p>
+            
+            <div className="mb-12">
+              <p className="text-xs font-black uppercase tracking-widest mb-4 opacity-50">Cantidad de Jugadores</p>
+              <div className="flex gap-4 justify-center">
+                {[2,3,4,5,6].map(n => (
+                  <button 
+                    key={n} 
+                    onClick={() => setCount(n)}
+                    className={`w-12 h-12 rounded-lg font-black transition-all ${count === n ? 'bg-secondary text-on-primary-fixed scale-110 block-shadow' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+              {playerData.slice(0, count).map((p, i) => (
+                <div key={i} className="bg-black/20 p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                  <select 
+                    value={p.avatar} 
+                    onChange={(e) => handleUpdate(i, 'avatar', e.target.value)}
+                    className="bg-surface-container-low text-2xl p-2 rounded-lg border border-white/10"
+                  >
+                    {AVATARS.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                  <input 
+                    type="text" 
+                    value={p.name}
+                    onChange={(e) => handleUpdate(i, 'name', e.target.value)}
+                    className="bg-transparent border-b-2 border-white/10 focus:border-secondary outline-none font-black uppercase py-2 w-full"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => onStart(playerData.slice(0, count))}
+              className="w-full bg-secondary-container text-white font-black py-6 rounded-sm block-shadow active:translate-y-1 transition-all uppercase text-2xl tracking-widest"
+            >
+              Iniciar Juego
+            </button>
+          </motion.div>
+        </div>
+      );
+    };
+
+    const WinnerScreen = ({ player }) => (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-primary-container">
+        <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="glass-hud p-16 rounded-2xl border-4 border-gold shadow-[0_0_100px_rgba(212,175,55,0.3)] text-center">
+          <div className="text-8xl mb-6">🏆</div>
+          <h1 className="text-6xl font-black text-white mb-2 tracking-tighter">¡OPERADOR EXPERTO!</h1>
+          <p className="text-2xl text-secondary font-black uppercase mb-8">{player.name} ha llegado a la meta</p>
+          <div className="w-32 h-32 rounded-full mx-auto mb-12 flex items-center justify-center text-6xl shadow-2xl" style={{ backgroundColor: player.color }}>
+            {player.avatar}
+          </div>
+          <button onClick={() => window.location.reload()} className="bg-secondary-container text-white font-black px-16 py-6 rounded-sm block-shadow active:translate-y-1 transition-all uppercase text-2xl tracking-widest">
+            Nueva Jornada
+          </button>
+        </motion.div>
+      </div>
+    );
+
+    const ChevronRight = ({ className, size = 24 }) => (
+      <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    );
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

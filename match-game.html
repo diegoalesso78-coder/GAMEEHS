@@ -1,0 +1,521 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Une el Riesgo - PrevenEHS</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import "tailwindcss";
+
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+            --color-primary: #0f1a14;
+            --color-secondary: #10b981;
+            --color-tertiary: #f7be1d;
+            --color-error-rose: #f43f5e;
+            --color-on-primary-fixed: #002114;
+            --color-primary-container: #0f1a14;
+            --color-secondary-container: #059669;
+            --color-error-container: #be123c;
+            --color-surface-container: #1a1c1e;
+            --color-on-surface: #e2e2e6;
+            --color-on-surface-variant: #c4c6cf;
+        }
+
+        :root {
+            --bg: #0f1a14;
+            --ink: #e2e2e6;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-sans);
+            overflow: hidden;
+        }
+
+        .glass-hud {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bg-hex-grid {
+            background-image: radial-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .block-shadow {
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.4);
+        }
+
+        .dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .drop-target-active {
+            border-color: var(--color-secondary);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .matched {
+            background-color: #064e3b !important;
+            border-color: #10b981 !important;
+            cursor: default !important;
+        }
+
+        .timer-bar {
+            transition: width 1s linear, background-color 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-hex-grid min-h-screen">
+    <div id="app" class="h-screen flex flex-col">
+        <!-- Pantalla de Inicio -->
+        <div id="setup-screen" class="flex-1 flex items-center justify-center p-6">
+            <div class="w-full max-w-2xl glass-hud p-12 rounded-[3rem] border border-white/10 shadow-2xl text-center">
+                <div class="mb-8 inline-block p-4 bg-secondary/20 rounded-full border-2 border-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-secondary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <h1 class="text-5xl font-black text-white mb-2 tracking-tighter uppercase">
+                    UNE EL <span class="text-error-rose">RIESGO</span>
+                </h1>
+                <p class="text-on-surface-variant font-black uppercase tracking-[0.4em] text-[10px] mb-12">Control de Medidas Preventivas</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+                    <button onclick="startGame('easy')" class="group p-6 bg-white/5 hover:bg-emerald-500/10 border-2 border-white/10 hover:border-emerald-500 rounded-2xl transition-all text-left">
+                        <p class="text-emerald-500 font-black text-xs uppercase mb-1">Fácil</p>
+                        <p class="text-white font-bold text-xl">6 Pares</p>
+                        <p class="text-on-surface-variant text-[10px] mt-2">90 Segundos</p>
+                    </button>
+                    <button onclick="startGame('medium')" class="group p-6 bg-white/5 hover:bg-tertiary/10 border-2 border-white/10 hover:border-tertiary rounded-2xl transition-all text-left">
+                        <p class="text-tertiary font-black text-xs uppercase mb-1">Medio</p>
+                        <p class="text-white font-bold text-xl">9 Pares</p>
+                        <p class="text-on-surface-variant text-[10px] mt-2">75 Segundos</p>
+                    </button>
+                    <button onclick="startGame('expert')" class="group p-6 bg-white/5 hover:bg-error-rose/10 border-2 border-white/10 hover:border-error-rose rounded-2xl transition-all text-left">
+                        <p class="text-error-rose font-black text-xs uppercase mb-1">Experto</p>
+                        <p class="text-white font-bold text-xl">12 Pares</p>
+                        <p class="text-on-surface-variant text-[10px] mt-2">60 Segundos</p>
+                    </button>
+                </div>
+
+                <div id="leaderboard" class="text-left bg-black/20 p-6 rounded-2xl border border-white/5">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-4">Mejores Puntajes</h3>
+                    <div id="leaderboard-list" class="space-y-2 text-xs font-mono">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Juego -->
+        <div id="game-screen" class="hidden flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full overflow-hidden">
+            <!-- Header HUD -->
+            <div class="flex justify-between items-center glass-hud p-4 rounded-2xl border border-white/10 shadow-2xl mb-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-black/40">
+                    <div id="timer-bar" class="h-full bg-emerald-500 timer-bar" style="width: 100%"></div>
+                </div>
+                <div class="flex gap-8">
+                    <div>
+                        <p class="text-[8px] font-black uppercase tracking-widest text-on-surface-variant">Nivel</p>
+                        <p id="current-level-label" class="text-xl font-black text-white uppercase">---</p>
+                    </div>
+                    <div>
+                        <p class="text-[8px] font-black uppercase tracking-widest text-on-surface-variant">Progreso</p>
+                        <p id="progress-label" class="text-xl font-black text-white">0/0</p>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p class="text-[8px] font-black uppercase tracking-widest text-secondary">Tiempo Restante</p>
+                    <p id="timer-label" class="text-4xl font-mono font-bold text-white">00:00</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-black uppercase tracking-widest text-on-surface-variant">Puntaje</p>
+                    <p id="score-label" class="text-3xl font-black text-tertiary">0000</p>
+                </div>
+            </div>
+
+            <!-- Área de Juego -->
+            <div class="flex-1 grid grid-cols-2 gap-8 overflow-hidden">
+                <!-- Columna Riesgos -->
+                <div class="flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar" id="risks-column">
+                    <!-- Dinámico -->
+                </div>
+                <!-- Columna Medidas -->
+                <div class="flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar" id="measures-column">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- Footer / Explicación -->
+            <div id="explanation-box" class="mt-6 glass-hud p-6 rounded-2xl border-l-4 border-secondary opacity-0 transition-opacity duration-300">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center text-2xl">🛡️</div>
+                    <div>
+                        <h4 class="text-secondary font-black uppercase text-xs tracking-widest">Medida de Control Aplicada</h4>
+                        <p id="explanation-text" class="text-white text-sm italic">Selecciona y arrastra la medida correcta hacia el riesgo correspondiente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla Final -->
+        <div id="end-screen" class="hidden flex-1 flex items-center justify-center p-6">
+            <div class="w-full max-w-lg glass-hud p-12 rounded-[3rem] border border-white/10 shadow-2xl text-center">
+                <div id="end-icon" class="text-7xl mb-6">🏆</div>
+                <h2 id="end-title" class="text-5xl font-black text-white mb-2 tracking-tighter uppercase">¡OPERACIÓN SEGURA!</h2>
+                <p id="end-message" class="text-on-surface-variant font-black uppercase tracking-[0.4em] text-[10px] mb-12">Has mitigado todos los riesgos</p>
+                
+                <div class="bg-black/40 p-8 rounded-2xl border border-white/5 mb-12">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2">Puntaje Final</p>
+                    <p id="final-score" class="text-6xl font-black text-tertiary">0000</p>
+                </div>
+
+                <button onclick="location.reload()" class="w-full py-6 bg-secondary-container text-white font-black rounded-sm block-shadow active:translate-y-1 transition-all uppercase tracking-widest text-xl">
+                    Nueva Jornada
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1194527809&single=true&output=csv';
+        
+        const FALLBACK_DATA = [
+            { riesgo: "Trabajo en Altura", medida: "Arnés de Seguridad", nivel: "easy", emoji_r: "🏗️", emoji_m: "🦺", exp: "El arnés previene caídas a distinto nivel." },
+            { riesgo: "Riesgo Eléctrico", medida: "Bloqueo y Etiquetado", nivel: "easy", emoji_r: "⚡", emoji_m: "🔒", exp: "LOTO asegura que la energía esté controlada." },
+            { riesgo: "Ruido Excesivo", medida: "Protectores Auditivos", nivel: "easy", emoji_r: "🔊", emoji_m: "🎧", exp: "La protección auditiva previene la hipoacusia." },
+            { riesgo: "Sustancias Químicas", medida: "Ducha de Emergencia", nivel: "easy", emoji_r: "🧪", emoji_m: "🚿", exp: "Actuación inmediata ante salpicaduras." },
+            { riesgo: "Espacio Confinado", medida: "Medición de Gases", nivel: "easy", emoji_r: "🕳️", emoji_m: "📊", exp: "Verificar atmósfera segura antes de entrar." },
+            { riesgo: "Cargas Suspendidas", medida: "Delimitación de Área", nivel: "easy", emoji_r: "🏗️", emoji_m: "🚧", exp: "Mantener distancia de seguridad bajo la carga." },
+            { riesgo: "Proyección de Partículas", medida: "Gafas de Seguridad", nivel: "medium", emoji_r: "💥", emoji_m: "🥽", exp: "Protección ocular contra impactos." },
+            { riesgo: "Atrapamiento", medida: "Guardas de Seguridad", nivel: "medium", emoji_r: "⚙️", emoji_m: "🛡️", exp: "Barreras físicas en partes móviles." },
+            { riesgo: "Vibraciones", medida: "Guantes Antivibración", nivel: "medium", emoji_r: "📳", emoji_m: "🧤", exp: "Reduce el impacto en articulaciones." },
+            { riesgo: "Radiación UV", medida: "Protector Solar", nivel: "medium", emoji_r: "☀️", emoji_m: "🧴", exp: "Protección de la piel en trabajos al exterior." },
+            { riesgo: "Incendio", medida: "Extintor PQS", nivel: "expert", emoji_r: "🔥", emoji_m: "🧯", exp: "Control inicial de focos ígneos." },
+            { riesgo: "Estrés Térmico", medida: "Hidratación y Pausas", nivel: "expert", emoji_r: "🌡️", emoji_m: "💧", exp: "Evita el golpe de calor en ambientes extremos." }
+        ];
+
+        let gameData = [];
+        let currentPairs = [];
+        let score = 0;
+        let timeLeft = 0;
+        let totalTime = 0;
+        let timerInterval;
+        let matchedCount = 0;
+        let currentLevel = 'easy';
+
+        // Inicialización
+        window.onload = () => {
+            loadLeaderboard();
+            fetchData();
+        };
+
+        async function fetchData() {
+            try {
+                const response = await fetch(SHEETS_URL);
+                const csvText = await response.text();
+                const lines = csvText.split('\n').slice(1);
+                gameData = lines.map(line => {
+                    const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols.length < 6) return null;
+                    return {
+                        riesgo: cols[0],
+                        medida: cols[1],
+                        nivel: cols[2].toLowerCase(),
+                        emoji_r: cols[3],
+                        emoji_m: cols[4],
+                        exp: cols[5]
+                    };
+                }).filter(d => d !== null);
+                
+                if (gameData.length === 0) throw new Error("No data");
+            } catch (error) {
+                console.warn("Usando datos de respaldo:", error);
+                gameData = FALLBACK_DATA;
+            }
+        }
+
+        function startGame(level) {
+            currentLevel = level;
+            matchedCount = 0;
+            score = 0;
+            
+            const config = {
+                easy: { pairs: 6, time: 90 },
+                medium: { pairs: 9, time: 75 },
+                expert: { pairs: 12, time: 60 }
+            };
+
+            const pairsCount = config[level].pairs;
+            totalTime = config[level].time;
+            timeLeft = totalTime;
+
+            // Filtrar y seleccionar pares
+            let filtered = gameData.filter(d => d.nivel === level);
+            if (filtered.length < pairsCount) {
+                // Si no hay suficientes del nivel, completar con otros
+                filtered = [...filtered, ...gameData.filter(d => d.nivel !== level)].slice(0, pairsCount);
+            } else {
+                filtered = shuffle(filtered).slice(0, pairsCount);
+            }
+
+            currentPairs = filtered;
+
+            // UI Setup
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('current-level-label').innerText = level;
+            document.getElementById('progress-label').innerText = `0/${pairsCount}`;
+            document.getElementById('score-label').innerText = "0000";
+            
+            renderBoard();
+            startTimer();
+        }
+
+        function renderBoard() {
+            const risksCol = document.getElementById('risks-column');
+            const measuresCol = document.getElementById('measures-column');
+            risksCol.innerHTML = '';
+            measuresCol.innerHTML = '';
+
+            // Riesgos (Fijos)
+            currentPairs.forEach((pair, index) => {
+                const div = document.createElement('div');
+                div.className = "riesgo-card glass-hud p-4 rounded-xl border-2 border-error-rose/20 flex items-center gap-4 transition-all h-20";
+                div.dataset.id = index;
+                div.innerHTML = `
+                    <div class="w-10 h-10 bg-error-rose/20 rounded-lg flex items-center justify-center text-xl">⚠️</div>
+                    <div class="flex-1">
+                        <p class="text-[8px] font-black uppercase tracking-widest text-error-rose">Riesgo Detectado</p>
+                        <p class="text-white font-bold text-sm uppercase">${pair.riesgo}</p>
+                    </div>
+                `;
+                // Drag & Drop events for targets
+                div.ondragover = (e) => e.preventDefault();
+                div.ondragenter = (e) => div.classList.add('drop-target-active');
+                div.ondragleave = (e) => div.classList.remove('drop-target-active');
+                div.ondrop = (e) => handleDrop(e, index);
+                
+                risksCol.appendChild(div);
+            });
+
+            // Medidas (Mezcladas)
+            const shuffledMeasures = shuffle(currentPairs.map((p, i) => ({ ...p, originalIndex: i })));
+            shuffledMeasures.forEach((pair) => {
+                const div = document.createElement('div');
+                div.className = "medida-card glass-hud p-4 rounded-xl border-2 border-secondary/20 flex items-center gap-4 cursor-grab card-hover transition-all h-20 active:cursor-grabbing";
+                div.draggable = true;
+                div.dataset.id = pair.originalIndex;
+                div.innerHTML = `
+                    <div class="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center text-xl">🛡️</div>
+                    <div class="flex-1">
+                        <p class="text-[8px] font-black uppercase tracking-widest text-secondary">Medida de Control</p>
+                        <p class="text-white font-bold text-sm uppercase">${pair.medida}</p>
+                    </div>
+                `;
+                
+                div.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', pair.originalIndex);
+                    div.classList.add('dragging');
+                };
+                div.ondragend = () => div.classList.remove('dragging');
+                
+                measuresCol.appendChild(div);
+            });
+        }
+
+        function handleDrop(e, riskIndex) {
+            e.preventDefault();
+            const measureIndex = parseInt(e.dataTransfer.getData('text/plain'));
+            const riskEl = document.querySelector(`.riesgo-card[data-id="${riskIndex}"]`);
+            const measureEl = document.querySelector(`.medida-card[data-id="${measureIndex}"]`);
+            
+            riskEl.classList.remove('drop-target-active');
+
+            if (riskIndex === measureIndex) {
+                // CORRECTO
+                handleMatch(riskIndex, riskEl, measureEl);
+            } else {
+                // INCORRECTO
+                handleMismatch(riskEl, measureEl);
+            }
+        }
+
+        function handleMatch(index, riskEl, measureEl) {
+            const pair = currentPairs[index];
+            matchedCount++;
+            
+            // Estilo
+            riskEl.classList.add('matched');
+            measureEl.classList.add('matched');
+            measureEl.draggable = false;
+            measureEl.classList.remove('card-hover');
+
+            // Confetti
+            confetti({
+                particleCount: 40,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#10b981', '#ffffff']
+            });
+
+            // Explicación
+            const expBox = document.getElementById('explanation-box');
+            const expText = document.getElementById('explanation-text');
+            expText.innerText = pair.exp;
+            expBox.style.opacity = '1';
+            
+            setTimeout(() => {
+                expBox.style.opacity = '0';
+            }, 2500);
+
+            // Progreso
+            document.getElementById('progress-label').innerText = `${matchedCount}/${currentPairs.length}`;
+            
+            if (matchedCount === currentPairs.length) {
+                endGame(true);
+            }
+        }
+
+        function handleMismatch(riskEl, measureEl) {
+            riskEl.classList.add('shake', 'border-error-rose');
+            measureEl.classList.add('shake', 'border-error-rose');
+            
+            setTimeout(() => {
+                riskEl.classList.remove('shake', 'border-error-rose');
+                measureEl.classList.remove('shake', 'border-error-rose');
+            }, 500);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerUI();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-label').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            const percent = (timeLeft / totalTime) * 100;
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = `${percent}%`;
+
+            if (percent > 50) bar.className = "h-full bg-emerald-500 timer-bar";
+            else if (percent > 20) bar.className = "h-full bg-tertiary timer-bar";
+            else bar.className = "h-full bg-error-rose timer-bar";
+
+            // Update Score
+            score = Math.max(0, 1000 - ((totalTime - timeLeft) * 10));
+            document.getElementById('score-label').innerText = score.toString().padStart(4, '0');
+        }
+
+        function endGame(success) {
+            clearInterval(timerInterval);
+            
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+
+            const title = document.getElementById('end-title');
+            const message = document.getElementById('end-message');
+            const icon = document.getElementById('end-icon');
+            const finalScoreEl = document.getElementById('final-score');
+
+            if (success) {
+                title.innerText = "¡OPERACIÓN SEGURA!";
+                title.className = "text-5xl font-black text-emerald-500 mb-2 tracking-tighter uppercase";
+                message.innerText = "Has mitigado todos los riesgos a tiempo";
+                icon.innerText = "🏆";
+                finalScoreEl.innerText = score.toString().padStart(4, '0');
+                saveScore(score, currentLevel);
+            } else {
+                title.innerText = "TIEMPO AGOTADO";
+                title.className = "text-5xl font-black text-error-rose mb-2 tracking-tighter uppercase";
+                message.innerText = "La jornada ha sido interrumpida por riesgos críticos";
+                icon.innerText = "⚠️";
+                finalScoreEl.innerText = "0000";
+            }
+        }
+
+        function saveScore(newScore, level) {
+            let leaderboard = JSON.parse(localStorage.getItem('prevenehs_match_leaderboard') || '{}');
+            if (!leaderboard[level]) leaderboard[level] = [];
+            
+            leaderboard[level].push({ score: newScore, date: new Date().toLocaleDateString() });
+            leaderboard[level].sort((a, b) => b.score - a.score);
+            leaderboard[level] = leaderboard[level].slice(0, 5);
+            
+            localStorage.setItem('prevenehs_match_leaderboard', JSON.stringify(leaderboard));
+        }
+
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('prevenehs_match_leaderboard') || '{}');
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+
+            const levels = ['easy', 'medium', 'expert'];
+            levels.forEach(lvl => {
+                if (leaderboard[lvl] && leaderboard[lvl].length > 0) {
+                    const top = leaderboard[lvl][0];
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center border-b border-white/5 pb-1";
+                    div.innerHTML = `
+                        <span class="uppercase text-[8px] opacity-50">${lvl}</span>
+                        <span class="text-tertiary font-bold">${top.score} PTS</span>
+                        <span class="opacity-30 text-[8px]">${top.date}</span>
+                    `;
+                    list.appendChild(div);
+                }
+            });
+
+            if (list.innerHTML === '') {
+                list.innerHTML = '<p class="opacity-30 italic">No hay registros aún.</p>';
+            }
+        }
+
+        function shuffle(array) {
+            let m = array.length, t, i;
+            while (m) {
+                i = Math.floor(Math.random() * m--);
+                t = array[m];
+                array[m] = array[i];
+                array[i] = t;
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,642 @@
+<!-- STATUS: LISTO | VERSION: 1.0.0 | DATE: 2026-03-22 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrevenWordle: El Desafío EHS</title>
+    <!-- CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/motion@11.11.13/dist/motion.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@300;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide-react@0.454.0/dist/umd/lucide-react.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import "tailwindcss";
+
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-display: "Space Grotesk", sans-serif;
+            --font-mono: "JetBrains Mono", monospace;
+            --color-primary: #1a1a1a;
+            --color-accent: #10b981; /* Emerald Green */
+            --color-warning: #f59e0b; /* Amber */
+            --color-error: #f43f5e; /* Rose */
+            --color-charcoal: #121212;
+        }
+
+        :root {
+            --bg: #121212;
+            --ink: #e5e7eb;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+        }
+
+        .wordle-tile {
+            perspective: 1000px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .wordle-tile.flipped {
+            transform: rotateX(180deg);
+        }
+
+        .wordle-tile-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .tile-front, .tile-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .tile-front {
+            border: 2px solid #333;
+            background-color: transparent;
+        }
+
+        .tile-back {
+            transform: rotateX(180deg);
+            color: white;
+        }
+
+        .tile-correct { background-color: #10b981; border-color: #10b981; }
+        .tile-present { background-color: #f59e0b; border-color: #f59e0b; }
+        .tile-absent { background-color: #3a3a3c; border-color: #3a3a3c; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .shake { animation: shake 0.5s; }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .bounce { animation: bounce 1s; }
+
+        .glass-hud {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .key {
+            transition: all 0.1s;
+            user-select: none;
+        }
+
+        .key:active {
+            transform: scale(0.9);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useCallback, useRef } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        const { 
+            Shield, 
+            Trophy, 
+            RotateCcw, 
+            Share2, 
+            BarChart3, 
+            Info, 
+            X, 
+            CheckCircle2, 
+            AlertTriangle,
+            Calendar,
+            Zap,
+            HelpCircle,
+            Delete,
+            CornerDownLeft
+        } = lucideReact;
+
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=392450905&single=true&output=csv';
+
+        const FALLBACK_DATA = [
+            { palabra: 'CASCO', definicion: 'Elemento de protección personal para la cabeza.', categoria: 'EPP', dificultad: 'Fácil', referencia: 'ISO 3873' },
+            { palabra: 'ARNÉS', definicion: 'Sistema de sujeción para trabajos en altura.', categoria: 'Alturas', dificultad: 'Fácil', referencia: 'ANSI Z359' },
+            { palabra: 'RIESGO', definicion: 'Combinación de probabilidad y severidad de un evento.', categoria: 'Gestión', dificultad: 'Fácil', referencia: 'ISO 45001' },
+            { palabra: 'PELIGRO', definicion: 'Fuente con potencial de causar daño o deterioro.', categoria: 'Gestión', dificultad: 'Fácil', referencia: 'ISO 45001' },
+            { palabra: 'GUANTE', definicion: 'Protección para las manos contra diversos riesgos.', categoria: 'EPP', dificultad: 'Fácil', referencia: 'EN 388' },
+            { palabra: 'LENTES', definicion: 'Protección ocular contra impactos o salpicaduras.', categoria: 'EPP', dificultad: 'Fácil', referencia: 'ANSI Z87.1' },
+            { palabra: 'BOTAS', definicion: 'Calzado de seguridad con puntera reforzada.', categoria: 'EPP', dificultad: 'Fácil', referencia: 'ISO 20345' },
+            { palabra: 'RUIDO', definicion: 'Sonido no deseado que puede causar hipoacusia.', categoria: 'Higiene', dificultad: 'Fácil', referencia: 'ISO 1999' },
+            { palabra: 'FUEGO', definicion: 'Reacción química de combustión con luz y calor.', categoria: 'Incendio', dificultad: 'Fácil', referencia: 'NFPA 10' },
+            { palabra: 'SALUD', definicion: 'Estado de completo bienestar físico y mental.', categoria: 'Medicina', dificultad: 'Fácil', referencia: 'OMS' },
+            { palabra: 'INCIDENTE', definicion: 'Suceso que surge del trabajo sin causar lesiones.', categoria: 'Gestión', dificultad: 'Medio', referencia: 'ISO 45001' },
+            { palabra: 'ACCIDENTE', definicion: 'Suceso repentino que causa lesión o muerte.', categoria: 'Gestión', dificultad: 'Medio', referencia: 'Ley 19587' },
+            { palabra: 'ERGONOMÍA', definicion: 'Adaptación del trabajo a las capacidades humanas.', categoria: 'Ergonomía', dificultad: 'Medio', referencia: 'ISO 6385' },
+            { palabra: 'EXTINTOR', definicion: 'Equipo portátil para combatir fuegos incipientes.', categoria: 'Incendio', dificultad: 'Medio', referencia: 'NFPA 10' },
+            { palabra: 'ANDAMIO', definicion: 'Estructura provisional para trabajos en altura.', categoria: 'Alturas', dificultad: 'Medio', referencia: 'OSHA 1926' },
+            { palabra: 'QUÍMICO', definicion: 'Sustancia con propiedades que pueden ser nocivas.', categoria: 'SGA', dificultad: 'Medio', referencia: 'SGA/GHS' },
+            { palabra: 'BRIGADA', definicion: 'Grupo de personas capacitadas para emergencias.', categoria: 'Emergencias', dificultad: 'Medio', referencia: 'NFPA 600' },
+            { palabra: 'PERMISO', definicion: 'Autorización escrita para tareas de alto riesgo.', categoria: 'Gestión', dificultad: 'Medio', referencia: 'ISO 45001' },
+            { palabra: 'BLOQUEO', definicion: 'Control de energías peligrosas (LOTO).', categoria: 'Mecánico', dificultad: 'Medio', referencia: 'OSHA 1910.147' },
+            { palabra: 'DERRAME', definicion: 'Escape accidental de sustancias líquidas.', categoria: 'Ambiente', dificultad: 'Medio', referencia: 'ISO 14001' },
+            { palabra: 'PREVENCIÓN', definicion: 'Acción de anticiparse para evitar un daño.', categoria: 'Gestión', dificultad: 'Difícil', referencia: 'ISO 45001' },
+            { palabra: 'PROTECCIÓN', definicion: 'Medidas para reducir las consecuencias de un riesgo.', categoria: 'Gestión', dificultad: 'Difícil', referencia: 'ISO 45001' },
+            { palabra: 'BIOSEGURIDAD', definicion: 'Control de riesgos por agentes biológicos.', categoria: 'Higiene', dificultad: 'Difícil', referencia: 'OMS' },
+            { palabra: 'TOXICIDAD', definicion: 'Capacidad de una sustancia de causar daño.', categoria: 'SGA', dificultad: 'Difícil', referencia: 'SGA/GHS' },
+            { palabra: 'AUDITORÍA', definicion: 'Proceso sistemático para evaluar cumplimiento.', categoria: 'Gestión', dificultad: 'Difícil', referencia: 'ISO 19011' },
+            { palabra: 'ESTÁNDAR', definicion: 'Nivel de referencia para realizar una tarea.', categoria: 'Gestión', dificultad: 'Difícil', referencia: 'ISO 45001' },
+            { palabra: 'CONFINADO', definicion: 'Espacio con entradas y salidas limitadas.', categoria: 'Espacios', dificultad: 'Difícil', referencia: 'OSHA 1910.146' },
+            { palabra: 'RADIACIÓN', definicion: 'Emisión de energía en forma de ondas o partículas.', categoria: 'Higiene', dificultad: 'Difícil', referencia: 'IAEA' },
+            { palabra: 'VIBRACIÓN', definicion: 'Movimiento oscilatorio que afecta al trabajador.', categoria: 'Higiene', dificultad: 'Difícil', referencia: 'ISO 5349' },
+            { palabra: 'PSICOSOCIAL', definicion: 'Factores del trabajo que afectan la salud mental.', categoria: 'Psicología', dificultad: 'Difícil', referencia: 'ISO 45003' }
+        ];
+
+        function App() {
+            const [view, setView] = useState('INTRO');
+            const [mode, setMode] = useState('DAILY');
+            const [wordData, setWordData] = useState(null);
+            const [allWords, setAllWords] = useState([]);
+            const [guesses, setGuesses] = useState([]);
+            const [currentGuess, setCurrentGuess] = useState('');
+            const [gameState, setGameState] = useState('PLAYING'); // PLAYING, WON, LOST
+            const [shakeRow, setShakeRow] = useState(-1);
+            const [stats, setStats] = useState({
+                played: 0,
+                won: 0,
+                streak: 0,
+                maxStreak: 0,
+                distribution: [0, 0, 0, 0, 0, 0]
+            });
+            const [showStats, setShowStats] = useState(false);
+            const [showHelp, setShowHelp] = useState(false);
+
+            // Load stats
+            useEffect(() => {
+                const savedStats = localStorage.getItem('prevenwordle_stats');
+                if (savedStats) setStats(JSON.parse(savedStats));
+            }, []);
+
+            // Fetch data
+            useEffect(() => {
+                fetch(SHEETS_URL)
+                    .then(res => res.text())
+                    .then(csv => {
+                        const rows = csv.split('\n').slice(1);
+                        const data = rows.map(row => {
+                            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                            return {
+                                palabra: cols[0]?.toUpperCase(),
+                                definicion: cols[1],
+                                categoria: cols[2],
+                                dificultad: cols[3],
+                                referencia: cols[4],
+                                fecha: cols[5]
+                            };
+                        }).filter(d => d.palabra);
+                        setAllWords(data.length > 0 ? data : FALLBACK_DATA);
+                    })
+                    .catch(() => setAllWords(FALLBACK_DATA));
+            }, []);
+
+            const selectWord = useCallback((selectedMode) => {
+                if (allWords.length === 0) return;
+
+                let target;
+                if (selectedMode === 'DAILY') {
+                    const today = new Date().toISOString().split('T')[0];
+                    target = allWords.find(w => w.fecha === today);
+                    if (!target) {
+                        // Hash based on date
+                        const hash = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                        target = allWords[hash % allWords.length];
+                    }
+                } else {
+                    target = allWords[Math.floor(Math.random() * allWords.length)];
+                }
+
+                setWordData(target);
+                setGuesses([]);
+                setCurrentGuess('');
+                setGameState('PLAYING');
+                setView('GAME');
+            }, [allWords]);
+
+            const onKeyPress = useCallback((key) => {
+                if (gameState !== 'PLAYING') return;
+
+                if (key === 'ENTER') {
+                    if (currentGuess.length !== wordData.palabra.length) {
+                        setShakeRow(guesses.length);
+                        setTimeout(() => setShakeRow(-1), 500);
+                        return;
+                    }
+
+                    const newGuesses = [...guesses, currentGuess];
+                    setGuesses(newGuesses);
+                    setCurrentGuess('');
+
+                    if (currentGuess === wordData.palabra) {
+                        setGameState('WON');
+                        updateStats(true, newGuesses.length);
+                    } else if (newGuesses.length === 6) {
+                        setGameState('LOST');
+                        updateStats(false);
+                    }
+                } else if (key === 'BACKSPACE') {
+                    setCurrentGuess(prev => prev.slice(0, -1));
+                } else if (currentGuess.length < wordData.palabra.length && /^[A-ZÑ]$/.test(key)) {
+                    setCurrentGuess(prev => prev + key);
+                }
+            }, [currentGuess, guesses, gameState, wordData]);
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    const key = e.key.toUpperCase();
+                    if (key === 'ENTER') onKeyPress('ENTER');
+                    else if (key === 'BACKSPACE') onKeyPress('BACKSPACE');
+                    else if (/^[A-ZÑ]$/.test(key)) onKeyPress(key);
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [onKeyPress]);
+
+            const updateStats = (won, attempts) => {
+                setStats(prev => {
+                    const newStats = {
+                        played: prev.played + 1,
+                        won: prev.won + (won ? 1 : 0),
+                        streak: won ? prev.streak + 1 : 0,
+                        maxStreak: won ? Math.max(prev.maxStreak, prev.streak + 1) : prev.maxStreak,
+                        distribution: [...prev.distribution]
+                    };
+                    if (won) newStats.distribution[attempts - 1]++;
+                    localStorage.setItem('prevenwordle_stats', JSON.stringify(newStats));
+                    return newStats;
+                });
+            };
+
+            const getLetterStatus = (letter, pos, guess) => {
+                const target = wordData.palabra;
+                if (target[pos] === letter) return 'correct';
+                if (target.includes(letter)) {
+                    // Handle duplicate letters logic (simplified for UI)
+                    return 'present';
+                }
+                return 'absent';
+            };
+
+            const getKeyStatuses = () => {
+                const statuses = {};
+                guesses.forEach(guess => {
+                    guess.split('').forEach((letter, i) => {
+                        const status = getLetterStatus(letter, i, guess);
+                        if (!statuses[letter] || status === 'correct' || (status === 'present' && statuses[letter] !== 'correct')) {
+                            statuses[letter] = status;
+                        }
+                    });
+                });
+                return statuses;
+            };
+
+            const shareResult = () => {
+                const emojiGrid = guesses.map(guess => {
+                    return guess.split('').map((letter, i) => {
+                        const status = getLetterStatus(letter, i, guess);
+                        return status === 'correct' ? '🟩' : status === 'present' ? '🟨' : '⬛';
+                    }).join('');
+                }).join('\n');
+
+                const text = `PrevenWordle ${mode === 'DAILY' ? new Date().toLocaleDateString() : 'Libre'}\n${guesses.length}/6\n\n${emojiGrid}\n\nJuega en: ${window.location.href}`;
+                navigator.clipboard.writeText(text);
+                alert('¡Resultado copiado al portapapeles!');
+            };
+
+            const keyboardRows = [
+                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
+                ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
+            ];
+
+            const keyStatuses = getKeyStatuses();
+
+            return (
+                <div className="min-h-screen flex flex-col bg-charcoal text-white">
+                    {/* Header */}
+                    <header className="glass-hud p-4 flex justify-between items-center border-b border-white/10 sticky top-0 z-50">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setShowHelp(true)} className="p-2 hover:bg-white/5 rounded-lg transition-all">
+                                <HelpCircle className="w-5 h-5 text-accent" />
+                            </button>
+                        </div>
+                        <div className="text-center">
+                            <h1 className="text-2xl font-black tracking-tighter uppercase">
+                                PREVEN<span className="text-accent">WORDLE</span>
+                            </h1>
+                            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-accent/60">Seguridad en cada letra</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setShowStats(true)} className="p-2 hover:bg-white/5 rounded-lg transition-all">
+                                <BarChart3 className="w-5 h-5 text-accent" />
+                            </button>
+                        </div>
+                    </header>
+
+                    <AnimatePresence mode="wait">
+                        {view === 'INTRO' && (
+                            <motion.div 
+                                key="intro"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="flex-1 flex flex-col items-center justify-center p-6"
+                            >
+                                <div className="max-w-md w-full glass-hud p-8 rounded-3xl border border-accent/20 text-center space-y-8">
+                                    <div className="p-4 bg-accent/10 rounded-full inline-block border border-accent/30">
+                                        <Shield className="w-12 h-12 text-accent" />
+                                    </div>
+                                    <h2 className="text-4xl font-black uppercase tracking-tighter">¿Listo para el desafío?</h2>
+                                    <div className="space-y-4">
+                                        <button 
+                                            onClick={() => { setMode('DAILY'); selectWord('DAILY'); }}
+                                            className="w-full py-6 bg-accent text-primary font-black rounded-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all"
+                                        >
+                                            <Calendar className="w-6 h-6" /> RETO DIARIO
+                                        </button>
+                                        <button 
+                                            onClick={() => { setMode('FREE'); selectWord('FREE'); }}
+                                            className="w-full py-6 bg-white/5 border border-white/10 text-white font-black rounded-xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
+                                        >
+                                            <Zap className="w-6 h-6 text-accent" /> MODO LIBRE
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {view === 'GAME' && wordData && (
+                            <motion.div 
+                                key="game"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex-1 flex flex-col items-center justify-between p-4 md:p-8"
+                            >
+                                {/* Grid */}
+                                <div className="flex-1 flex items-center justify-center w-full">
+                                    <div className="grid gap-2" style={{ gridTemplateRows: 'repeat(6, 1fr)' }}>
+                                        {[...Array(6)].map((_, rowIndex) => {
+                                            const guess = guesses[rowIndex] || (rowIndex === guesses.length ? currentGuess : '');
+                                            const isCurrent = rowIndex === guesses.length;
+                                            const isSubmitted = rowIndex < guesses.length;
+
+                                            return (
+                                                <div 
+                                                    key={rowIndex} 
+                                                    className={`flex gap-2 ${shakeRow === rowIndex ? 'shake' : ''}`}
+                                                >
+                                                    {[...Array(wordData.palabra.length)].map((_, colIndex) => {
+                                                        const letter = guess[colIndex] || '';
+                                                        const status = isSubmitted ? getLetterStatus(letter, colIndex, guess) : '';
+                                                        
+                                                        return (
+                                                            <div 
+                                                                key={colIndex}
+                                                                className={`w-14 h-14 md:w-16 md:h-16 flex items-center justify-center text-2xl md:text-3xl font-black rounded-md border-2 transition-all duration-500 ${
+                                                                    isSubmitted 
+                                                                    ? (status === 'correct' ? 'bg-accent border-accent text-white' : status === 'present' ? 'bg-warning border-warning text-white' : 'bg-zinc-800 border-zinc-800 text-white')
+                                                                    : (letter ? 'border-zinc-500 scale-105' : 'border-zinc-800')
+                                                                } ${gameState === 'WON' && isSubmitted && rowIndex === guesses.length - 1 ? 'bounce' : ''}`}
+                                                                style={{ transitionDelay: isSubmitted ? `${colIndex * 100}ms` : '0ms' }}
+                                                            >
+                                                                {letter}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Keyboard */}
+                                <div className="w-full max-w-2xl mt-8 space-y-2">
+                                    {keyboardRows.map((row, i) => (
+                                        <div key={i} className="flex justify-center gap-1.5">
+                                            {row.map(key => {
+                                                const status = keyStatuses[key];
+                                                const isSpecial = key === 'ENTER' || key === 'BACKSPACE';
+                                                
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        onClick={() => onKeyPress(key)}
+                                                        className={`key h-14 rounded-md font-black text-sm flex items-center justify-center transition-all ${
+                                                            isSpecial ? 'px-4 bg-zinc-700' : 'flex-1 bg-zinc-600'
+                                                        } ${
+                                                            status === 'correct' ? 'bg-accent!' : status === 'present' ? 'bg-warning!' : status === 'absent' ? 'bg-zinc-800! opacity-40' : ''
+                                                        }`}
+                                                    >
+                                                        {key === 'BACKSPACE' ? <Delete className="w-5 h-5" /> : key === 'ENTER' ? <CornerDownLeft className="w-5 h-5" /> : key}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Modals */}
+                    <AnimatePresence>
+                        {gameState !== 'PLAYING' && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+                            >
+                                <motion.div 
+                                    initial={{ scale: 0.9, y: 20 }}
+                                    animate={{ scale: 1, y: 0 }}
+                                    className="max-w-md w-full glass-hud p-8 rounded-[2.5rem] border border-white/10 text-center"
+                                >
+                                    <div className={`mb-6 p-4 rounded-full inline-block ${gameState === 'WON' ? 'bg-accent/20 border border-accent/30' : 'bg-error/20 border border-error/30'}`}>
+                                        {gameState === 'WON' ? <Trophy className="w-12 h-12 text-accent" /> : <AlertTriangle className="w-12 h-12 text-error" />}
+                                    </div>
+                                    <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">
+                                        {gameState === 'WON' ? '¡EXCELENTE!' : 'FIN DEL TURNO'}
+                                    </h2>
+                                    <div className="bg-white/5 p-6 rounded-2xl border border-white/10 mb-8 text-left">
+                                        <p className="text-[10px] font-black uppercase text-accent mb-1">Palabra Correcta</p>
+                                        <h3 className="text-3xl font-black text-white mb-4 tracking-widest">{wordData.palabra}</h3>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase text-white/40">Definición</p>
+                                                <p className="text-sm text-white/80 italic leading-relaxed">"{wordData.definicion}"</p>
+                                            </div>
+                                            <div className="flex justify-between gap-4">
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase text-white/40">Categoría</p>
+                                                    <span className="text-xs font-bold text-accent">{wordData.categoria}</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] font-black uppercase text-white/40">Referencia</p>
+                                                    <span className="text-xs font-mono text-white/60">{wordData.referencia}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button 
+                                            onClick={shareResult}
+                                            className="py-4 bg-white/5 border border-white/10 rounded-xl font-black flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                                        >
+                                            <Share2 className="w-5 h-5" /> COMPARTIR
+                                        </button>
+                                        <button 
+                                            onClick={() => { setGameState('PLAYING'); setView('INTRO'); }}
+                                            className="py-4 bg-accent text-primary rounded-xl font-black hover:scale-[1.02] transition-all"
+                                        >
+                                            CONTINUAR
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+
+                        {showStats && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+                            >
+                                <div className="max-w-md w-full glass-hud p-8 rounded-[2.5rem] border border-white/10 relative">
+                                    <button onClick={() => setShowStats(false)} className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full">
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter mb-8 text-center">Estadísticas</h3>
+                                    
+                                    <div className="grid grid-cols-4 gap-4 mb-12">
+                                        <div className="text-center">
+                                            <p className="text-2xl font-black text-white">{stats.played}</p>
+                                            <p className="text-[8px] font-black uppercase text-white/40">Jugadas</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-black text-white">{stats.played ? Math.round((stats.won / stats.played) * 100) : 0}%</p>
+                                            <p className="text-[8px] font-black uppercase text-white/40">% Acierto</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-black text-white">{stats.streak}</p>
+                                            <p className="text-[8px] font-black uppercase text-white/40">Racha</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-black text-white">{stats.maxStreak}</p>
+                                            <p className="text-[8px] font-black uppercase text-white/40">Máxima</p>
+                                        </div>
+                                    </div>
+
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-accent mb-4">Distribución de Intentos</h4>
+                                    <div className="space-y-2">
+                                        {stats.distribution.map((count, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <span className="text-xs font-black text-white/40 w-4">{i + 1}</span>
+                                                <div className="flex-1 bg-white/5 rounded-full h-5 overflow-hidden">
+                                                    <div 
+                                                        className="bg-accent h-full flex items-center justify-end px-2 transition-all duration-1000"
+                                                        style={{ width: `${stats.won ? (count / Math.max(...stats.distribution, 1)) * 100 : 0}%` }}
+                                                    >
+                                                        <span className="text-[10px] font-black text-primary">{count}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {showHelp && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+                            >
+                                <div className="max-w-md w-full glass-hud p-8 rounded-[2.5rem] border border-white/10 relative">
+                                    <button onClick={() => setShowHelp(false)} className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full">
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter mb-6 text-center">Cómo Jugar</h3>
+                                    <div className="space-y-6 text-sm text-white/80">
+                                        <p>Adivina la palabra EHS oculta en 6 intentos.</p>
+                                        <div className="space-y-4">
+                                            <div className="flex gap-2 items-center">
+                                                <div className="w-10 h-10 bg-accent rounded flex items-center justify-center font-black text-white">C</div>
+                                                <p>La letra está en la palabra y en la posición correcta.</p>
+                                            </div>
+                                            <div className="flex gap-2 items-center">
+                                                <div className="w-10 h-10 bg-warning rounded flex items-center justify-center font-black text-white">A</div>
+                                                <p>La letra está en la palabra pero en otra posición.</p>
+                                            </div>
+                                            <div className="flex gap-2 items-center">
+                                                <div className="w-10 h-10 bg-zinc-800 rounded flex items-center justify-center font-black text-white">S</div>
+                                                <p>La letra no forma parte de la palabra.</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl">
+                                            <p className="text-xs italic">"Todas las palabras están relacionadas con Seguridad, Higiene y Medio Ambiente."</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
