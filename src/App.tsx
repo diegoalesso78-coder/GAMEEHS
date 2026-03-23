@@ -158,44 +158,44 @@ const IndustrialCard = ({ card, hidden, onClick, styleClass = "", style = {} }: 
       whileHover={!hidden && onClick ? { y: -10, scale: 1.05 } : {}}
       onClick={onClick}
       style={style}
-      className={`relative w-32 h-48 tactile-card p-3 flex flex-col items-center justify-between cursor-pointer transition-all shadow-2xl ${styleClass} ${hidden ? 'bg-on-primary-fixed!' : ''}`}
+      className={`relative w-24 h-36 md:w-32 md:h-48 tactile-card p-2 md:p-3 flex flex-col items-center justify-between cursor-pointer transition-all shadow-2xl ${styleClass} ${hidden ? 'bg-on-primary-fixed!' : ''}`}
     >
       {!hidden ? (
         <>
           {/* Top Left: Number + Icon (Suit) */}
           <div className="w-full flex justify-start items-center gap-1">
-            <span className="text-2xl font-black text-on-primary-fixed leading-none">{card.n}</span>
-            <span className={`material-symbols-outlined text-lg symbol-3d ${card.iconColor || 'text-on-primary-fixed'}`}>{card.icon || 'star'}</span>
+            <span className="text-lg md:text-2xl font-black text-on-primary-fixed leading-none">{card.n}</span>
+            <span className={`material-symbols-outlined text-sm md:text-lg symbol-3d ${card.iconColor || 'text-on-primary-fixed'}`}>{card.icon || 'star'}</span>
           </div>
           
           {/* Center Content: Large Emoji + Background Icon */}
-          <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="relative w-16 h-16 md:w-24 md:h-24 flex items-center justify-center">
             {/* Background Suit Icon - Subtle */}
-            <span className={`absolute material-symbols-outlined text-7xl opacity-[0.08] ${card.iconColor || 'text-black'}`}>{card.icon}</span>
+            <span className={`absolute material-symbols-outlined text-5xl md:text-7xl opacity-[0.08] ${card.iconColor || 'text-black'}`}>{card.icon}</span>
             
             {/* Safety/Industrial Emoji */}
-            <div className="w-16 h-16 rounded-2xl bg-white/90 flex items-center justify-center shadow-xl border border-black/5 z-10 transform rotate-3">
-              <span className="text-4xl symbol-3d">{card.e}</span>
+            <div className="w-10 h-10 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/90 flex items-center justify-center shadow-xl border border-black/5 z-10 transform rotate-3">
+              <span className="text-2xl md:text-4xl symbol-3d">{card.e}</span>
             </div>
           </div>
           
           {/* Bottom Section: Label + Power Bar */}
           <div className="w-full text-center">
-            <p className="font-headline text-[10px] font-black text-on-primary-fixed mb-1 uppercase tracking-tighter leading-tight">
+            <p className="font-headline text-[8px] md:text-[10px] font-black text-on-primary-fixed mb-0.5 md:mb-1 uppercase tracking-tighter leading-tight truncate">
               {card.l}
             </p>
-            <div className="h-2 w-full bg-slate-200/50 rounded-full overflow-hidden border border-black/5">
+            <div className="h-1.5 md:h-2 w-full bg-slate-200/50 rounded-full overflow-hidden border border-black/5">
               <div 
                 className={`h-full bg-secondary shadow-[0_0_8px_rgba(255,182,144,0.6)] transition-all duration-700`} 
                 style={{ width: `${(card.p / 14) * 100}%` }}
               ></div>
             </div>
-            <div className="flex justify-between items-center mt-1">
-               <p className="text-[7px] font-bold text-black/40 uppercase tracking-tighter">Control: {card.p}</p>
+            <div className="flex justify-between items-center mt-0.5 md:mt-1">
+               <p className="text-[6px] md:text-[7px] font-bold text-black/40 uppercase tracking-tighter">Control: {card.p}</p>
                {/* Bottom Right: Number + Icon (Small/Inverted) */}
                <div className="flex items-center gap-0.5 opacity-30">
-                  <span className="text-[10px] font-black">{card.n}</span>
-                  <span className="material-symbols-outlined text-[10px]">{card.icon}</span>
+                  <span className="text-[8px] md:text-[10px] font-black">{card.n}</span>
+                  <span className="material-symbols-outlined text-[8px] md:text-[10px]">{card.icon}</span>
                </div>
             </div>
           </div>
@@ -848,69 +848,80 @@ const OcaGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (scor
   if (gameState === 'WINNER') return <OcaWinner player={players[currentPlayer]} onRestart={() => window.location.reload()} />;
 
   return (
-    <div className="h-screen flex flex-col lg:flex-row p-4 gap-4 overflow-hidden obsidian-table relative">
+    <div className="h-screen flex flex-col lg:flex-row p-2 md:p-4 gap-2 md:gap-4 overflow-hidden obsidian-table relative">
       <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent pointer-events-none" />
       
-      <aside className="w-full lg:w-80 glass-panel-heavy p-6 rounded-xl hard-shadow flex flex-col gap-4 relative z-10">
-        <button onClick={onExit} className="text-[10px] font-headline uppercase tracking-widest opacity-50 hover:opacity-100 flex items-center gap-2 mb-4 transition-opacity">
-          <LogOut size={12} /> Volver al Menú
-        </button>
+      <aside className="w-full lg:w-80 glass-panel-heavy p-4 md:p-6 rounded-xl hard-shadow flex flex-col gap-2 md:gap-4 relative z-10 shrink-0">
+        <div className="flex justify-between items-center lg:flex-col lg:items-stretch gap-2">
+          <button 
+            onClick={() => {
+              onGameOver(Math.floor((players[currentPlayer].pos / 63) * 100));
+              onExit();
+            }}
+            className="flex-1 lg:flex-none px-4 md:px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all"
+          >
+            Finalizar
+          </button>
+          <button onClick={onExit} className="flex-1 lg:flex-none justify-center lg:justify-start text-[8px] md:text-[10px] font-headline uppercase tracking-widest opacity-50 hover:opacity-100 flex items-center gap-2 transition-opacity">
+            <LogOut size={12} /> Salir
+          </button>
+        </div>
         
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-secondary flex items-center justify-center rounded-sm hard-shadow-sm">
-            <LayoutGrid className="text-black" size={24} />
+        <div className="flex items-center gap-2 md:gap-3 my-1 md:my-2">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-secondary flex items-center justify-center rounded-sm hard-shadow-sm shrink-0">
+            <LayoutGrid className="text-black" size={20} />
           </div>
           <div>
-            <h2 className="text-2xl font-headline font-black tracking-tighter leading-none">LA <span className="text-secondary">OCA</span></h2>
-            <p className="text-[10px] font-headline uppercase tracking-widest opacity-50">Logística de Seguridad</p>
+            <h2 className="text-xl md:text-2xl font-headline font-black tracking-tighter leading-none">LA <span className="text-secondary">OCA</span></h2>
+            <p className="text-[8px] md:text-[10px] font-headline uppercase tracking-widest opacity-50">Logística de Seguridad</p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 overflow-y-auto max-h-[40vh] pr-2 custom-scrollbar">
+        <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto max-h-[20vh] lg:max-h-[40vh] pb-2 lg:pr-2 custom-scrollbar">
           {players.map((p, i) => (
-            <div key={i} className={`p-3 rounded-sm border-l-4 flex items-center gap-3 transition-all ${currentPlayer === i ? 'bg-secondary/10 border-secondary hard-shadow-sm' : 'bg-white/5 border-transparent opacity-50'}`}>
-              <div className="w-8 h-8 rounded-sm flex items-center justify-center text-black font-black hard-shadow-sm" style={{ backgroundColor: p.color }}>{p.name[0]}</div>
-              <div className="flex-1">
-                <p className="text-xs font-headline font-black uppercase truncate">{p.name}</p>
-                <div className="flex items-center gap-2 mt-1">
+            <div key={i} className={`p-2 md:p-3 rounded-sm border-l-4 flex items-center gap-2 md:gap-3 transition-all min-w-[120px] lg:min-w-0 ${currentPlayer === i ? 'bg-secondary/10 border-secondary hard-shadow-sm' : 'bg-white/5 border-transparent opacity-50'}`}>
+              <div className="w-6 h-6 md:w-8 md:h-8 rounded-sm flex items-center justify-center text-black font-black hard-shadow-sm shrink-0 text-[10px] md:text-xs" style={{ backgroundColor: p.color }}>{p.name[0]}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] md:text-xs font-headline font-black uppercase truncate">{p.name}</p>
+                <div className="flex items-center gap-1 md:gap-2 mt-0.5 md:mt-1">
                   <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-secondary transition-all duration-500" style={{ width: `${(p.pos / 63) * 100}%` }} />
                   </div>
-                  <span className="text-[10px] font-mono opacity-60">{p.pos}/63</span>
+                  <span className="text-[8px] md:text-[10px] font-mono opacity-60">{p.pos}/63</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-auto flex flex-col items-center gap-4 p-6 bg-black/40 rounded-xl border border-white/5 hard-shadow">
-          <div className="relative">
-            <div className={`w-20 h-20 bg-white rounded-xl flex items-center justify-center text-4xl text-black font-black hard-shadow transition-transform ${isRolling ? 'animate-spin' : ''}`}>
+        <div className="mt-auto flex items-center lg:flex-col gap-3 md:gap-4 p-3 md:p-6 bg-black/40 rounded-xl border border-white/5 hard-shadow">
+          <div className="relative shrink-0">
+            <div className={`w-12 h-12 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center text-2xl md:text-4xl text-black font-black hard-shadow transition-transform ${isRolling ? 'animate-spin' : ''}`}>
               {dice}
             </div>
             {isRolling && (
-              <div className="absolute -inset-4 border-2 border-secondary/30 rounded-full animate-ping pointer-events-none" />
+              <div className="absolute -inset-2 md:-inset-4 border-2 border-secondary/30 rounded-full animate-ping pointer-events-none" />
             )}
           </div>
           
           <button 
             onClick={rollDice} 
             disabled={isRolling || !!modal} 
-            className="btn-industrial-orange w-full py-4 disabled:opacity-30 text-black font-headline font-black uppercase tracking-widest text-xs"
+            className="btn-industrial-orange flex-1 lg:w-full py-3 md:py-4 disabled:opacity-30 text-black font-headline font-black uppercase tracking-widest text-[10px] md:text-xs"
           >
-            {isRolling ? 'PROCESANDO...' : 'LANZAR DADO'}
+            {isRolling ? '...' : 'LANZAR DADO'}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 glass-panel-heavy rounded-xl p-6 overflow-hidden flex items-center justify-center border border-white/10 relative z-10">
-        <div className="absolute top-4 right-4 flex items-center gap-4 text-[10px] font-headline uppercase tracking-widest opacity-30">
-          <div className="flex items-center gap-1"><div className="w-2 h-2 bg-error-rose rounded-full" /> Riesgo</div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 bg-emerald-400 rounded-full" /> Barrera</div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 bg-amber-400 rounded-full" /> Trivia</div>
+      <main className="flex-1 glass-panel-heavy rounded-xl p-2 md:p-6 overflow-hidden flex items-center justify-center border border-white/10 relative z-10">
+        <div className="absolute top-2 right-2 flex items-center gap-2 md:gap-4 text-[8px] md:text-[10px] font-headline uppercase tracking-widest opacity-30 z-20">
+          <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-error-rose rounded-full" /> Riesgo</div>
+          <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full" /> Barrera</div>
+          <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-amber-400 rounded-full" /> Trivia</div>
         </div>
 
-        <div className="grid grid-cols-9 gap-1 w-full max-w-4xl aspect-[9/7] p-2 bg-black/20 rounded-lg border border-white/5">
+        <div className="grid grid-cols-9 gap-0.5 md:gap-1 w-full max-w-4xl aspect-[9/7] p-1 md:p-2 bg-black/20 rounded-lg border border-white/5 overflow-auto">
           {Array.from({ length: 7 }).map((_, r) => {
             const rowIdx = 6 - r;
             let rowSquares = board.slice(rowIdx * 9, (rowIdx + 1) * 9);
@@ -993,19 +1004,19 @@ const OcaSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void, onBack: ()
           <ArrowRight className="rotate-180" size={12} /> Volver
         </button>
         
-        <div className="text-center mb-10">
-          <h2 className="text-5xl font-headline font-black mb-2 tracking-tighter">LA <span className="text-secondary">OCA</span></h2>
-          <p className="text-[10px] font-headline uppercase tracking-[0.3em] text-secondary opacity-70">Logística de Prevención</p>
+        <div className="text-center mb-6 md:mb-10">
+          <h2 className="text-3xl md:text-5xl font-headline font-black mb-1 md:mb-2 tracking-tighter">LA <span className="text-secondary">OCA</span></h2>
+          <p className="text-[8px] md:text-[10px] font-headline uppercase tracking-[0.2em] md:tracking-[0.3em] text-secondary opacity-70">Logística de Prevención</p>
         </div>
 
-        <div className="mb-10">
-          <p className="text-[10px] font-headline uppercase font-black mb-4 opacity-50 text-center tracking-widest">Configuración de Escuadrón</p>
-          <div className="flex gap-4 justify-center">
+        <div className="mb-6 md:mb-10">
+          <p className="text-[8px] md:text-[10px] font-headline uppercase font-black mb-3 md:mb-4 opacity-50 text-center tracking-widest">Configuración de Escuadrón</p>
+          <div className="flex gap-2 md:gap-4 justify-center">
             {[2, 3, 4].map(n => (
               <button 
                 key={n} 
                 onClick={() => setCount(n)} 
-                className={`w-14 h-14 rounded-sm font-headline font-black transition-all border-2 ${count === n ? 'bg-secondary text-black border-secondary hard-shadow-sm scale-110' : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'}`}
+                className={`w-10 h-10 md:w-14 md:h-14 rounded-sm font-headline font-black transition-all border-2 ${count === n ? 'bg-secondary text-black border-secondary hard-shadow-sm scale-110' : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'}`}
               >
                 {n}
               </button>
@@ -1013,18 +1024,18 @@ const OcaSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void, onBack: ()
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 mb-10">
+        <div className="flex flex-col gap-3 md:gap-4 mb-6 md:mb-10">
           {Array.from({ length: count }).map((_, i) => (
             <div key={i} className="relative group">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-sm flex items-center justify-center text-[10px] font-headline font-black bg-white/10 text-secondary group-focus-within:bg-secondary group-focus-within:text-black transition-colors">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 rounded-sm flex items-center justify-center text-[8px] md:text-[10px] font-headline font-black bg-white/10 text-secondary group-focus-within:bg-secondary group-focus-within:text-black transition-colors">
                 {i + 1}
               </div>
               <input 
                 type="text" 
                 value={names[i]} 
                 onChange={e => { const n = [...names]; n[i] = e.target.value; setNames(n); }} 
-                className="w-full bg-black/40 border border-white/10 focus:border-secondary/50 outline-none py-4 pl-12 pr-4 uppercase font-headline font-black text-xs tracking-widest transition-all rounded-sm" 
-                placeholder={`Identificación Op ${i+1}`} 
+                className="w-full bg-black/40 border border-white/10 focus:border-secondary/50 outline-none py-3 md:py-4 pl-10 md:pl-12 pr-4 uppercase font-headline font-black text-[10px] md:text-xs tracking-widest transition-all rounded-sm" 
+                placeholder={`ID Op ${i+1}`} 
               />
             </div>
           ))}
@@ -1166,34 +1177,34 @@ const MatchGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (sc
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none" />
       
       {/* Header HUD - STITCH STYLE */}
-      <header className="glass-panel-heavy p-4 flex items-center justify-between border-b border-white/10 relative z-20 hard-shadow">
-        <div className="flex items-center gap-6">
+      <header className="glass-panel-heavy p-2 md:p-4 flex items-center justify-between border-b border-white/10 relative z-20 hard-shadow">
+        <div className="flex items-center gap-3 md:gap-6">
           <button 
             onClick={onExit} 
-            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all group"
+            className="p-2 md:p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all group"
             title="Abortar Misión"
           >
-            <ArrowRight className="rotate-180 text-secondary group-hover:scale-110 transition-transform" size={24} />
+            <ArrowRight className="rotate-180 text-secondary group-hover:scale-110 transition-transform" size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-headline font-black tracking-tighter leading-none flex items-center gap-2">
-              <span className="w-2 h-6 bg-secondary animate-pulse" />
+            <h1 className="text-lg md:text-2xl font-headline font-black tracking-tighter leading-none flex items-center gap-2">
+              <span className="w-1.5 md:w-2 h-4 md:h-6 bg-secondary animate-pulse" />
               CAZA DE <span className="text-secondary">RIESGOS</span>
             </h1>
-            <p className="text-[10px] font-headline font-bold uppercase tracking-[0.3em] text-primary opacity-70">Protocolo de Identificación de Peligros</p>
+            <p className="text-[8px] md:text-[10px] font-headline font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-primary opacity-70">Protocolo de Identificación</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-12">
-          <div className="text-right">
-            <p className="text-[10px] font-headline font-bold uppercase tracking-widest text-primary opacity-50">Rendimiento</p>
-            <p className="text-3xl font-mono font-black text-secondary leading-none tabular-nums">
+        <div className="flex items-center gap-4 md:gap-12">
+          <div className="text-right hidden sm:block">
+            <p className="text-[8px] md:text-[10px] font-headline font-bold uppercase tracking-widest text-primary opacity-50">Rendimiento</p>
+            <p className="text-xl md:text-3xl font-mono font-black text-secondary leading-none tabular-nums">
               {score.toLocaleString('en-US', { minimumIntegerDigits: 4, useGrouping: false })}
             </p>
           </div>
-          <div className="text-right min-w-[120px]">
-            <p className="text-[10px] font-headline font-bold uppercase tracking-widest text-primary opacity-50">Tiempo Restante</p>
-            <p className={`text-3xl font-mono font-black leading-none tabular-nums ${timeLeft < 20 ? 'text-error animate-pulse' : 'text-white'}`}>
+          <div className="text-right min-w-[80px] md:min-w-[120px]">
+            <p className="text-[8px] md:text-[10px] font-headline font-bold uppercase tracking-widest text-primary opacity-50">Tiempo</p>
+            <p className={`text-xl md:text-3xl font-mono font-black leading-none tabular-nums ${timeLeft < 20 ? 'text-error animate-pulse' : 'text-white'}`}>
               {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
             </p>
           </div>
@@ -1202,31 +1213,31 @@ const MatchGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (sc
               onGameOver(score.correct);
               onExit();
             }}
-            className="px-8 py-3 bg-rose-500 text-on-primary-fixed font-black rounded-xl uppercase text-xs tracking-widest hover:bg-rose-600 transition-all shadow-lg ml-8"
+            className="px-4 md:px-8 py-2 md:py-3 bg-rose-500 text-on-primary-fixed font-black rounded-xl uppercase text-[10px] md:text-xs tracking-widest hover:bg-rose-600 transition-all shadow-lg"
           >
             Finalizar
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex gap-8 p-8 relative z-10 overflow-hidden max-w-7xl mx-auto w-full">
+      <main className="flex-1 flex flex-col md:flex-row gap-4 md:gap-8 p-4 md:p-8 relative z-10 overflow-hidden max-w-7xl mx-auto w-full">
         {/* Risks Column */}
-        <div className="flex-1 flex flex-col gap-6">
-          <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-l-4 border-secondary">
-            <h3 className="text-sm font-headline font-black uppercase tracking-[0.2em] text-secondary flex items-center gap-3">
-              <AlertTriangle size={18} className="animate-hud-pulse" /> Amenazas Detectadas
+        <div className="flex-1 flex flex-col gap-3 md:gap-6 overflow-hidden">
+          <div className="flex items-center justify-between px-3 md:px-4 py-2 bg-white/5 border-l-4 border-secondary shrink-0">
+            <h3 className="text-[10px] md:text-sm font-headline font-black uppercase tracking-[0.2em] text-secondary flex items-center gap-2 md:gap-3">
+              <AlertTriangle size={16} className="animate-hud-pulse" /> Amenazas
             </h3>
-            <span className="text-xs font-mono font-bold text-white/40 bg-black/40 px-3 py-1 rounded-full">
+            <span className="text-[10px] md:text-xs font-mono font-bold text-white/40 bg-black/40 px-2 md:px-3 py-1 rounded-full">
               {matchedIds.length} / {pairs.length}
             </span>
           </div>
           
-          <div className="flex-1 grid grid-cols-1 gap-4 overflow-y-auto pr-4 custom-scrollbar">
+          <div className="flex-1 grid grid-cols-1 gap-2 md:gap-4 overflow-y-auto pr-2 md:pr-4 custom-scrollbar">
             {pairs.map((p) => (
               <motion.div
                 key={p.id}
                 layout
-                className={`glass-panel-heavy p-5 rounded-sm border-2 transition-all flex items-center gap-6 relative overflow-hidden hard-shadow-sm
+                className={`glass-panel-heavy p-3 md:p-5 rounded-sm border-2 transition-all flex items-center gap-4 md:gap-6 relative overflow-hidden hard-shadow-sm
                   ${matchedIds.includes(p.id) ? 'border-emerald-500/30 bg-emerald-500/5 opacity-40' : 'border-white/10 hover:border-secondary/40 cursor-default group'}
                 `}
               >
@@ -1343,24 +1354,24 @@ const MatchSetup = ({ onStart, onBack }: { onStart: (l: any) => void, onBack: ()
     <motion.div 
       initial={{ scale: 0.9, opacity: 0, y: 30 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
-      className="w-full max-w-3xl glass-panel-heavy p-16 rounded-sm border-2 border-secondary/30 hard-shadow text-center relative z-10"
+      className="w-full max-w-3xl glass-panel-heavy p-6 md:p-16 rounded-sm border-2 border-secondary/30 hard-shadow text-center relative z-10"
     >
-      <div className="mb-10 inline-block p-6 bg-secondary/10 rounded-sm border-2 border-secondary/50 hard-shadow-sm relative">
+      <div className="mb-6 md:mb-10 inline-block p-4 md:p-6 bg-secondary/10 rounded-sm border-2 border-secondary/50 hard-shadow-sm relative">
         <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-secondary" />
         <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-secondary" />
-        <Shield className="w-16 h-16 text-secondary animate-hud-pulse" />
+        <Shield className="w-10 h-10 md:w-16 md:h-16 text-secondary animate-hud-pulse" />
       </div>
       
-      <h1 className="text-6xl font-headline font-black text-white mb-4 tracking-tighter uppercase">
+      <h1 className="text-3xl md:text-6xl font-headline font-black text-white mb-2 md:mb-4 tracking-tighter uppercase">
         CAZA DE <span className="text-secondary">RIESGOS</span>
       </h1>
-      <div className="flex items-center justify-center gap-4 mb-16">
-        <div className="h-px w-12 bg-secondary/30" />
-        <p className="text-secondary font-headline font-black uppercase tracking-[0.5em] text-xs opacity-80">Misión de Mitigación Industrial</p>
-        <div className="h-px w-12 bg-secondary/30" />
+      <div className="flex items-center justify-center gap-2 md:gap-4 mb-8 md:mb-16">
+        <div className="h-px w-8 md:w-12 bg-secondary/30" />
+        <p className="text-secondary font-headline font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-xs opacity-80">Misión de Mitigación Industrial</p>
+        <div className="h-px w-8 md:w-12 bg-secondary/30" />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-16">
         {[
           { id: 'easy', label: 'Nivel 01', title: 'Básico', pairs: 6, time: 90, color: 'text-emerald-500', border: 'hover:border-emerald-500/50' },
           { id: 'medium', label: 'Nivel 02', title: 'Avanzado', pairs: 9, time: 75, color: 'text-amber-500', border: 'hover:border-amber-500/50' },
@@ -1369,21 +1380,21 @@ const MatchSetup = ({ onStart, onBack }: { onStart: (l: any) => void, onBack: ()
           <button 
             key={lvl.id}
             onClick={() => onStart(lvl.id as any)} 
-            className={`group p-8 bg-white/5 border-2 border-white/10 ${lvl.border} rounded-sm transition-all text-left hard-shadow-sm hover:-translate-y-2 relative overflow-hidden`}
+            className={`group p-4 md:p-8 bg-white/5 border-2 border-white/10 ${lvl.border} rounded-sm transition-all text-left hard-shadow-sm hover:-translate-y-2 relative overflow-hidden`}
           >
-            <div className="absolute top-0 right-0 w-12 h-12 bg-white/5 rotate-45 translate-x-6 -translate-y-6" />
-            <p className={`${lvl.color} font-headline font-black text-[10px] uppercase mb-2 tracking-widest`}>{lvl.label}</p>
-            <p className="text-white font-headline font-black text-3xl tracking-tighter mb-1">{lvl.title}</p>
-            <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest">{lvl.pairs} Riesgos • {lvl.time}s</p>
+            <div className="absolute top-0 right-0 w-8 md:w-12 h-8 md:h-12 bg-white/5 rotate-45 translate-x-4 md:translate-x-6 -translate-y-4 md:-translate-y-6" />
+            <p className={`${lvl.color} font-headline font-black text-[8px] md:text-[10px] uppercase mb-1 md:mb-2 tracking-widest`}>{lvl.label}</p>
+            <p className="text-white font-headline font-black text-xl md:text-3xl tracking-tighter mb-1">{lvl.title}</p>
+            <p className="text-white/40 text-[8px] md:text-[10px] font-mono uppercase tracking-widest">{lvl.pairs} Riesgos • {lvl.time}s</p>
           </button>
         ))}
       </div>
 
       <button 
         onClick={onBack} 
-        className="group flex items-center gap-3 mx-auto text-white/40 hover:text-secondary font-headline uppercase tracking-[0.4em] text-[10px] font-black transition-all"
+        className="group flex items-center gap-2 md:gap-3 mx-auto text-white/40 hover:text-secondary font-headline uppercase tracking-[0.3em] md:tracking-[0.4em] text-[8px] md:text-[10px] font-black transition-all"
       >
-        <ArrowRight className="rotate-180 group-hover:-translate-x-2 transition-transform" size={16} />
+        <ArrowRight className="rotate-180 group-hover:-translate-x-2 transition-transform" size={14} md:size={16} />
         VOLVER AL CENTRO DE OPERACIONES
       </button>
     </motion.div>
@@ -1398,37 +1409,37 @@ const MatchWinner = ({ score, level, onRestart, onExit }: { score: number, level
     <motion.div 
       initial={{ scale: 0.9, opacity: 0, scaleY: 0.5 }}
       animate={{ scale: 1, opacity: 1, scaleY: 1 }}
-      className="w-full max-w-2xl glass-panel-heavy p-16 rounded-sm border-2 border-secondary/30 hard-shadow text-center relative z-10"
+      className="w-full max-w-2xl glass-panel-heavy p-6 md:p-16 rounded-sm border-2 border-secondary/30 hard-shadow text-center relative z-10"
     >
-      <div className="text-8xl mb-8 filter drop-shadow-[0_0_25px_rgba(247,190,29,0.4)] animate-bounce">
+      <div className="text-5xl md:text-8xl mb-4 md:mb-8 filter drop-shadow-[0_0_25px_rgba(247,190,29,0.4)] animate-bounce">
         {score > 0 ? '🏆' : '⚠️'}
       </div>
       
-      <h2 className={`text-6xl font-headline font-black mb-4 tracking-tighter uppercase ${score > 0 ? 'text-emerald-500' : 'text-error'}`}>
+      <h2 className={`text-3xl md:text-6xl font-headline font-black mb-2 md:mb-4 tracking-tighter uppercase ${score > 0 ? 'text-emerald-500' : 'text-error'}`}>
         {score > 0 ? '¡MISIÓN CUMPLIDA!' : 'OPERACIÓN FALLIDA'}
       </h2>
-      <p className="text-primary font-headline font-black uppercase tracking-[0.5em] text-xs mb-16 opacity-70">
+      <p className="text-primary font-headline font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-xs mb-8 md:mb-16 opacity-70">
         {score > 0 ? 'Protocolo de Seguridad Validado al 100%' : 'Se requiere re-entrenamiento inmediato'}
       </p>
       
-      <div className="bg-black/60 p-10 rounded-sm border border-white/10 mb-16 hard-shadow-sm relative overflow-hidden">
+      <div className="bg-black/60 p-6 md:p-10 rounded-sm border border-white/10 mb-8 md:mb-16 hard-shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-secondary" />
-        <p className="text-[10px] font-headline font-black uppercase tracking-[0.3em] text-secondary mb-4">Puntaje de Eficiencia ({level})</p>
-        <p className="text-8xl font-headline font-black text-white tracking-tighter tabular-nums">
+        <p className="text-[8px] md:text-[10px] font-headline font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-secondary mb-2 md:mb-4">Puntaje de Eficiencia ({level})</p>
+        <p className="text-5xl md:text-8xl font-headline font-black text-white tracking-tighter tabular-nums">
           {score.toLocaleString('en-US', { minimumIntegerDigits: 4, useGrouping: false })}
         </p>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6">
         <button 
           onClick={onExit} 
-          className="flex-1 py-5 bg-white/5 hover:bg-white/10 text-white font-headline font-black rounded-sm uppercase tracking-[0.2em] text-xs transition-all border border-white/10"
+          className="w-full py-4 md:py-5 bg-white/5 hover:bg-white/10 text-white font-headline font-black rounded-sm uppercase tracking-[0.2em] text-[10px] md:text-xs transition-all border border-white/10"
         >
           Finalizar
         </button>
         <button 
           onClick={onRestart} 
-          className="btn-industrial-orange flex-[2] py-5 text-black font-headline font-black rounded-sm uppercase tracking-[0.2em] text-xs"
+          className="btn-industrial-orange w-full py-4 md:py-5 text-black font-headline font-black rounded-sm uppercase tracking-[0.2em] text-[10px] md:text-xs"
         >
           Nueva Misión
         </button>
@@ -1444,12 +1455,12 @@ const OcaWinner = ({ player, onRestart }: { player: any, onRestart: () => void }
     <motion.div 
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="glass-panel-heavy p-12 rounded-2xl border border-secondary/30 text-center hard-shadow relative z-10"
+      className="glass-panel-heavy p-8 md:p-12 rounded-2xl border border-secondary/30 text-center hard-shadow relative z-10 w-full max-w-md"
     >
-      <div className="text-8xl mb-6 filter drop-shadow-[0_0_20px_rgba(247,190,29,0.5)]">🏆</div>
-      <h2 className="text-5xl font-headline font-black mb-2 tracking-tighter uppercase">¡OPERADOR EXPERTO!</h2>
-      <p className="text-xl text-secondary font-headline font-black uppercase mb-10 tracking-widest">{player.name} ha llegado a la meta</p>
-      <button onClick={onRestart} className="btn-industrial-orange px-16 py-5 text-black font-headline font-black uppercase tracking-widest text-sm">NUEVA JORNADA</button>
+      <div className="text-6xl md:text-8xl mb-4 md:mb-6 filter drop-shadow-[0_0_20px_rgba(247,190,29,0.5)]">🏆</div>
+      <h2 className="text-3xl md:text-5xl font-headline font-black mb-1 md:mb-2 tracking-tighter uppercase">¡OPERADOR EXPERTO!</h2>
+      <p className="text-sm md:text-xl text-secondary font-headline font-black uppercase mb-8 md:mb-10 tracking-widest">{player.name} ha llegado a la meta</p>
+      <button onClick={onRestart} className="btn-industrial-orange w-full py-4 md:py-5 text-black font-headline font-black uppercase tracking-widest text-[10px] md:text-sm">NUEVA JORNADA</button>
     </motion.div>
   </div>
 );
@@ -1596,62 +1607,64 @@ const CarreraGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (
       <div className="absolute inset-0 hex-grid opacity-20 pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none" />
 
-      <div className="relative z-10 flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full overflow-hidden">
+      <div className="relative z-10 flex-1 flex flex-col p-3 md:p-6 max-w-7xl mx-auto w-full overflow-hidden">
         {/* Header HUD - STITCH STYLE */}
-        <header className="glass-panel-heavy p-4 flex items-center justify-between border-b border-white/10 relative z-20 hard-shadow mb-8">
-          <div className="flex items-center gap-6">
+        <header className="glass-panel-heavy p-2 md:p-4 flex items-center justify-between border-b border-white/10 relative z-20 hard-shadow mb-4 md:mb-8">
+          <div className="flex items-center gap-3 md:gap-6">
             <button 
-              onClick={onExit} 
-              className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all group"
-              title="Abortar Misión"
+              onClick={() => {
+                onGameOver(players[currentPlayerIdx].score);
+                onExit();
+              }}
+              className="px-3 md:px-6 py-1.5 md:py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all"
             >
-              <ArrowRight className="rotate-180 text-secondary group-hover:scale-110 transition-transform" size={24} />
+              Finalizar
             </button>
-            <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-1">
+            <div className="flex gap-2 md:gap-4 overflow-x-auto custom-scrollbar pb-1 max-w-[150px] md:max-w-none">
               {players.map((p, i) => (
-                <div key={i} className={`flex items-center gap-3 p-3 rounded-sm border transition-all min-w-[140px] hard-shadow-sm
+                <div key={i} className={`flex items-center gap-2 md:gap-3 p-1.5 md:p-3 rounded-sm border transition-all min-w-[100px] md:min-w-[140px] hard-shadow-sm
                   ${i === currentPlayerIdx ? 'bg-secondary/10 border-secondary ring-1 ring-secondary/50' : 'bg-white/5 border-white/10 opacity-40'}
                 `}>
-                  <span className="text-3xl filter drop-shadow-md">{p.emoji}</span>
+                  <span className="text-xl md:text-3xl filter drop-shadow-md">{p.emoji}</span>
                   <div>
-                    <p className={`text-[10px] font-headline font-black uppercase tracking-widest ${i === currentPlayerIdx ? 'text-secondary' : 'text-primary'}`}>{p.name}</p>
-                    <p className="text-xl font-mono font-black text-white leading-none">{p.score} <span className="text-[10px] opacity-50 uppercase">PTS</span></p>
+                    <p className={`text-[8px] md:text-[10px] font-headline font-black uppercase tracking-widest ${i === currentPlayerIdx ? 'text-secondary' : 'text-primary'}`}>{p.name}</p>
+                    <p className="text-sm md:text-xl font-mono font-black text-white leading-none">{p.score} <span className="text-[8px] md:text-[10px] opacity-50 uppercase">PTS</span></p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
           
-          <div className="text-right pl-8 border-l border-white/10">
-            <p className="text-[10px] font-headline font-black uppercase tracking-[0.3em] text-secondary opacity-70">Ronda de Operación</p>
-            <p className="text-4xl font-mono font-black text-white leading-none tracking-tighter">
-              {currentRound}<span className="text-xl opacity-30">/5</span>
+          <div className="text-right pl-3 md:pl-8 border-l border-white/10">
+            <p className="text-[8px] md:text-[10px] font-headline font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-secondary opacity-70">Ronda</p>
+            <p className="text-xl md:text-4xl font-mono font-black text-white leading-none tracking-tighter">
+              {currentRound}<span className="text-sm md:text-xl opacity-30">/5</span>
             </p>
           </div>
         </header>
 
         {/* Main Stage */}
-        <div className="flex-1 flex flex-col items-center justify-center relative">
+        <div className="flex-1 flex flex-col items-center justify-center relative scale-75 md:scale-100 origin-center">
           {playState === 'IDLE' || playState === 'SPINNING' ? (
-            <div className="flex flex-col items-center gap-12">
+            <div className="flex flex-col items-center gap-6 md:gap-12">
               <div className="text-center">
-                <p className="text-secondary font-headline font-black uppercase tracking-[0.5em] text-xs mb-3 animate-hud-pulse">Protocolo de Turno Activo</p>
-                <h2 className="text-5xl font-headline font-black text-white uppercase tracking-tighter">
+                <p className="text-secondary font-headline font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-xs mb-1 md:mb-3 animate-hud-pulse">Protocolo de Turno Activo</p>
+                <h2 className="text-2xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter">
                   {players[currentPlayerIdx]?.name} <span className="text-secondary">AL MANDO</span>
                 </h2>
               </div>
 
-              <div className="relative p-8 glass-panel-heavy rounded-full hard-shadow border-2 border-white/10">
+              <div className="relative p-4 md:p-8 glass-panel-heavy rounded-full hard-shadow border-2 border-white/10">
                 {/* Pointer */}
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30 text-secondary drop-shadow-[0_0_20px_rgba(247,190,29,0.8)]">
-                  <div className="w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[40px] border-t-secondary" />
+                <div className="absolute -top-2 md:-top-4 left-1/2 -translate-x-1/2 z-30 text-secondary drop-shadow-[0_0_20px_rgba(247,190,29,0.8)]">
+                  <div className="w-0 h-0 border-l-[15px] md:border-l-[25px] border-l-transparent border-r-[15px] md:border-r-[25px] border-t-[25px] md:border-t-[40px] border-t-secondary" />
                 </div>
                 
                 {/* Roulette Container */}
-                <div className="relative p-4 rounded-full border-8 border-black/40 bg-black/60 shadow-inner">
+                <div className="relative p-2 md:p-4 rounded-full border-4 md:border-8 border-black/40 bg-black/60 shadow-inner">
                   <svg 
-                    width="420" height="420" viewBox="0 0 400 400" 
-                    className="transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)]"
+                    width="280" height="280" viewBox="0 0 400 400" 
+                    className="md:w-[420px] md:h-[420px] transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)]"
                     style={{ transform: `rotate(${rotation}deg)` }}
                   >
                     {Object.keys(CARRERA_CATEGORIES).map((key, i) => {
@@ -1914,32 +1927,32 @@ const CarreraWinner = ({ players, onRestart }: { players: any[], onRestart: () =
         animate={{ y: 0, opacity: 1, scale: 1 }}
         className="relative z-10 flex flex-col items-center w-full max-w-5xl"
       >
-        <div className="text-center mb-20">
-          <p className="text-secondary font-headline font-black uppercase tracking-[0.6em] text-sm mb-4 animate-hud-pulse">Operación Finalizada con Éxito</p>
-          <h1 className="text-7xl font-headline font-black text-white tracking-tighter uppercase">
+        <div className="text-center mb-10 md:mb-20">
+          <p className="text-secondary font-headline font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-[10px] md:text-sm mb-2 md:mb-4 animate-hud-pulse">Operación Finalizada con Éxito</p>
+          <h1 className="text-4xl md:text-7xl font-headline font-black text-white tracking-tighter uppercase">
             PODIO DE <span className="text-tertiary">CAMPEONES</span>
           </h1>
-          <div className="w-48 h-2 bg-tertiary mx-auto mt-6 rounded-full shadow-[0_0_25px_rgba(247,190,29,0.6)]" />
+          <div className="w-32 md:w-48 h-1 md:h-2 bg-tertiary mx-auto mt-4 md:mt-6 rounded-full shadow-[0_0_25px_rgba(247,190,29,0.6)]" />
         </div>
 
-        <div className="flex items-end justify-center gap-8 mb-24 w-full">
+        <div className="flex flex-col md:flex-row items-center md:items-end justify-center gap-6 md:gap-8 mb-12 md:mb-24 w-full">
           {/* 2nd Place */}
           {sorted[1] && (
             <motion.div 
               initial={{ y: 100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, type: "spring" }}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center order-2 md:order-1"
             >
-              <div className="relative mb-6 group">
+              <div className="relative mb-3 md:mb-6 group">
                 <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="text-6xl filter drop-shadow-2xl relative z-10">{sorted[1].emoji}</span>
+                <span className="text-4xl md:text-6xl filter drop-shadow-2xl relative z-10">{sorted[1].emoji}</span>
               </div>
-              <p className="text-white/50 font-headline font-black uppercase text-[10px] tracking-[0.3em] mb-4">{sorted[1].name}</p>
-              <div className="w-48 h-56 bg-white/5 rounded-sm flex flex-col items-center justify-center border-2 border-white/10 shadow-2xl relative group overflow-hidden hard-shadow-sm">
+              <p className="text-white/50 font-headline font-black uppercase text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">{sorted[1].name}</p>
+              <div className="w-40 md:w-48 h-40 md:h-56 bg-white/5 rounded-sm flex flex-col items-center justify-center border-2 border-white/10 shadow-2xl relative group overflow-hidden hard-shadow-sm">
                 <div className="absolute top-0 left-0 w-full h-1 bg-white/20" />
-                <span className="text-6xl font-headline font-black text-white/10 mb-2 relative z-10">2°</span>
-                <p className="text-2xl font-mono font-black text-white relative z-10">{sorted[1].score} <span className="text-xs opacity-50">PTS</span></p>
+                <span className="text-4xl md:text-6xl font-headline font-black text-white/10 mb-1 md:mb-2 relative z-10">2°</span>
+                <p className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{sorted[1].score} <span className="text-xs opacity-50">PTS</span></p>
               </div>
             </motion.div>
           )}
@@ -2108,11 +2121,13 @@ const EscapeRoomGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver
         <div className="glass-panel-heavy p-6 rounded-xl mb-8 flex flex-col md:flex-row justify-between items-center gap-6 border border-white/10 shadow-2xl">
           <div className="flex items-center gap-8">
             <button 
-              onClick={onExit}
-              className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
-              title="Salir al Menú"
+              onClick={() => {
+                onGameOver(score);
+                onExit();
+              }}
+              className="px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all ml-4"
             >
-              <LogOut className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform rotate-180" />
+              Finalizar Partida
             </button>
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary mb-1">Investigación en curso</span>
@@ -2911,11 +2926,13 @@ const MemoryGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (s
       <div className="glass-panel-heavy p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center gap-6 border-b-2 border-tertiary/30 relative z-10">
         <div className="flex items-center gap-6">
           <button 
-            onClick={onExit}
-            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
-            title="Salir al Menú"
+            onClick={() => {
+              onGameOver(players[0].score);
+              onExit();
+            }}
+            className="px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all ml-4"
           >
-            <LogOut className="w-5 h-5 text-tertiary group-hover:scale-110 transition-transform rotate-180" />
+            Finalizar Partida
           </button>
           <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase tracking-widest text-tertiary">Entrenamiento ISO 45001</span>
@@ -3521,6 +3538,15 @@ const WordleGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (s
           <button onClick={() => setShowHelp(true)} className="p-3 hover:bg-white/5 rounded-xl transition-all group">
             <HelpCircle className="w-6 h-6 text-emerald-500 group-hover:scale-110 transition-transform" />
           </button>
+          <button 
+            onClick={() => {
+              onGameOver(0);
+              onExit();
+            }}
+            className="px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all ml-4"
+          >
+            Finalizar Partida
+          </button>
         </div>
         <div className="text-center">
           <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">
@@ -3943,52 +3969,53 @@ const JengaGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (sc
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="text-center mb-16 relative z-10"
+        className="text-center mb-8 md:mb-16 relative z-10"
       >
-        <h1 className="text-7xl font-headline tracking-tighter mb-2">JENGA<span className="text-tertiary">SEGURO</span></h1>
-        <div className="flex items-center justify-center gap-4">
-          <div className="h-[1px] w-12 bg-white/20"></div>
-          <p className="text-[10px] font-headline uppercase tracking-[0.5em] text-white/40">Industrial Safety Training System</p>
-          <div className="h-[1px] w-12 bg-white/20"></div>
+        <h1 className="text-4xl md:text-7xl font-headline tracking-tighter mb-2">JENGA<span className="text-tertiary">SEGURO</span></h1>
+        <div className="flex items-center justify-center gap-2 md:gap-4">
+          <div className="h-[1px] w-8 md:w-12 bg-white/20"></div>
+          <p className="text-[8px] md:text-[10px] font-headline uppercase tracking-[0.3em] md:tracking-[0.5em] text-white/40">Industrial Safety Training</p>
+          <div className="h-[1px] w-8 md:w-12 bg-white/20"></div>
         </div>
       </motion.div>
 
-      <div className="max-w-5xl w-full grid md:grid-cols-2 gap-8 relative z-10">
+      <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 relative z-10">
         <motion.div 
-          initial={{ x: -50, opacity: 0 }} 
-          animate={{ x: 0, opacity: 1 }} 
-          className="glass-panel-heavy p-10 rounded-[2.5rem] border border-white/10 flex flex-col items-center text-center space-y-8 group hover:border-emerald-500/30 transition-all duration-500"
+          initial={{ y: 20, opacity: 0 }} 
+          animate={{ y: 0, opacity: 1 }} 
+          className="glass-panel-heavy p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 flex flex-col items-center text-center space-y-4 md:space-y-8 group hover:border-emerald-500/30 transition-all duration-500"
         >
-          <div className="p-6 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
-            <Printer className="w-12 h-12 text-emerald-500" />
+          <div className="p-4 md:p-6 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
+            <Printer className="w-8 h-8 md:w-12 md:h-12 text-emerald-500" />
           </div>
           <div>
-            <h2 className="text-3xl font-headline mb-3">MODO IMPRESIÓN</h2>
-            <p className="text-sm text-white/50 leading-relaxed font-body">Genera etiquetas físicas de alta visibilidad para tu torre Jenga de madera real.</p>
+            <h2 className="text-xl md:text-3xl font-headline mb-2 md:mb-3">MODO IMPRESIÓN</h2>
+            <p className="text-xs md:text-sm text-white/50 leading-relaxed font-body">Genera etiquetas físicas de alta visibilidad para tu torre Jenga real.</p>
           </div>
           <button 
             onClick={() => setMode('PRINT')} 
-            className="w-full py-5 bg-emerald-500 text-on-primary-fixed font-headline font-black rounded-xl hard-shadow-sm btn-industrial-orange uppercase tracking-widest text-sm"
+            className="w-full py-4 md:py-5 bg-emerald-500 text-on-primary-fixed font-headline font-black rounded-xl hard-shadow-sm btn-industrial-orange uppercase tracking-widest text-[10px] md:text-sm"
           >
             CONFIGURAR ETIQUETAS
           </button>
         </motion.div>
 
         <motion.div 
-          initial={{ x: 50, opacity: 0 }} 
-          animate={{ x: 0, opacity: 1 }} 
-          className="glass-panel-heavy p-10 rounded-[2.5rem] border border-white/10 flex flex-col items-center text-center space-y-8 group hover:border-amber-500/30 transition-all duration-500"
+          initial={{ y: 20, opacity: 0 }} 
+          animate={{ y: 0, opacity: 1 }} 
+          transition={{ delay: 0.1 }}
+          className="glass-panel-heavy p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 flex flex-col items-center text-center space-y-4 md:space-y-8 group hover:border-amber-500/30 transition-all duration-500"
         >
-          <div className="p-6 bg-amber-500/10 rounded-2xl border border-amber-500/30 group-hover:scale-110 transition-transform duration-500">
-            <Monitor className="w-12 h-12 text-amber-500" />
+          <div className="p-4 md:p-6 bg-amber-500/10 rounded-2xl border border-amber-500/30 group-hover:scale-110 transition-transform duration-500">
+            <Monitor className="w-8 h-8 md:w-12 md:h-12 text-amber-500" />
           </div>
           <div>
-            <h2 className="text-3xl font-headline mb-3">MODO DIGITAL</h2>
-            <p className="text-sm text-white/50 leading-relaxed font-body">Utiliza la interfaz digital proyectada para dinamizar tus talleres grupales.</p>
+            <h2 className="text-xl md:text-3xl font-headline mb-2 md:mb-3">MODO DIGITAL</h2>
+            <p className="text-xs md:text-sm text-white/50 leading-relaxed font-body">Utiliza la interfaz digital proyectada para dinamizar tus talleres.</p>
           </div>
           <button 
             onClick={() => setMode('DIGITAL')} 
-            className="w-full py-5 bg-amber-500 text-on-secondary-fixed font-headline font-black rounded-xl hard-shadow-sm btn-industrial-orange uppercase tracking-widest text-sm"
+            className="w-full py-4 md:py-5 bg-amber-500 text-on-secondary-fixed font-headline font-black rounded-xl hard-shadow-sm btn-industrial-orange uppercase tracking-widest text-[10px] md:text-sm"
           >
             INICIAR TALLER
           </button>
@@ -3999,10 +4026,23 @@ const JengaGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (sc
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        onClick={onExit} 
-        className="mt-16 px-8 py-3 glass-panel-heavy rounded-full text-white/40 font-headline font-black uppercase text-xs tracking-widest hover:text-tertiary hover:border-tertiary/30 transition-all flex items-center gap-3"
+        onClick={() => {
+          onGameOver(score.correct * 10);
+          onExit();
+        }} 
+        className="mt-8 md:mt-16 px-6 md:px-8 py-2 md:py-3 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all flex items-center gap-3"
       >
-        <LogOut size={14} /> Volver al Menú Principal
+        Finalizar Partida
+      </motion.button>
+
+      <motion.button 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        onClick={onExit} 
+        className="mt-3 md:mt-4 px-6 md:px-8 py-2 md:py-3 glass-panel-heavy rounded-full text-white/40 font-headline font-black uppercase text-[10px] md:text-xs tracking-widest hover:text-tertiary hover:border-tertiary/30 transition-all flex items-center gap-2 md:gap-3"
+      >
+        <LogOut size={12} /> Volver al Menú Principal
       </motion.button>
     </div>
   );
@@ -4337,7 +4377,7 @@ export default function App() {
     console.log('Recording game result:', result);
     
     try {
-      const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyEJS5BNkY6Ty05_gu_XIMVl4vHSbHYYyLCrcHEQe2KJ6ddBnG0QcYgqwt5w_SSCxYoLQ/exec';
+      const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwZuRbqYuD1zrXZuLX0SDGYV6cDe2wbKLDVIXVgLJ5EjkIW3SU9ZITg-_jC5fRoYRBsSQ/exec';
       await fetch(LOGS_SHEETS_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -4637,55 +4677,64 @@ export default function App() {
               <div className="flex flex-col h-screen relative overflow-hidden">
                 {/* TopAppBar */}
                 <header className="fixed top-0 w-full z-50 bg-[#0a1f14]/90 backdrop-blur-md border-b-2 border-primary/20">
-                  <div className="flex justify-between items-center px-6 h-12 w-full">
-                    <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-secondary symbol-3d text-lg">precision_manufacturing</span>
-                      <h1 className="font-headline tracking-tighter uppercase text-lg font-bold text-secondary">TRUCO SEGURO</h1>
+                  <div className="flex justify-between items-center px-4 md:px-6 h-12 md:h-16 w-full">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <span className="material-symbols-outlined text-secondary symbol-3d text-base md:text-lg">precision_manufacturing</span>
+                      <h1 className="font-headline tracking-tighter uppercase text-sm md:text-lg font-bold text-secondary">TRUCO SEGURO</h1>
                     </div>
                     <div className="hidden md:flex gap-8 items-center">
                       {/* Navigation links removed as per user request */}
                     </div>
-                    <div className="flex items-center gap-4">
-                      <button onClick={handleExitGame} className="glass-panel-heavy p-2 rounded-lg text-white/50 hover:text-white transition-colors">
-                        <LogOut size={18} />
+                    <div className="flex items-center gap-2 md:gap-4">
+                      <button 
+                        onClick={() => {
+                          recordGameResult('truco', playerScore);
+                          setView('MENU');
+                        }}
+                        className="px-3 md:px-6 py-1 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all"
+                      >
+                        Finalizar
+                      </button>
+                      <button onClick={handleExitGame} className="glass-panel-heavy p-1.5 md:p-2 rounded-lg text-white/50 hover:text-white transition-colors">
+                        <LogOut size={16} />
                       </button>
                       <div className="text-right hidden sm:block">
                         <p className="text-[10px] font-headline uppercase text-primary tracking-widest leading-none">Operador</p>
                         <p className="font-headline font-bold text-sm text-secondary tracking-tighter">OP-7742</p>
                       </div>
-                      <div className="w-10 h-10 rounded-full border-2 border-secondary overflow-hidden bg-surface-container-highest shadow-[0_0_10px_rgba(255,182,144,0.3)]">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-secondary overflow-hidden bg-surface-container-highest shadow-[0_0_10px_rgba(255,182,144,0.3)]">
                         <img alt="Operator Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIsohKgIZM3xUKL7GlEjr_x_I6f19G5XaV7fEnXfspKlqKS-KaWr9eqnCRabiqVSx98qoChSS2a3Y6Rc_ZmHqH-Hat4T1NW-qiT3hOnw8EJ9skFON9B9zw5ahb99qADyiUs0rgtEyE1Eov6EGw14czxQXsB9mXnYKmB121qZt-o0W6b-n5iDr69gAPKm99q03wrdn53KLPkbfcAIAN8ZsaNRWRf2RWDFwYMB2bsPFaxNXGOKLkT19PIAidc7TfB9ssqPgWUOuDiI91"/>
                       </div>
                     </div>
                   </div>
                 </header>
 
-                <main className="pt-16 pb-32 px-6 h-screen flex flex-col items-center justify-between relative">
+                <main className="pt-14 md:pt-20 pb-24 md:pb-32 px-4 md:px-6 h-screen flex flex-col items-center justify-between relative">
                   {/* Scoreboard Header */}
-                  <div className="w-full max-w-4xl flex justify-between items-stretch gap-4 mb-2">
-                    <div className={`flex-1 bg-black/40 border-l-4 p-4 shadow-inner relative group overflow-hidden transition-all duration-500 ${gameStatus === 'playerTurn' ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-primary/30 opacity-60'}`}>
+                  <div className="w-full max-w-4xl flex justify-between items-stretch gap-2 md:gap-4 mb-2">
+                    <div className={`flex-1 bg-black/40 border-l-4 p-2 md:p-4 shadow-inner relative group overflow-hidden transition-all duration-500 ${gameStatus === 'playerTurn' ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-primary/30 opacity-60'}`}>
                       <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       <div className="flex justify-between items-start">
-                        <p className="font-headline text-[10px] uppercase tracking-[0.2em] text-primary mb-1 animate-hud-pulse">Tú (Seguridad)</p>
-                        {gameStatus === 'playerTurn' && <span className="text-[8px] bg-primary text-on-primary px-2 py-0.5 rounded-full font-bold animate-pulse">TU TURNO</span>}
+                        <p className="font-headline text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-primary mb-1 animate-hud-pulse">Tú</p>
+                        {gameStatus === 'playerTurn' && <span className="text-[7px] md:text-[8px] bg-primary text-on-primary px-1.5 md:px-2 py-0.5 rounded-full font-bold animate-pulse">TU TURNO</span>}
                       </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-headline font-black text-primary drop-shadow-[0_0_8px_rgba(189,202,192,0.5)]">{playerScore}</span>
-                        <span className="text-xs font-label text-primary/60">PUNTOS</span>
+                      <div className="flex items-baseline gap-1 md:gap-2">
+                        <span className="text-2xl md:text-4xl font-headline font-black text-primary drop-shadow-[0_0_8px_rgba(189,202,192,0.5)]">{playerScore}</span>
+                        <span className="text-[8px] md:text-xs font-label text-primary/60">PTS</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-center px-2">
-                      <div className="w-[2px] h-12 bg-gradient-to-b from-transparent via-outline-variant to-transparent"></div>
+                    <div className="flex items-center justify-center px-1">
+                      <div className="w-[1px] h-8 md:h-12 bg-gradient-to-b from-transparent via-outline-variant to-transparent"></div>
                     </div>
-                    <div className={`flex-1 bg-black/40 border-r-4 p-4 shadow-inner text-right relative group overflow-hidden transition-all duration-500 ${gameStatus === 'botTurn' ? 'border-error ring-2 ring-error/20 scale-[1.02]' : 'border-error/30 opacity-60'}`}>
+                    <div className={`flex-1 bg-black/40 border-r-4 p-2 md:p-4 shadow-inner text-right relative group overflow-hidden transition-all duration-500 ${gameStatus === 'botTurn' ? 'border-error ring-2 ring-error/20 scale-[1.02]' : 'border-error/30 opacity-60'}`}>
                       <div className="absolute inset-0 bg-error/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       <div className="flex justify-between items-start flex-row-reverse">
-                        <p className="font-headline text-[10px] uppercase tracking-[0.2em] text-error mb-1 animate-hud-pulse">EHS</p>
-                        {gameStatus === 'botTurn' && <span className="text-[8px] bg-error text-on-error px-2 py-0.5 rounded-full font-bold animate-pulse">TURNO EHS</span>}
+                        <p className="font-headline text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-error mb-1 animate-hud-pulse">EHS</p>
+                        {gameStatus === 'botTurn' && <span className="text-[7px] md:text-[8px] bg-error text-on-error px-1.5 md:px-2 py-0.5 rounded-full font-bold animate-pulse">TURNO EHS</span>}
                       </div>
-                      <div className="flex items-baseline justify-end gap-2">
-                        <span className="text-xs font-label text-error/60">PUNTOS</span>
-                        <span className="text-4xl font-headline font-black text-error drop-shadow-[0_0_8px_rgba(255,180,171,0.5)]">{botScore}</span>
+                      <div className="flex items-baseline justify-end gap-1 md:gap-2">
+                        <span className="text-[8px] md:text-xs font-label text-error/60">PTS</span>
+                        <span className="text-2xl md:text-4xl font-headline font-black text-error drop-shadow-[0_0_8px_rgba(255,180,171,0.5)]">{botScore}</span>
                       </div>
                     </div>
                   </div>
@@ -4721,31 +4770,31 @@ export default function App() {
                   </div>
 
                   {/* Controls & Hand Area */}
-                  <div className="w-full flex flex-col items-center gap-8 relative z-30">
+                  <div className="w-full flex flex-col items-center gap-4 md:gap-8 relative z-30">
                     {/* Buttons */}
-                    <div className="flex gap-8">
+                    <div className="flex gap-4 md:gap-8">
                       <button 
                         onClick={handleIntervenir} 
                         disabled={gameStatus !== 'playerTurn' || trucoActive}
-                        className="btn-industrial-orange text-white font-headline font-black text-xl px-12 py-5 rounded-sm flex items-center gap-4 tracking-tighter disabled:opacity-30 disabled:grayscale"
+                        className="btn-industrial-orange text-white font-headline font-black text-sm md:text-xl px-6 md:px-12 py-3 md:py-5 rounded-sm flex items-center gap-2 md:gap-4 tracking-tighter disabled:opacity-30 disabled:grayscale"
                       >
-                        <span className="material-symbols-outlined text-2xl">bolt</span>
+                        <span className="material-symbols-outlined text-lg md:text-2xl">bolt</span>
                         INTERVENIR
                       </button>
                       <button 
                         onClick={handleDetener} 
                         disabled={gameStatus !== 'playerTurn'}
-                        className="btn-industrial-red text-white font-headline font-black text-xl px-12 py-5 rounded-sm flex items-center gap-4 tracking-tighter disabled:opacity-30 disabled:grayscale"
+                        className="btn-industrial-red text-white font-headline font-black text-sm md:text-xl px-6 md:px-12 py-3 md:py-5 rounded-sm flex items-center gap-2 md:gap-4 tracking-tighter disabled:opacity-30 disabled:grayscale"
                       >
-                        <span className="material-symbols-outlined text-2xl">block</span>
+                        <span className="material-symbols-outlined text-lg md:text-2xl">block</span>
                         DETENER
                       </button>
                     </div>
 
                     {/* Player Hand */}
-                    <div className="relative w-full max-w-2xl h-36 flex justify-center items-end">
-                      <div className="absolute bottom-[-20%] w-full h-32 bg-secondary/10 blur-[80px] rounded-full"></div>
-                      <div className="flex -space-x-10 translate-y-12">
+                    <div className="relative w-full max-w-2xl h-24 md:h-36 flex justify-center items-end">
+                      <div className="absolute bottom-[-20%] w-full h-24 md:h-32 bg-secondary/10 blur-[60px] md:blur-[80px] rounded-full"></div>
+                      <div className="flex -space-x-6 md:-space-x-10 translate-y-6 md:translate-y-12">
                         {playerHand.map((card, i) => (
                           <IndustrialCard 
                             key={card.id} 
@@ -5865,29 +5914,29 @@ const EnhancedGameMenu = ({ onSelectGame, playerData }: { onSelectGame: (id: str
   };
 
   return (
-    <div className="min-h-screen bg-[#0a1f14] pt-24 pb-12 px-6">
+    <div className="min-h-screen bg-[#0a1f14] pt-16 md:pt-24 pb-8 md:pb-12 px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 mb-6 md:mb-12">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-[2px] bg-secondary"></div>
-              <p className="font-headline text-secondary text-xs tracking-[0.5em] uppercase animate-hud-pulse">Centro de Entrenamiento EHS</p>
+            <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+              <div className="w-6 md:w-12 h-[2px] bg-secondary"></div>
+              <p className="font-headline text-secondary text-[8px] md:text-xs tracking-[0.3em] md:tracking-[0.5em] uppercase animate-hud-pulse">Centro de Entrenamiento EHS</p>
             </div>
-            <h2 className="font-headline text-6xl font-black text-white tracking-tighter uppercase leading-none">
+            <h2 className="font-headline text-3xl md:text-6xl font-black text-white tracking-tighter uppercase leading-none">
               PANEL DE <span className="text-secondary">MISIONES</span>
             </h2>
           </div>
           
-          <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+          <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 backdrop-blur-md w-full md:w-auto overflow-x-auto scrollbar-hide">
             <button 
               onClick={() => setActiveModule('FLOOR')}
-              className={`px-6 py-3 rounded-lg font-headline text-xs tracking-widest uppercase transition-all ${activeModule === 'FLOOR' ? 'bg-secondary text-black font-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 rounded-lg font-headline text-[10px] md:text-xs tracking-widest uppercase transition-all whitespace-nowrap ${activeModule === 'FLOOR' ? 'bg-secondary text-black font-black shadow-lg' : 'text-white/40 hover:text-white'}`}
             >
               Misiones
             </button>
             <button 
               onClick={() => setActiveModule('LOGS')}
-              className={`px-6 py-3 rounded-lg font-headline text-xs tracking-widest uppercase transition-all ${activeModule === 'LOGS' ? 'bg-secondary text-black font-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 rounded-lg font-headline text-[10px] md:text-xs tracking-widest uppercase transition-all whitespace-nowrap ${activeModule === 'LOGS' ? 'bg-secondary text-black font-black shadow-lg' : 'text-white/40 hover:text-white'}`}
             >
               Registros
             </button>
