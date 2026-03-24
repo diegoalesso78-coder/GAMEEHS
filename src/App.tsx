@@ -96,9 +96,10 @@ const shuffle = (array: any[]) => {
 
 const getDirectImageUrl = (url: string) => {
   if (!url) return '';
-  if (url.includes('drive.google.com')) {
+  const lowerUrl = url.toLowerCase();
+  if (lowerUrl.includes('drive.google.com')) {
     let fileId = '';
-    const match = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
+    const match = url.match(/\/d\/([^/]+)/i) || url.match(/id=([^&]+)/i);
     if (match) fileId = match[1];
     if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
   }
@@ -4856,13 +4857,14 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
         const grouped: { [key: string]: any } = {};
         rows.forEach(row => {
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+          const escena = cols[1] || "";
           const imgUrl = getDirectImageUrl(cols[2]); // C=escena_url
           if (!imgUrl) return;
           
           if (!grouped[imgUrl]) {
             grouped[imgUrl] = {
               id: cols[0], // A=escena_id
-              escena: cols[1], // B=escena_nombre
+              escena: escena.length > 50 ? "Inspección de Planta" : escena,
               imagen_url: imgUrl,
               peligros: []
             };
@@ -5374,7 +5376,7 @@ const PareYPidaAyudaGame = ({ onExit, onGameOver }: { onExit: () => void, onGame
 
           map[id] = {
             id,
-            situacion: cols[1], // B=situacion
+            situacion: (cols[1] || "").length > 100 ? "Situación de Riesgo" : cols[1], // B=situacion
             imagen_url: getDirectImageUrl(cols[2]), // C=imagen_url
             opciones,
             es_final: cols[9], // J=es_final
