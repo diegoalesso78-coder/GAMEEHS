@@ -94,6 +94,17 @@ const shuffle = (array: any[]) => {
   return array;
 };
 
+const getDirectImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.includes('drive.google.com')) {
+    let fileId = '';
+    const match = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
+    if (match) fileId = match[1];
+    if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
+  }
+  return url;
+};
+
 // --- SHARED COMPONENTS ---
 
 const Card = ({ card, hidden, onClick, styleClass = "" }: any) => {
@@ -4448,7 +4459,8 @@ const DecisionesSegurasGame = ({ onExit, onGameOver }: { onExit: () => void, onG
           // Basic mapping based on expected structure
           // 0: ID, 1: Escenario/Consigna, 2: Imagen, 3: Opción A, 4: Opción B, 5: Opción C, 6: Correcta, 7: Consecuencia Correcta, 8: Consecuencia Incorrecta, 9: Principio
           const escenario = cols[1] || "";
-          const imagen_url = cols[2]?.startsWith('http') ? cols[2] : "";
+          const raw_imagen_url = cols[2]?.startsWith('http') ? cols[2] : "";
+          const imagen_url = getDirectImageUrl(raw_imagen_url);
           
           return {
             id: cols[0],
@@ -4844,7 +4856,7 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
         const grouped: { [key: string]: any } = {};
         rows.forEach(row => {
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-          const imgUrl = cols[2]; // C=escena_url
+          const imgUrl = getDirectImageUrl(cols[2]); // C=escena_url
           if (!imgUrl) return;
           
           if (!grouped[imgUrl]) {
@@ -5363,7 +5375,7 @@ const PareYPidaAyudaGame = ({ onExit, onGameOver }: { onExit: () => void, onGame
           map[id] = {
             id,
             situacion: cols[1], // B=situacion
-            imagen_url: cols[2], // C=imagen_url
+            imagen_url: getDirectImageUrl(cols[2]), // C=imagen_url
             opciones,
             es_final: cols[9], // J=es_final
             tipo_final: cols[10], // K=tipo_final
