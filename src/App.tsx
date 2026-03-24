@@ -14,11 +14,11 @@ import {
   Unlock, ArrowRight, Camera, User, Zap, ClipboardList, Users,
   BarChart3, Calendar, Delete, CornerDownLeft, ShieldCheck, Lightbulb,
   Printer, Monitor, Layers, Filter, Download, ChevronLeft, XCircle, ArrowLeft,
-  Paperclip, ShieldAlert
+  Paperclip, ShieldAlert, Phone, DoorClosed, MapPin, Thermometer, Wind, Heart
 } from 'lucide-react';
 
 // --- CONSTANTS & TYPES ---
-type View = 'START' | 'MENU' | 'GAME_TRUCO' | 'GAME_OCA' | 'GAME_CARRERA' | 'GAME_MATCH' | 'GAME_ESCAPE' | 'GAME_MEMORY' | 'GAME_MEMORY_V2' | 'GAME_MEMORY_V3' | 'GAME_WORDLE' | 'GAME_JENGA';
+type View = 'START' | 'MENU' | 'GAME_TRUCO' | 'GAME_OCA' | 'GAME_CARRERA' | 'GAME_MATCH' | 'GAME_ESCAPE' | 'GAME_MEMORY' | 'GAME_MEMORY_V2' | 'GAME_MEMORY_V3' | 'GAME_WORDLE' | 'GAME_JENGA' | 'GAME_DECISIONES' | 'GAME_CAZADOR' | 'GAME_PARE' | 'GAME_PROTOCOLO';
 
 // URLs de configuración (Pega aquí tus links CSV cuando los tengas)
 const SITIOS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1753638195&single=true&output=csv'; 
@@ -36,6 +36,7 @@ const GAMES = [
   { id: 'memoria', title: 'MEMORY PREVENTIVO', subtitle: 'MISIÓN_06', icon: 'brain', active: true, color: 'bg-yellow-500', level: 'PRINCIPIANTE', stats: '30 VIC / 1 RGO', img: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800' },
   { id: 'wordle', title: 'PREVENWORDLE', subtitle: 'MISIÓN_07', icon: 'spellcheck', active: true, color: 'bg-emerald-600', level: 'INTERMEDIO', stats: '12 VIC / 4 RGO', img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800' },
   { id: 'jenga', title: 'JENGA SEGURO', subtitle: 'MISIÓN_08', icon: 'view_in_ar', active: true, color: 'bg-amber-600', level: 'EXPERTO', stats: '5 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&q=80&w=800' },
+  { id: 'decisiones', title: 'DECISIONES SEGURAS', subtitle: 'MISIÓN_09', icon: 'fact_check', active: true, color: 'bg-indigo-600', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
 ];
 
 // --- JERARQUÍA DE PODER TRUCO ---
@@ -4352,6 +4353,1728 @@ const JengaGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (sc
   );
 };
 
+// --- DECISIONES SEGURAS GAME ---
+
+const DECISIONES_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=841550883&single=true&output=csv';
+
+const DECISIONES_FALLBACK = [
+  {
+    escenario: "Andamio sin barandas",
+    descripcion: "Te encontrás con un andamio de 3 cuerpos de altura que no posee barandas de seguridad ni rodapiés. Un compañero se dispone a subir.",
+    imagen_url: "",
+    opcion_a: "Autorizar el trabajo con precaución",
+    opcion_b: "Parar la tarea y reportar",
+    opcion_c: "Avisar al capataz al final del día",
+    correcta: "B",
+    consecuencia_correcta: "Evitaste una caída a distinto nivel. La seguridad no es negociable.",
+    consecuencia_incorrecta: "Riesgo crítico de caída. Nunca se debe trabajar en altura sin protecciones colectivas.",
+    principio: "Derecho a decir NO ante condiciones inseguras.",
+    dificultad: "Baja"
+  },
+  {
+    escenario: "EPP deteriorado",
+    descripcion: "Tus guantes de protección mecánica tienen agujeros y el recubrimiento está gastado. Tenés que manipular chapas con bordes filosos.",
+    imagen_url: "",
+    opcion_a: "Usarlos igual con cuidado",
+    opcion_b: "Descartarlos y pedir nuevos",
+    opcion_c: "Dejarlos para que otro los use",
+    correcta: "B",
+    consecuencia_correcta: "Protegiste tus manos. El EPP en mal estado no protege.",
+    consecuencia_incorrecta: "Riesgo de corte severo. El EPP debe estar en óptimas condiciones.",
+    principio: "El EPP es la última barrera, debe ser íntegro.",
+    dificultad: "Baja"
+  },
+  {
+    escenario: "Derrame de aceite",
+    descripcion: "En un pasillo de alto tránsito peatonal y de autoelevadores, detectás una mancha de aceite importante.",
+    imagen_url: "",
+    opcion_a: "Rodear la mancha",
+    opcion_b: "Limpiar y señalizar el área",
+    opcion_c: "Ignorar y seguir tu ruta",
+    correcta: "B",
+    consecuencia_correcta: "Previniste resbalones y choques. Orden y limpieza son seguridad.",
+    consecuencia_incorrecta: "Riesgo de accidente múltiple. Los derrames deben tratarse de inmediato.",
+    principio: "Mantener el área limpia es responsabilidad de todos.",
+    dificultad: "Media"
+  },
+  {
+    escenario: "Compañero sin casco",
+    descripcion: "Entrás a una zona de carga suspendida y ves a un compañero trabajando sin su casco de seguridad.",
+    imagen_url: "",
+    opcion_a: "Ignorar la situación",
+    opcion_b: "Avisarle que use el casco",
+    opcion_c: "Reportar directo al supervisor",
+    correcta: "B",
+    consecuencia_correcta: "Cuidado mutuo. Ayudaste a un compañero a estar seguro.",
+    consecuencia_incorrecta: "Riesgo de golpe fatal. La omisión nos hace cómplices del riesgo.",
+    principio: "Yo te cuido, vos me cuidás.",
+    dificultad: "Baja"
+  },
+  {
+    escenario: "Trabajo en caliente sin permiso",
+    descripcion: "Se requiere realizar una soldadura de emergencia, pero el emisor de permisos no está disponible y el permiso venció hace una hora.",
+    imagen_url: "",
+    opcion_a: "Comenzar igual por la urgencia",
+    opcion_b: "Detener y tramitar nuevo permiso",
+    opcion_c: "Pedir permiso verbal por radio",
+    correcta: "B",
+    consecuencia_correcta: "Respetaste los procesos críticos. Las urgencias no justifican riesgos.",
+    consecuencia_incorrecta: "Riesgo de incendio o explosión. Los permisos de trabajo son vitales.",
+    principio: "Ninguna urgencia justifica saltarse un procedimiento de seguridad.",
+    dificultad: "Alta"
+  }
+];
+
+const DecisionesSegurasGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
+  const [scenarios, setScenarios] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [gameState, setGameState] = useState<'START' | 'PLAYING' | 'FEEDBACK' | 'FINISHED'>('START');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchScenarios = async () => {
+      try {
+        const response = await fetch(DECISIONES_SHEETS_URL);
+        const csv = await response.text();
+        const rows = csv.split('\n').filter(row => row.trim() !== '').slice(1);
+        const parsed = rows.map(row => {
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+          
+          // Basic mapping based on expected structure
+          // 0: ID, 1: Escenario/Consigna, 2: Imagen, 3: Opción A, 4: Opción B, 5: Opción C, 6: Correcta, 7: Consecuencia Correcta, 8: Consecuencia Incorrecta, 9: Principio
+          const escenario = cols[1] || "";
+          const imagen_url = cols[2]?.startsWith('http') ? cols[2] : "";
+          
+          return {
+            id: cols[0],
+            escenario: escenario.length > 50 ? "Toma de Decisión" : escenario,
+            descripcion: escenario,
+            imagen_url: imagen_url,
+            opcion_a: cols[3],
+            opcion_b: cols[4],
+            opcion_c: cols[5],
+            correcta: cols[6]?.toUpperCase(),
+            consecuencia_correcta: cols[7] || "¡Excelente decisión! Has priorizado la seguridad.",
+            consecuencia_incorrecta: cols[8] || "Riesgo detectado. Recordá siempre seguir el protocolo.",
+            principio: cols[9] || "La seguridad es lo primero.",
+            dificultad: "Media"
+          };
+        }).filter(s => s.descripcion);
+        
+        if (parsed.length > 0) {
+          setScenarios(parsed);
+        } else {
+          setScenarios(DECISIONES_FALLBACK);
+        }
+      } catch (error) {
+        console.error("Error fetching scenarios:", error);
+        setScenarios(DECISIONES_FALLBACK);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchScenarios();
+  }, []);
+
+  const handleDecision = (option: string) => {
+    const current = scenarios[currentIndex];
+    const correct = option === current.correcta;
+    setSelectedOption(option);
+    setIsCorrect(correct);
+    
+    if (correct) {
+      setCorrectAnswers(c => c + 1);
+      const points = 100 * (streak + 1);
+      setScore(s => s + points);
+      setStreak(st => st + 1);
+    } else {
+      setStreak(0);
+    }
+    
+    setGameState('FEEDBACK');
+  };
+
+  const nextScenario = () => {
+    if (currentIndex < scenarios.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setSelectedOption(null);
+      setIsCorrect(null);
+      setGameState('PLAYING');
+    } else {
+      setGameState('FINISHED');
+      onGameOver(score);
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#10b981', '#f7be1d', '#3b82f6']
+      });
+    }
+  };
+
+  const resetGame = () => {
+    setCurrentIndex(0);
+    setScore(0);
+    setStreak(0);
+    setCorrectAnswers(0);
+    setGameState('START');
+    setSelectedOption(null);
+    setIsCorrect(null);
+  };
+
+  const getFinalBadge = () => {
+    const percentage = (correctAnswers / scenarios.length) * 100;
+    if (percentage <= 50) return { label: 'Operador en Formación', color: 'text-rose-500', bg: 'bg-rose-500/20' };
+    if (percentage <= 80) return { label: 'Operador Calificado', color: 'text-amber-500', bg: 'bg-amber-500/20' };
+    return { label: 'Referente de Seguridad', color: 'text-emerald-500', bg: 'bg-emerald-500/20' };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto"></div>
+          <p className="text-emerald-500 font-black tracking-widest uppercase text-xs">Cargando Escenarios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const current = scenarios[currentIndex];
+  const progress = ((currentIndex + 1) / scenarios.length) * 100;
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-emerald-500 selection:text-black overflow-hidden flex flex-col">
+      {/* Header / Progress */}
+      <div className="fixed top-0 left-0 w-full z-50">
+        <div className="h-1 bg-white/10 w-full">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+        <div className="px-6 py-4 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/40">
+              <ShieldCheck className="text-emerald-500" size={20} />
+            </div>
+            <div>
+              <h2 className="text-xs font-black tracking-widest uppercase text-white/40">Misión_09</h2>
+              <h1 className="text-sm font-black tracking-tight uppercase">Decisiones Seguras</h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Puntaje</p>
+              <p className="text-xl font-black text-emerald-500 tabular-nums">{score.toLocaleString()}</p>
+            </div>
+            <button onClick={onExit} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {gameState === 'START' && (
+          <motion.div 
+            key="start"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="flex-1 flex items-center justify-center p-6 pt-24"
+          >
+            <div className="max-w-2xl w-full space-y-12 text-center">
+              <div className="relative inline-block">
+                <div className="absolute -inset-4 bg-emerald-500/20 blur-2xl rounded-full animate-pulse"></div>
+                <ShieldCheck className="relative text-emerald-500 mx-auto" size={80} />
+              </div>
+              <div className="space-y-4">
+                <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">Briefing de<br/><span className="text-emerald-500">Conducta Segura</span></h2>
+                <p className="text-lg text-white/60 font-medium leading-relaxed max-w-lg mx-auto">
+                  Enfrentá escenarios reales de la operación. Tus decisiones determinan la seguridad del equipo y la integridad del proceso.
+                </p>
+              </div>
+              <button 
+                onClick={() => setGameState('PLAYING')}
+                className="group relative px-12 py-6 bg-emerald-500 text-black font-black rounded-2xl overflow-hidden transition-all hover:scale-105 active:scale-95"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                <span className="relative flex items-center gap-3 text-lg tracking-widest uppercase">
+                  Iniciar Misión <ArrowRight size={24} />
+                </span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {(gameState === 'PLAYING' || gameState === 'FEEDBACK') && (
+          <motion.div 
+            key="playing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col pt-20"
+          >
+            {/* Image Section (40%) */}
+            <div className="h-[40vh] relative overflow-hidden bg-white/5">
+              {current.imagen_url ? (
+                <img 
+                  src={current.imagen_url} 
+                  alt="Escenario de seguridad"
+                  className="w-full h-full object-cover opacity-80"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center opacity-20">
+                  <img 
+                    src={`https://picsum.photos/seed/${currentIndex}/800/400?blur=2`}
+                    alt="Placeholder"
+                    className="absolute inset-0 w-full h-full object-cover opacity-30"
+                    referrerPolicy="no-referrer"
+                  />
+                  <svg viewBox="0 0 200 200" className="w-64 h-64 fill-current text-white relative z-10">
+                    <path d="M20,180 L180,180 L180,150 L160,150 L160,100 L140,100 L140,150 L120,150 L120,80 L100,80 L100,150 L80,150 L80,120 L60,120 L60,150 L40,150 L40,180 Z" />
+                    <rect x="90" y="40" width="20" height="40" />
+                    <circle cx="100" cy="30" r="10" />
+                  </svg>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent"></div>
+              
+              {/* Scenario Badge */}
+              <div className="absolute bottom-8 left-8 flex items-center gap-3">
+                <div className="px-4 py-1.5 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+                  Escenario {currentIndex + 1} / {scenarios.length}
+                </div>
+                {streak > 1 && (
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full flex items-center gap-2"
+                  >
+                    <Zap size={12} fill="currentColor" /> Racha x{streak}
+                  </motion.div>
+                )}
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="flex-1 px-8 pb-8 -mt-12 relative z-10 max-w-4xl mx-auto w-full space-y-8">
+              {/* Glass Panel Description */}
+              <div className="p-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] shadow-2xl space-y-4">
+                {current.escenario && current.escenario !== current.descripcion && (
+                  <h3 className="text-3xl font-black tracking-tight uppercase leading-none">{current.escenario}</h3>
+                )}
+                <p className="text-lg text-white/60 font-medium leading-relaxed">
+                  {current.descripcion}
+                </p>
+              </div>
+
+              {/* Options or Feedback */}
+              <div className="space-y-4">
+                {gameState === 'PLAYING' ? (
+                  <div className="grid grid-cols-1 gap-4">
+                    {[
+                      { id: 'A', text: current.opcion_a },
+                      { id: 'B', text: current.opcion_b },
+                      { id: 'C', text: current.opcion_c }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => handleDecision(opt.id)}
+                        className="group relative w-full p-6 bg-white/5 border border-white/10 rounded-2xl text-left transition-all hover:bg-white/10 hover:border-emerald-500/40 flex items-center gap-6"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-xl group-hover:bg-emerald-500 group-hover:text-black transition-colors">
+                          {opt.id}
+                        </div>
+                        <span className="text-lg font-bold text-white/80 group-hover:text-white transition-colors">
+                          {opt.text}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-8 rounded-[2.5rem] border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-rose-500/10 border-rose-500/40'} space-y-6`}
+                  >
+                    <div className="flex items-start gap-6">
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isCorrect ? 'bg-emerald-500 text-black' : 'bg-rose-500 text-white'}`}>
+                        {isCorrect ? <CheckCircle2 size={32} /> : <AlertTriangle size={32} />}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <h4 className={`text-xl font-black uppercase tracking-widest ${isCorrect ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {isCorrect ? 'Decisión Correcta' : 'Riesgo Detectado'}
+                        </h4>
+                        <p className="text-lg font-medium text-white/90 leading-relaxed">
+                          {isCorrect ? current.consecuencia_correcta : current.consecuencia_incorrecta}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-black/40 rounded-2xl border border-white/5">
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Principio Preventivo</p>
+                      <p className="text-sm font-bold text-emerald-500/80 italic leading-relaxed">
+                        "{current.principio}"
+                      </p>
+                    </div>
+
+                    <button 
+                      onClick={nextScenario}
+                      className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      {currentIndex < scenarios.length - 1 ? 'Siguiente Escenario' : 'Ver Resultados'} <ArrowRight size={20} />
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'FINISHED' && (
+          <motion.div 
+            key="finished"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex-1 flex items-center justify-center p-6 pt-24"
+          >
+            <div className="max-w-xl w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
+              
+              <div className="space-y-4">
+                <h2 className="text-xs font-black tracking-[0.5em] uppercase text-white/40">Misión Completada</h2>
+                <h3 className="text-5xl font-black tracking-tighter uppercase">Análisis Final</h3>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Puntaje Total</p>
+                  <p className="text-4xl font-black text-emerald-500 tabular-nums">{score.toLocaleString()}</p>
+                </div>
+                <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Efectividad</p>
+                  <p className="text-4xl font-black text-white tabular-nums">{Math.round((correctAnswers / scenarios.length) * 100)}%</p>
+                </div>
+              </div>
+
+              <div className={`p-8 rounded-3xl border border-white/10 ${getFinalBadge().bg} space-y-4`}>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Rango Alcanzado</p>
+                <div className={`text-2xl font-black uppercase tracking-tighter ${getFinalBadge().color}`}>
+                  {getFinalBadge().label}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <button 
+                  onClick={resetGame}
+                  className="w-full py-6 bg-emerald-500 text-black font-black rounded-2xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  Reintentar Misión
+                </button>
+                <button 
+                  onClick={onExit}
+                  className="w-full py-6 bg-white/5 text-white/60 font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                >
+                  Volver al Menú
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- CAZADOR DE RIESGOS GAME ---
+
+const CAZADOR_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1792989854&single=true&output=csv';
+
+const CAZADOR_FALLBACK = [
+  {
+    escena: "Taller de Mantenimiento",
+    imagen_url: "",
+    peligros: [
+      { id: 1, peligro: "Cable Pelado", x: 150, y: 400, radio: 40, medida: "Aislar y reemplazar cableado", norma: "IRAM 2059" },
+      { id: 2, peligro: "Caja bloqueando salida", x: 700, y: 350, radio: 50, medida: "Liberar vías de escape", norma: "Ley 19587 Cap. 18" },
+      { id: 3, peligro: "Extintor vencido", x: 50, y: 200, radio: 35, medida: "Recargar y verificar manómetro", norma: "NFPA 10" },
+      { id: 4, peligro: "Operario sin casco", x: 400, y: 150, radio: 45, medida: "Uso obligatorio de EPP", norma: "Res. SRT 299/11" }
+    ]
+  },
+  {
+    escena: "Almacén Central",
+    imagen_url: "",
+    peligros: [
+      { id: 5, peligro: "Derrame sin señalizar", x: 300, y: 450, radio: 60, medida: "Limpiar y colocar cartelería", norma: "SGA / GHS" },
+      { id: 6, peligro: "Estantes sobrecargados", x: 600, y: 100, radio: 55, medida: "Respetar carga máxima", norma: "EN 15635" },
+      { id: 7, peligro: "Iluminación deficiente", x: 400, y: 50, radio: 40, medida: "Aumentar luxes en puesto", norma: "ISO 8995" }
+    ]
+  }
+];
+
+const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
+  const [scenes, setScenes] = useState<any[]>([]);
+  const [selectedScene, setSelectedScene] = useState<any>(null);
+  const [foundIds, setFoundIds] = useState<number[]>([]);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [score, setScore] = useState(0);
+  const [gameState, setGameState] = useState<'SELECT' | 'PLAY' | 'RESULT'>('SELECT');
+  const [lastClick, setLastClick] = useState<{ x: number, y: number, success: boolean } | null>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [ranking, setRanking] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchScenes = async () => {
+      try {
+        const response = await fetch(CAZADOR_SHEETS_URL);
+        const csv = await response.text();
+        const rows = csv.split('\n').filter(row => row.trim() !== '').slice(1);
+        
+        const grouped: { [key: string]: any } = {};
+        rows.forEach(row => {
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+          const imgUrl = cols[2]; // C=escena_url
+          if (!imgUrl) return;
+          
+          if (!grouped[imgUrl]) {
+            grouped[imgUrl] = {
+              id: cols[0], // A=escena_id
+              escena: cols[1], // B=escena_nombre
+              imagen_url: imgUrl,
+              peligros: []
+            };
+          }
+          
+          grouped[imgUrl].peligros.push({
+            id: Math.random(),
+            peligro: cols[5], // F=riesgo_nombre
+            x: parseFloat(cols[3]), // D=riesgo_x
+            y: parseFloat(cols[4]), // E=riesgo_y
+            radio: 30, // Default
+            medida: cols[6], // G=riesgo_detalle
+            norma: cols[7] // H=riesgo_norma
+          });
+        });
+        
+        const parsed = Object.values(grouped);
+        if (parsed.length > 0) setScenes(parsed);
+        else setScenes(CAZADOR_FALLBACK);
+      } catch (error) {
+        console.error("Error fetching scenes:", error);
+        setScenes(CAZADOR_FALLBACK);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchScenes();
+  }, []);
+
+  useEffect(() => {
+    let timer: any;
+    if (gameState === 'PLAY' && timeLeft > 0) {
+      timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+    } else if (timeLeft === 0 && gameState === 'PLAY') {
+      handleGameOver();
+    }
+    return () => clearInterval(timer);
+  }, [gameState, timeLeft]);
+
+  const handleStartScene = (scene: any) => {
+    setSelectedScene(scene);
+    setFoundIds([]);
+    setTimeLeft(60);
+    setScore(0);
+    setGameState('PLAY');
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (gameState !== 'PLAY' || !selectedScene || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    
+    // Scale click to 800x500 reference
+    const refX = (clickX / rect.width) * 800;
+    const refY = (clickY / rect.height) * 500;
+    
+    let found = false;
+    let foundPeligro: any = null;
+    
+    selectedScene.peligros.forEach((p: any) => {
+      if (foundIds.includes(p.id)) return;
+      
+      const dist = Math.sqrt(Math.pow(refX - p.x, 2) + Math.pow(refY - p.y, 2));
+      if (dist <= p.radio) {
+        setFoundIds(prev => [...prev, p.id]);
+        setScore(s => s + 100);
+        found = true;
+        foundPeligro = p;
+      }
+    });
+
+    setLastClick({ x: clickX, y: clickY, success: found });
+    setTimeout(() => setLastClick(null), 800);
+
+    if (found && foundIds.length + 1 === selectedScene.peligros.length) {
+      handleGameOver();
+    }
+  };
+
+  const handleGameOver = () => {
+    const timeBonus = timeLeft * 5;
+    const finalScore = score + timeBonus;
+    setScore(finalScore);
+    setGameState('RESULT');
+    onGameOver(finalScore);
+    
+    // Update local ranking
+    const localRanking = JSON.parse(localStorage.getItem(`ranking_cazador_${selectedScene.escena}`) || '[]');
+    const newRanking = [...localRanking, { score: finalScore, date: new Date().toLocaleDateString() }]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+    localStorage.setItem(`ranking_cazador_${selectedScene.escena}`, JSON.stringify(newRanking));
+    setRanking(newRanking);
+
+    if (foundIds.length === selectedScene.peligros.length) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  };
+
+  const renderFallbackSVG = (sceneName: string) => {
+    return (
+      <svg viewBox="0 0 800 500" className="w-full h-full bg-slate-900">
+        {/* Background elements */}
+        <rect x="0" y="400" width="800" height="100" fill="#1e293b" />
+        <rect x="50" y="100" width="700" height="300" fill="#0f172a" stroke="#334155" />
+        
+        {sceneName === "Taller de Mantenimiento" ? (
+          <>
+            {/* Cable pelado */}
+            <path d="M100,400 Q150,350 200,400" stroke="#fbbf24" strokeWidth="4" fill="none" strokeDasharray="8 4" />
+            {/* Caja bloqueando salida */}
+            <rect x="680" y="320" width="60" height="60" fill="#92400e" />
+            <text x="710" y="310" textAnchor="middle" fill="#ef4444" fontSize="10" fontWeight="bold">SALIDA</text>
+            {/* Extintor vencido */}
+            <rect x="40" y="180" width="20" height="50" fill="#ef4444" rx="5" />
+            {/* Operario sin casco */}
+            <circle cx="400" cy="150" r="20" fill="#fde68a" />
+            <rect x="380" y="170" width="40" height="60" fill="#3b82f6" />
+          </>
+        ) : (
+          <>
+            {/* Derrame sin señalizar */}
+            <ellipse cx="300" cy="450" rx="60" ry="20" fill="#475569" opacity="0.6" />
+            {/* Estantes sobrecargados */}
+            <rect x="550" y="50" width="100" height="20" fill="#ef4444" />
+            <rect x="550" y="80" width="100" height="20" fill="#ef4444" />
+            <rect x="550" y="110" width="100" height="20" fill="#ef4444" />
+            {/* Iluminación deficiente */}
+            <circle cx="400" cy="50" r="15" fill="#1e293b" stroke="#334155" />
+          </>
+        )}
+      </svg>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-rose-500/20 border-t-rose-500 rounded-full animate-spin mx-auto"></div>
+          <p className="text-rose-500 font-black tracking-widest uppercase text-xs">Escaneando Planta...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-rose-500 selection:text-black flex flex-col">
+      {/* Header */}
+      <div className="px-6 py-4 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5 z-50">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center border border-rose-500/40">
+            <Search className="text-rose-600" size={20} />
+          </div>
+          <div>
+            <h2 className="text-xs font-black tracking-widest uppercase text-white/40">Misión_10</h2>
+            <h1 className="text-sm font-black tracking-tight uppercase">Cazador de Riesgos</h1>
+          </div>
+        </div>
+        
+        {gameState === 'PLAY' && (
+          <div className="flex items-center gap-12">
+            <div className="text-center">
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Peligros</p>
+              <p className="text-xl font-black text-white tabular-nums">{foundIds.length} / {selectedScene.peligros.length}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Tiempo</p>
+              <p className={`text-xl font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : timeLeft < 30 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                {timeLeft}s
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Puntaje</p>
+            <p className="text-xl font-black text-rose-500 tabular-nums">{score.toLocaleString()}</p>
+          </div>
+          <button onClick={onExit} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {gameState === 'SELECT' && (
+          <motion.div 
+            key="select"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex-1 p-8 pt-12 overflow-y-auto"
+          >
+            <div className="max-w-6xl mx-auto space-y-12">
+              <div className="text-center space-y-4">
+                <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">Seleccioná una <span className="text-rose-600">Escena</span></h2>
+                <p className="text-white/40 font-medium tracking-widest uppercase text-xs">Inspección Visual de Seguridad Industrial</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {scenes.map((scene, idx) => (
+                  <motion.div
+                    key={idx}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleStartScene(scene)}
+                    className="group cursor-pointer bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-rose-500/40 transition-all"
+                  >
+                    <div className="h-48 bg-slate-900 relative">
+                      {scene.imagen_url ? (
+                        <img src={scene.imagen_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center opacity-20">
+                           <Monitor size={48} />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                      <div className="absolute bottom-4 left-4">
+                        <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">{scene.peligros.length} Peligros</p>
+                        <h3 className="text-xl font-black uppercase tracking-tight">{scene.escena}</h3>
+                      </div>
+                    </div>
+                    <div className="p-6 flex justify-between items-center">
+                      <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Nivel: Experto</span>
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-black transition-colors">
+                        <Play size={16} fill="currentColor" />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'PLAY' && (
+          <motion.div 
+            key="play"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex-1 flex flex-col lg:flex-row overflow-hidden"
+          >
+            {/* Main Inspection Area */}
+            <div className="flex-1 p-8 flex items-center justify-center bg-black relative">
+              <div 
+                ref={containerRef}
+                onClick={handleClick}
+                className="relative max-w-[800px] w-full aspect-[800/500] bg-slate-900 rounded-2xl overflow-hidden cursor-crosshair shadow-2xl border border-white/10"
+              >
+                {selectedScene.imagen_url ? (
+                  <img 
+                    src={selectedScene.imagen_url} 
+                    className="w-full h-full object-contain pointer-events-none" 
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  renderFallbackSVG(selectedScene.escena)
+                )}
+
+                {/* Found Markers */}
+                {selectedScene.peligros.map((p: any) => foundIds.includes(p.id) && (
+                  <motion.div
+                    key={p.id}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute w-12 h-12 border-4 border-emerald-500 rounded-full flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${(p.x / 800) * 100}%`, top: `${(p.y / 500) * 100}%` }}
+                  >
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                  </motion.div>
+                ))}
+
+                {/* Click Feedback */}
+                {lastClick && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 1.5, opacity: 0 }}
+                    className={`absolute w-8 h-8 rounded-full border-2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center ${lastClick.success ? 'border-emerald-500' : 'border-rose-500'}`}
+                    style={{ left: lastClick.x, top: lastClick.y }}
+                  >
+                    {lastClick.success ? <CheckCircle2 size={16} className="text-emerald-500" /> : <X size={16} className="text-rose-500" />}
+                  </motion.div>
+                )}
+
+                {/* HUD Overlay */}
+                <div className="absolute inset-0 pointer-events-none border-[20px] border-white/5"></div>
+                <div className="absolute top-4 left-4 flex gap-2">
+                   <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
+                   <p className="text-[8px] font-black text-rose-500 uppercase tracking-widest">Rec: Live Feed</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar HUD */}
+            <div className="w-full lg:w-[400px] bg-white/5 border-l border-white/10 p-8 overflow-y-auto space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-xs font-black text-white/40 uppercase tracking-widest flex items-center gap-2">
+                  <ClipboardList size={14} /> Hallazgos Detectados
+                </h3>
+                <div className="space-y-4">
+                  {foundIds.length === 0 && (
+                    <div className="p-6 border-2 border-dashed border-white/10 rounded-2xl text-center">
+                      <p className="text-xs text-white/20 font-bold uppercase tracking-widest">Escaneando escena...</p>
+                    </div>
+                  )}
+                  {foundIds.map(id => {
+                    const p = selectedScene.peligros.find((x: any) => x.id === id);
+                    return (
+                      <motion.div 
+                        key={id}
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        className="p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-3"
+                      >
+                        <div className="flex justify-between items-start">
+                          <h4 className="text-sm font-black text-emerald-500 uppercase tracking-tight">{p.peligro}</h4>
+                          <span className="text-[9px] font-black bg-emerald-500 text-black px-2 py-0.5 rounded">OK</span>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold text-white/80 leading-relaxed">
+                            <span className="text-white/40 uppercase mr-1">Control:</span> {p.medida}
+                          </p>
+                          <p className="text-[9px] font-mono text-emerald-500/60">
+                            Ref: {p.norma}
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'RESULT' && (
+          <motion.div 
+            key="result"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex-1 flex items-center justify-center p-6"
+          >
+            <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Score Card */}
+              <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-10 relative overflow-hidden">
+                <div className={`absolute top-0 left-0 w-full h-2 ${foundIds.length === selectedScene.peligros.length ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                
+                <div className="space-y-4">
+                  <h2 className="text-xs font-black tracking-[0.5em] uppercase text-white/40">Inspección Finalizada</h2>
+                  <h3 className="text-5xl font-black tracking-tighter uppercase leading-none">
+                    {foundIds.length === selectedScene.peligros.length ? 'Planta Segura' : 'Riesgos Pendientes'}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Puntaje</p>
+                    <p className="text-4xl font-black text-rose-500 tabular-nums">{score.toLocaleString()}</p>
+                  </div>
+                  <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Hallazgos</p>
+                    <p className="text-4xl font-black text-white tabular-nums">{foundIds.length} / {selectedScene.peligros.length}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <button 
+                    onClick={() => setGameState('SELECT')}
+                    className="w-full py-6 bg-rose-600 text-white font-black rounded-2xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    Nueva Inspección
+                  </button>
+                  <button 
+                    onClick={onExit}
+                    className="w-full py-6 bg-white/5 text-white/60 font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                  >
+                    Volver al Menú
+                  </button>
+                </div>
+              </div>
+
+              {/* Ranking Card */}
+              <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 space-y-8">
+                <h3 className="text-xl font-black uppercase tracking-widest text-white/40 border-b border-white/10 pb-4">Top Inspectores</h3>
+                <div className="space-y-4">
+                  {ranking.length > 0 ? ranking.map((r, i) => (
+                    <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-4">
+                        <span className="text-rose-500 font-black text-lg">#{i+1}</span>
+                        <span className="text-xs font-bold text-white/60 uppercase tracking-widest">{r.date}</span>
+                      </div>
+                      <span className="font-mono font-black text-white">{r.score.toLocaleString()}</span>
+                    </div>
+                  )) : (
+                    <p className="text-center text-white/20 font-bold uppercase tracking-widest py-12">Sin registros previos</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- PARE Y PIDA AYUDA GAME ---
+
+const PARE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1987480223&single=true&output=csv';
+
+const PARE_FALLBACK = {
+  "inicio_1": {
+    id: "inicio_1",
+    historia: "Historia 1: Fuga de Gas",
+    situacion: "Encontrás una fuga de gas en el sector de calderas. El olor es penetrante y se escucha un silbido fuerte.",
+    opciones: [
+      { texto: "Intentar cerrar la válvula manualmente", siguiente: "exposicion_gas" },
+      { texto: "Evacuar el área y activar la alarma", siguiente: "esperar_brigada" },
+      { texto: "Avisar solo a tu compañero cercano", siguiente: "demora_respuesta" }
+    ]
+  },
+  "exposicion_gas": {
+    id: "exposicion_gas",
+    situacion: "Al intentar cerrar la válvula sin protección, inhalás una alta concentración de gas y perdés el conocimiento.",
+    es_final: "SI",
+    tipo_final: "critico",
+    aprendizaje: "Nunca intentes controlar una fuga crítica sin el equipo y entrenamiento adecuado. La prioridad es la evacuación y el aviso a emergencias."
+  },
+  "esperar_brigada": {
+    id: "esperar_brigada",
+    situacion: "Activaste la alarma y evacuaste a todos. La brigada llega en minutos y controla la fuga de forma segura.",
+    es_final: "SI",
+    tipo_final: "correcto",
+    aprendizaje: "Actuar según el plan de emergencia salva vidas. Identificar el riesgo, alejarse y dar aviso es la conducta correcta."
+  },
+  "demora_respuesta": {
+    id: "demora_respuesta",
+    situacion: "El aviso informal no llega a los responsables. La fuga aumenta y se produce una pequeña explosión que daña equipos.",
+    es_final: "SI",
+    tipo_final: "incidente",
+    aprendizaje: "Las comunicaciones de emergencia deben ser formales y masivas (alarmas) para asegurar una respuesta inmediata."
+  },
+  "inicio_2": {
+    id: "inicio_2",
+    historia: "Historia 2: Procedimiento LOTO",
+    situacion: "Tu compañero propone saltear el bloqueo LOTO para ganar tiempo en una reparación simple.",
+    opciones: [
+      { texto: "Aceptar porque confías en él", siguiente: "accidente_loto" },
+      { texto: "Negarte y explicar el procedimiento", siguiente: "buscar_supervisor" },
+      { texto: "Pedir opinión a otro compañero", siguiente: "decision_grupal" }
+    ]
+  },
+  "accidente_loto": {
+    id: "accidente_loto",
+    situacion: "Alguien energiza la máquina mientras trabajás. Sufrís una descarga eléctrica grave.",
+    es_final: "SI",
+    tipo_final: "critico",
+    aprendizaje: "LOTO no es una cuestión de confianza, es una barrera física de seguridad. Nunca operes sin bloqueo propio."
+  },
+  "buscar_supervisor": {
+    id: "buscar_supervisor",
+    situacion: "El supervisor refuerza la importancia del bloqueo. La tarea se hace de forma segura, aunque tome 10 minutos más.",
+    es_final: "SI",
+    tipo_final: "correcto",
+    aprendizaje: "Hacer lo correcto a veces implica enfrentar la presión de los pares. La seguridad no se negocia por tiempo."
+  },
+  "decision_grupal": {
+    id: "decision_grupal",
+    situacion: "El tercer compañero duda, pero terminan trabajando sin bloqueo. La máquina arranca sola y daña la herramienta.",
+    es_final: "SI",
+    tipo_final: "incidente",
+    aprendizaje: "La presión de grupo puede llevar a decisiones riesgosas. Los procedimientos están por encima de las opiniones."
+  }
+};
+
+const PareYPidaAyudaGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
+  const [nodes, setNodes] = useState<any>(null);
+  const [currentStory, setCurrentStory] = useState<string | null>(null);
+  const [currentNode, setCurrentNode] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [gameState, setGameState] = useState<'SELECT' | 'PLAY' | 'RESULT'>('SELECT');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNodes = async () => {
+      try {
+        const response = await fetch(PARE_SHEETS_URL);
+        const csv = await response.text();
+        const rows = csv.split('\n').filter(row => row.trim() !== '').slice(1);
+        
+        const map: any = {};
+        rows.forEach(row => {
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+          const id = cols[0]; // A=id_nodo
+          if (!id) return;
+          
+          const opciones = [];
+          if (cols[3]) opciones.push({ texto: cols[3], siguiente: cols[4] });
+          if (cols[5]) opciones.push({ texto: cols[5], siguiente: cols[6] });
+          if (cols[7]) opciones.push({ texto: cols[7], siguiente: cols[8] });
+
+          map[id] = {
+            id,
+            situacion: cols[1], // B=situacion
+            imagen_url: cols[2], // C=imagen_url
+            opciones,
+            es_final: cols[9], // J=es_final
+            tipo_final: cols[10], // K=tipo_final
+            aprendizaje: cols[11] // L=aprendizaje
+          };
+        });
+        
+        if (Object.keys(map).length > 0) setNodes(map);
+        else setNodes(PARE_FALLBACK);
+      } catch (error) {
+        console.error("Error fetching nodes:", error);
+        setNodes(PARE_FALLBACK);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNodes();
+  }, []);
+
+  const startStory = (nodeId: string) => {
+    setCurrentStory(nodeId);
+    setCurrentNode(nodeId);
+    setHistory([]);
+    setGameState('PLAY');
+  };
+
+  const handleDecision = (opcion: any) => {
+    const nextId = opcion.siguiente;
+    const nextNode = nodes[nextId];
+    
+    setHistory(prev => [...prev, { 
+      situacion: nodes[currentNode!].situacion, 
+      decision: opcion.texto 
+    }]);
+    
+    setCurrentNode(nextId);
+    if (nextNode.es_final === 'SI') {
+      setGameState('RESULT');
+      onGameOver(nextNode.tipo_final === 'correcto' ? 100 : 0);
+      if (nextNode.tipo_final === 'correcto') {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+  };
+
+  const resetStory = () => {
+    setCurrentNode(currentStory);
+    setHistory([]);
+    setGameState('PLAY');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin mx-auto"></div>
+          <p className="text-red-500 font-black tracking-widest uppercase text-xs">Cargando Simulador...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const node = nodes[currentNode!];
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-red-500 selection:text-black flex flex-col relative overflow-hidden">
+      {/* Background Texture */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+      
+      {/* Header */}
+      <div className="px-6 py-4 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5 z-50">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/40">
+            <ShieldAlert className="text-red-600" size={20} />
+          </div>
+          <div>
+            <h2 className="text-xs font-black tracking-widest uppercase text-white/40">Misión_11</h2>
+            <h1 className="text-sm font-black tracking-tight uppercase">Pare y Pida Ayuda</h1>
+          </div>
+        </div>
+        <button onClick={onExit} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+          <X size={24} />
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {gameState === 'SELECT' && (
+          <motion.div 
+            key="select"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex-1 p-8 flex flex-col items-center justify-center space-y-12 z-10"
+          >
+            <div className="text-center space-y-4">
+              <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">Simulador de <span className="text-red-600">Crisis</span></h2>
+              <p className="text-white/40 font-medium tracking-widest uppercase text-xs">Narrativa Ramificada de Seguridad Industrial</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+              {Object.values(nodes).filter((n: any) => n.id.startsWith('inicio')).map((n: any) => (
+                <motion.div
+                  key={n.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => startStory(n.id)}
+                  className="group cursor-pointer bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:border-red-500/40 transition-all space-y-4"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-red-500/20 flex items-center justify-center group-hover:bg-red-500 group-hover:text-black transition-colors">
+                    <Play size={24} fill="currentColor" />
+                  </div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight">{n.historia || "Nueva Historia"}</h3>
+                  <p className="text-white/40 text-sm leading-relaxed">{n.situacion.substring(0, 100)}...</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'PLAY' && (
+          <motion.div 
+            key="play"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex-1 flex flex-col lg:flex-row z-10"
+          >
+            {/* Main Content Area */}
+            <div className="flex-1 p-8 flex flex-col items-center justify-center space-y-8">
+              <div className="max-w-3xl w-full space-y-8">
+                {/* Image/Illustration Area */}
+                <div className="w-full aspect-video bg-white/5 rounded-[2rem] overflow-hidden border border-white/10 relative">
+                  {node.imagen_url ? (
+                    <img src={node.imagen_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center opacity-10">
+                      <Zap size={120} />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                </div>
+
+                {/* Situation Text */}
+                <div className="glass-panel-heavy p-10 rounded-[2.5rem] border border-white/10 shadow-2xl">
+                  <p className="text-2xl font-medium leading-relaxed text-white/90 italic">
+                    "{node.situacion}"
+                  </p>
+                </div>
+
+                {/* Decision Buttons */}
+                <div className="flex flex-col gap-4">
+                  {node.opciones.map((op: any, idx: number) => (
+                    <motion.button
+                      key={idx}
+                      whileHover={{ x: 10, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleDecision(op)}
+                      className="w-full p-6 bg-white/5 border border-white/10 rounded-2xl text-left flex items-center justify-between group transition-all"
+                    >
+                      <span className="text-lg font-black uppercase tracking-tight group-hover:text-red-500">{op.texto}</span>
+                      <ArrowRight className="text-white/20 group-hover:text-red-500 group-hover:translate-x-2 transition-all" />
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* History Sidebar */}
+            <div className="w-full lg:w-80 bg-white/5 border-l border-white/10 p-8 overflow-y-auto space-y-8 hidden lg:block">
+              <h3 className="text-xs font-black text-white/40 uppercase tracking-widest flex items-center gap-2">
+                <Clock size={14} /> Línea de Tiempo
+              </h3>
+              <div className="space-y-6 relative">
+                <div className="absolute left-2 top-2 bottom-2 w-px bg-white/10"></div>
+                {history.map((h, i) => (
+                  <div key={i} className="relative pl-8 space-y-2">
+                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white/20 border-4 border-[#0a0a0a]"></div>
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Paso {i + 1}</p>
+                    <p className="text-xs font-bold text-white/60 leading-relaxed">{h.decision}</p>
+                  </div>
+                ))}
+                <div className="relative pl-8 space-y-2">
+                  <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-red-500 border-4 border-[#0a0a0a] animate-pulse"></div>
+                  <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Actual</p>
+                  <p className="text-xs font-bold text-white leading-relaxed">Tomando decisión...</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'RESULT' && (
+          <motion.div 
+            key="result"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`flex-1 flex items-center justify-center p-6 z-10 ${
+              node.tipo_final === 'correcto' ? 'bg-emerald-950/20' : 
+              node.tipo_final === 'incidente' ? 'bg-amber-950/20' : 'bg-red-950/20'
+            }`}
+          >
+            <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Outcome Card */}
+              <div className={`glass-panel-heavy p-12 rounded-[3rem] border-2 text-center space-y-10 relative overflow-hidden ${
+                node.tipo_final === 'correcto' ? 'border-emerald-500/40' : 
+                node.tipo_final === 'incidente' ? 'border-amber-500/40' : 'border-red-500/40'
+              }`}>
+                <div className={`absolute top-0 left-0 w-full h-2 ${
+                  node.tipo_final === 'correcto' ? 'bg-emerald-500' : 
+                  node.tipo_final === 'incidente' ? 'bg-amber-500' : 'bg-red-500'
+                }`}></div>
+                
+                <div className="space-y-4">
+                  <h2 className="text-xs font-black tracking-[0.5em] uppercase text-white/40">Simulación Finalizada</h2>
+                  <h3 className={`text-5xl font-black tracking-tighter uppercase leading-none ${
+                    node.tipo_final === 'correcto' ? 'text-emerald-500' : 
+                    node.tipo_final === 'incidente' ? 'text-amber-500' : 'text-red-500'
+                  }`}>
+                    {node.tipo_final === 'correcto' ? 'Éxito Operativo' : 
+                     node.tipo_final === 'incidente' ? 'Incidente Reportado' : 'Accidente Crítico'}
+                  </h3>
+                </div>
+
+                <div className="p-8 bg-white/5 rounded-3xl border border-white/10 space-y-4">
+                  <p className="text-lg font-medium leading-relaxed text-white/80 italic">
+                    "{node.situacion}"
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <button 
+                    onClick={resetStory}
+                    className={`w-full py-6 font-black rounded-2xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all ${
+                      node.tipo_final === 'correcto' ? 'bg-emerald-500 text-black' : 
+                      node.tipo_final === 'incidente' ? 'bg-amber-500 text-black' : 'bg-red-600 text-white'
+                    }`}
+                  >
+                    Reintentar Escenario
+                  </button>
+                  <button 
+                    onClick={() => setGameState('SELECT')}
+                    className="w-full py-6 bg-white/5 text-white/60 font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                  >
+                    Nueva Historia
+                  </button>
+                </div>
+              </div>
+
+              {/* Learning Card */}
+              <div className="glass-panel-heavy p-12 rounded-[3rem] border border-white/10 flex flex-col justify-between space-y-8">
+                <div className="space-y-6">
+                  <h3 className="text-xl font-black uppercase tracking-widest text-white/40 border-b border-white/10 pb-4 flex items-center gap-2">
+                    <Lightbulb size={20} className="text-yellow-500" /> Aprendizaje Clave
+                  </h3>
+                  <p className="text-xl font-bold leading-relaxed text-white/90">
+                    {node.aprendizaje}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Tu Recorrido</h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {history.map((h, i) => (
+                      <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/5 flex gap-3">
+                        <span className="text-red-500 font-black">#{i+1}</span>
+                        <p className="text-[10px] font-bold text-white/60 leading-tight uppercase">{h.decision}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- PROTOCOLO DE EMERGENCIA GAME ---
+
+const PROTOCOLO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2015417175&single=true&output=csv';
+
+const PROTOCOLO_FALLBACK = {
+  "INCENDIO": {
+    tiempo: 90,
+    pasos: [
+      { id: 1, paso: "Dar la alarma", detalle: "Activar el pulsador de alarma más cercano.", icono: "AlertTriangle" },
+      { id: 2, paso: "Llamar al número de emergencias", detalle: "Informar ubicación exacta y magnitud del fuego.", icono: "Phone" },
+      { id: 3, paso: "Evacuar el área", detalle: "Seguir las rutas de evacuación señalizadas.", icono: "Users" },
+      { id: 4, paso: "Cerrar puertas sin llave", detalle: "Para retardar la propagación del fuego y humo.", icono: "DoorClosed" },
+      { id: 5, paso: "Usar extintor solo si es seguro", detalle: "Solo si el fuego es pequeño y tenés entrenamiento.", icono: "Zap" },
+      { id: 6, paso: "Reunirse en punto de encuentro", detalle: "Esperar el recuento de personal.", icono: "MapPin" },
+      { id: 7, paso: "No reingresar hasta autorización", detalle: "Solo cuando los bomberos o brigada lo indiquen.", icono: "XCircle" }
+    ]
+  },
+  "PERSONA LESIONADA": {
+    tiempo: 120,
+    pasos: [
+      { id: 1, paso: "Asegurar la escena", detalle: "Verificar que no haya peligros adicionales para vos o la víctima.", icono: "Shield" },
+      { id: 2, paso: "Llamar a emergencias", detalle: "Solicitar asistencia médica especializada.", icono: "Phone" },
+      { id: 3, paso: "No mover al lesionado si hay trauma", detalle: "Evitar lesiones mayores en columna o cuello.", icono: "AlertCircle" },
+      { id: 4, paso: "Aplicar primeros auxilios básicos", detalle: "Controlar hemorragias o realizar RCP si sabés.", icono: "Heart" },
+      { id: 5, paso: "Mantener al lesionado abrigado y consciente", detalle: "Hablarle y evitar que entre en shock.", icono: "Thermometer" },
+      { id: 6, paso: "Esperar al equipo médico", detalle: "No abandonar a la víctima hasta que llegue ayuda.", icono: "Clock" }
+    ]
+  },
+  "DERRAME QUIMICO": {
+    tiempo: 90,
+    pasos: [
+      { id: 1, paso: "Evacuar el área", detalle: "Alejarse del derrame y vapores inmediatamente.", icono: "LogOut" },
+      { id: 2, paso: "Identificar la sustancia (consultar HDS)", detalle: "Saber qué se derramó para actuar correctamente.", icono: "Search" },
+      { id: 3, paso: "Dar la alarma y llamar a emergencias", detalle: "Notificar a la brigada de materiales peligrosos.", icono: "AlertTriangle" },
+      { id: 4, paso: "Ventilar el área si es seguro", detalle: "Abrir puertas y ventanas exteriores.", icono: "Wind" },
+      { id: 5, paso: "Contener el derrame con kit específico", detalle: "Usar absorbentes y barreras del kit de derrames.", icono: "Layers" },
+      { id: 6, paso: "Registrar el incidente", detalle: "Informar para la investigación y reposición de materiales.", icono: "FileText" }
+    ]
+  }
+};
+
+const ProtocoloEmergenciaGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
+  const [data, setData] = useState<any>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [currentSteps, setCurrentSteps] = useState<any[]>([]);
+  const [gameState, setGameState] = useState<'SELECT' | 'PLAY' | 'RESULT' | 'REVIEW'>('SELECT');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResults, setVerificationResults] = useState<boolean[]>([]);
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(PROTOCOLO_SHEETS_URL);
+        const csv = await response.text();
+        const rows = csv.split('\n').filter(row => row.trim() !== '').slice(1);
+        
+        const grouped: any = {};
+        rows.forEach(row => {
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+          const type = cols[0]; // A=tipo_emergencia
+          if (!type) return;
+          
+          if (!grouped[type]) {
+            grouped[type] = {
+              tiempo: parseInt(cols[4]) || 90, // E=tiempo_segundos
+              pasos: []
+            };
+          }
+          
+          grouped[type].pasos.push({
+            id: parseInt(cols[1]), // B=numero_paso
+            paso: cols[2], // C=paso
+            detalle: cols[3], // D=detalle
+            icono: cols[5] || "FileText" // F=icono
+          });
+        });
+
+        // Sort steps by ID
+        Object.keys(grouped).forEach(key => {
+          grouped[key].pasos.sort((a: any, b: any) => a.id - b.id);
+        });
+        
+        if (Object.keys(grouped).length > 0) setData(grouped);
+        else setData(PROTOCOLO_FALLBACK);
+      } catch (error) {
+        console.error("Error fetching protocol data:", error);
+        setData(PROTOCOLO_FALLBACK);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    let timer: any;
+    if (gameState === 'PLAY' && timeLeft > 0 && !isVerifying) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && gameState === 'PLAY' && !isVerifying) {
+      handleVerify(true);
+    }
+    return () => clearInterval(timer);
+  }, [gameState, timeLeft, isVerifying]);
+
+  const startLevel = (type: string) => {
+    setSelectedType(type);
+    const protocol = data[type];
+    const shuffled = [...protocol.pasos].sort(() => Math.random() - 0.5);
+    setCurrentSteps(shuffled);
+    setTimeLeft(protocol.tiempo);
+    setGameState('PLAY');
+    setIsVerifying(false);
+    setVerificationResults([]);
+  };
+
+  const handleVerify = async (isAuto = false) => {
+    setIsVerifying(true);
+    const correctOrder = data[selectedType!].pasos;
+    const results = currentSteps.map((step, index) => step.id === correctOrder[index].id);
+    
+    // Sequential animation
+    for (let i = 0; i <= results.length; i++) {
+      setVerificationResults(results.slice(0, i));
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    const correctCount = results.filter(r => r).length;
+    const baseScore = correctCount * 100;
+    const timeBonus = isAuto ? 0 : timeLeft * 2;
+    const totalScore = baseScore + timeBonus;
+    
+    setScore(totalScore);
+    setGameState('RESULT');
+    onGameOver(totalScore);
+
+    if (correctCount === correctOrder.length) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  };
+
+  const moveStep = (dragIndex: number, hoverIndex: number) => {
+    const newSteps = [...currentSteps];
+    const draggedItem = newSteps[dragIndex];
+    newSteps.splice(dragIndex, 1);
+    newSteps.splice(hoverIndex, 0, draggedItem);
+    setCurrentSteps(newSteps);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin mx-auto"></div>
+          <p className="text-red-500 font-black tracking-widest uppercase text-xs">Cargando Protocolos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getIcon = (name: string) => {
+    const icons: any = { AlertTriangle, Phone, Users, DoorClosed, Zap, MapPin, XCircle, Shield, AlertCircle, Heart, Thermometer, Clock, LogOut, Search, Wind, Layers, FileText };
+    const IconComp = icons[name] || FileText;
+    return <IconComp size={24} />;
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-red-500 selection:text-black flex flex-col relative overflow-hidden">
+      {/* Background Alerts */}
+      {gameState === 'PLAY' && (
+        <motion.div 
+          animate={{ opacity: [0.05, 0.15, 0.05] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute inset-0 bg-red-600 pointer-events-none z-0"
+        />
+      )}
+      
+      {/* Header */}
+      <div className="px-6 py-4 flex justify-between items-center bg-black/60 backdrop-blur-md border-b border-white/5 z-50">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/40">
+            <ShieldAlert className="text-red-600" size={20} />
+          </div>
+          <div>
+            <h2 className="text-xs font-black tracking-widest uppercase text-white/40">Misión_12</h2>
+            <h1 className="text-sm font-black tracking-tight uppercase">Protocolo de Emergencia</h1>
+          </div>
+        </div>
+        <button onClick={onExit} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+          <X size={24} />
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {gameState === 'SELECT' && (
+          <motion.div 
+            key="select"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex-1 p-8 flex flex-col items-center justify-center space-y-12 z-10"
+          >
+            <div className="text-center space-y-4">
+              <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">Centro de <span className="text-red-600">Respuesta</span></h2>
+              <p className="text-white/40 font-medium tracking-widest uppercase text-xs">Seleccioná el Protocolo a Validar</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
+              {Object.keys(data).map((type) => (
+                <motion.div
+                  key={type}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => startLevel(type)}
+                  className="group cursor-pointer bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:border-red-500/40 transition-all space-y-6 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <ShieldAlert size={80} />
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center group-hover:bg-red-500 group-hover:text-black transition-colors">
+                    <Zap size={28} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black uppercase tracking-tight leading-none">{type}</h3>
+                    <div className="flex items-center gap-4 text-white/40 text-xs font-bold uppercase tracking-widest">
+                      <span className="flex items-center gap-1"><Clock size={12} /> {data[type].tiempo}s</span>
+                      <span className="flex items-center gap-1"><Layers size={12} /> {data[type].pasos.length} Pasos</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'PLAY' && (
+          <motion.div 
+            key="play"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 p-8 flex flex-col items-center z-10"
+          >
+            <div className="max-w-4xl w-full flex flex-col items-center space-y-8">
+              {/* Emergency Banner */}
+              <div className="text-center space-y-2">
+                <h2 className="text-red-500 font-black tracking-[0.3em] uppercase text-xs animate-pulse">Emergencia Declarada</h2>
+                <h3 className="text-4xl font-black uppercase tracking-tighter">{selectedType}</h3>
+              </div>
+
+              {/* Timer */}
+              <div className="relative">
+                <div className={`text-7xl font-black tabular-nums ${
+                  timeLeft < 10 ? 'text-red-500 animate-bounce' : 
+                  timeLeft < 30 ? 'text-amber-500' : 'text-white'
+                }`}>
+                  {timeLeft}s
+                </div>
+              </div>
+
+              {/* Steps List */}
+              <div className="w-full space-y-3">
+                <p className="text-center text-white/40 text-[10px] font-black uppercase tracking-widest mb-4">Arrastrá para ordenar la secuencia correcta</p>
+                {currentSteps.map((step, index) => (
+                  <motion.div
+                    key={step.id}
+                    layout
+                    drag="y"
+                    dragConstraints={{ top: 0, bottom: 0 }}
+                    dragElastic={1}
+                    onDragEnd={(_, info) => {
+                      const offset = info.offset.y;
+                      const moveBy = Math.round(offset / 80);
+                      if (moveBy !== 0) {
+                        const newIndex = Math.max(0, Math.min(currentSteps.length - 1, index + moveBy));
+                        moveStep(index, newIndex);
+                      }
+                    }}
+                    whileDrag={{ scale: 1.02, zIndex: 50, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    className="bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-6 cursor-grab active:cursor-grabbing group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white/40 transition-colors">
+                      {getIcon(step.icono)}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-black uppercase tracking-tight">{step.paso}</h4>
+                    </div>
+                    <div className="text-white/10">
+                      <Layers size={20} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleVerify()}
+                disabled={isVerifying}
+                className="px-12 py-5 bg-red-600 text-white font-black rounded-2xl uppercase tracking-[0.2em] shadow-xl shadow-red-900/20 hover:bg-red-500 transition-all"
+              >
+                Verificar Protocolo
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'RESULT' && (
+          <motion.div 
+            key="result"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex-1 flex items-center justify-center p-6 z-10"
+          >
+            <div className="max-w-4xl w-full glass-panel-heavy p-12 rounded-[3rem] border border-white/10 text-center space-y-10 relative overflow-hidden">
+              <div className="space-y-4">
+                <h2 className="text-xs font-black tracking-[0.5em] uppercase text-white/40">Evaluación de Respuesta</h2>
+                <h3 className="text-6xl font-black tracking-tighter uppercase leading-none">Puntaje: <span className="text-red-600">{score}</span></h3>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 text-left">
+                {currentSteps.map((step, idx) => {
+                  const isCorrect = verificationResults.length > idx ? verificationResults[idx] : null;
+                  return (
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className={`p-4 rounded-2xl border flex items-center gap-4 ${
+                        isCorrect === true ? 'bg-emerald-500/10 border-emerald-500/40' : 
+                        isCorrect === false ? 'bg-red-500/10 border-red-500/40' : 'bg-white/5 border-white/10'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isCorrect === true ? 'bg-emerald-500 text-black' : 
+                        isCorrect === false ? 'bg-red-500 text-white' : 'bg-white/10 text-white/40'
+                      }`}>
+                        {isCorrect === true ? <CheckCircle2 size={18} /> : isCorrect === false ? <XCircle size={18} /> : idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-black uppercase tracking-tight">{step.paso}</h4>
+                        {isCorrect !== null && <p className="text-[10px] text-white/40 font-medium">{step.detalle}</p>}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-4">
+                <button 
+                  onClick={() => startLevel(selectedType!)}
+                  className="flex-1 py-6 bg-red-600 text-white font-black rounded-2xl uppercase tracking-widest hover:bg-red-500 transition-all"
+                >
+                  Reintentar
+                </button>
+                <button 
+                  onClick={() => setGameState('REVIEW')}
+                  className="flex-1 py-6 bg-white/5 text-white/60 font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                >
+                  Ver Protocolo Completo
+                </button>
+                <button 
+                  onClick={() => setGameState('SELECT')}
+                  className="flex-1 py-6 bg-white/5 text-white/60 font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                >
+                  Otros Protocolos
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'REVIEW' && (
+          <motion.div 
+            key="review"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex-1 p-8 flex flex-col items-center z-10 overflow-y-auto"
+          >
+            <div className="max-w-3xl w-full bg-white p-12 rounded-[3rem] text-black space-y-10 shadow-2xl">
+              <div className="text-center space-y-2 border-b-2 border-black/10 pb-8">
+                <h2 className="text-xs font-black tracking-[0.5em] uppercase text-black/40">Protocolo Oficial de Seguridad</h2>
+                <h3 className="text-4xl font-black uppercase tracking-tighter">{selectedType}</h3>
+              </div>
+
+              <div className="space-y-8">
+                {data[selectedType!].pasos.map((step: any, idx: number) => (
+                  <div key={idx} className="flex gap-8 group">
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-black text-xl">
+                        {idx + 1}
+                      </div>
+                      {idx < data[selectedType!].pasos.length - 1 && (
+                        <div className="w-1 flex-1 bg-black/10 my-2"></div>
+                      )}
+                    </div>
+                    <div className="pb-8">
+                      <h4 className="text-2xl font-black uppercase tracking-tight mb-2">{step.paso}</h4>
+                      <p className="text-black/60 font-medium leading-relaxed">{step.detalle}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => setGameState('RESULT')}
+                className="w-full py-6 bg-black text-white font-black rounded-2xl uppercase tracking-widest hover:bg-black/80 transition-all print:hidden"
+              >
+                Volver a Resultados
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 // --- MAIN APP COMPONENT ---
 
 export default function App() {
@@ -4586,14 +6309,42 @@ export default function App() {
                 if (id === 'memoria') setView('GAME_MEMORY_V3');
                 if (id === 'wordle') setView('GAME_WORDLE');
                 if (id === 'jenga') setView('GAME_JENGA');
+                if (id === 'decisiones') setView('GAME_DECISIONES');
+                if (id === 'cazador') setView('GAME_CAZADOR');
+                if (id === 'pare') setView('GAME_PARE');
+                if (id === 'protocolo') setView('GAME_PROTOCOLO');
               }} 
             />
+          </motion.div>
+        )}
+
+        {view === 'GAME_PROTOCOLO' && (
+          <motion.div key="protocolo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <ProtocoloEmergenciaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('protocolo', score)} />
           </motion.div>
         )}
 
         {view === 'GAME_JENGA' && (
           <motion.div key="jenga" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <JengaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('jenga', score)} />
+          </motion.div>
+        )}
+
+        {view === 'GAME_DECISIONES' && (
+          <motion.div key="decisiones" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <DecisionesSegurasGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('decisiones', score)} />
+          </motion.div>
+        )}
+
+        {view === 'GAME_CAZADOR' && (
+          <motion.div key="cazador" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <CazadorDeRiesgosGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('cazador', score)} />
+          </motion.div>
+        )}
+
+        {view === 'GAME_PARE' && (
+          <motion.div key="pare" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <PareYPidaAyudaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('pare', score)} />
           </motion.div>
         )}
 
@@ -5708,6 +7459,96 @@ const GAMES_ENHANCED = [
       'Si la torre cae, se produce un colapso del sistema.',
       'Ganas puntos por cada retiro exitoso y seguro.'
     ]
+  },
+  { 
+    id: 'decisiones', 
+    title: 'DECISIONES SEGURAS', 
+    subtitle: 'MISIÓN_09', 
+    icon: 'fact_check', 
+    active: true, 
+    color: 'bg-indigo-600', 
+    level: 'INTERMEDIO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
+    desc: 'Enfrentá escenarios reales de la operación y tomá la decisión más segura.',
+    obj: 'Resolver dilemas éticos y técnicos de seguridad industrial.',
+    rules: [
+      'Analizá la imagen y la descripción del escenario.',
+      'Elegí entre 3 opciones de conducta (A, B o C).',
+      'Las respuestas correctas multiplican tu puntaje por racha.',
+      'Aprendé con el principio preventivo revelado en cada turno.'
+    ]
+  },
+  { 
+    id: 'cazador', 
+    title: 'CAZADOR DE RIESGOS', 
+    subtitle: 'MISIÓN_10', 
+    icon: 'center_focus_weak', 
+    active: true, 
+    color: 'bg-rose-600', 
+    level: 'EXPERTO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    desc: 'Identificá condiciones inseguras en imágenes reales de planta antes de que ocurra un accidente.',
+    obj: 'Encontrar todos los peligros ocultos en la escena bajo presión de tiempo.',
+    rules: [
+      'Seleccioná una escena operativa para inspeccionar.',
+      'Hacé clic sobre los peligros que detectes en la imagen.',
+      'Tenés 60 segundos para encontrar todas las condiciones inseguras.',
+      'Cada acierto revela la medida de control y la norma técnica.'
+    ]
+  },
+  { 
+    id: 'pare', 
+    title: 'PARE Y PIDA AYUDA', 
+    subtitle: 'MISIÓN_11', 
+    icon: 'pan_tool', 
+    active: true, 
+    color: 'bg-red-600', 
+    level: 'INTERMEDIO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800',
+    desc: 'Simulador de situaciones críticas con narrativa ramificada. El foco es la reflexión y el aprendizaje.',
+    obj: 'Tomar las decisiones correctas ante escenarios de alto riesgo.',
+    rules: [
+      'Seleccioná una historia de la lista.',
+      'Leé atentamente la situación planteada.',
+      'Elegí una de las opciones disponibles.',
+      'Observá las consecuencias de tus actos y aprendé de ellas.'
+    ]
+  },
+  { 
+    id: 'protocolo', 
+    title: 'PROTOCOLO DE EMERGENCIA', 
+    subtitle: 'MISIÓN_12', 
+    icon: 'shield_alert', 
+    active: true, 
+    color: 'bg-red-700', 
+    level: 'EXPERTO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    desc: 'Ordená los pasos de respuesta ante emergencias bajo presión de tiempo.',
+    obj: 'Validar la secuencia correcta del protocolo de seguridad.',
+    rules: [
+      'Seleccioná el tipo de emergencia.',
+      'Arrastrá los pasos para ordenarlos correctamente.',
+      'Verificá antes de que se agote el tiempo.',
+      'Los aciertos y el tiempo restante suman puntos.'
+    ]
+  },
+  { 
+    id: 'mision_13', 
+    title: 'PRÓXIMA MISIÓN', 
+    subtitle: 'MISIÓN_13', 
+    icon: 'lock', 
+    active: false, 
+    color: 'bg-slate-700', 
+    level: 'BLOQUEADO', 
+    stats: '-- VIC / -- RGO', 
+    img: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&q=80&w=800',
+    desc: 'Contenido en desarrollo. Próximamente disponible.',
+    obj: 'Bloqueado',
+    rules: ['Próximamente']
   },
 ];
 
