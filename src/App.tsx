@@ -14,7 +14,8 @@ import {
   Unlock, ArrowRight, Camera, User, Zap, ClipboardList, Users,
   BarChart3, Calendar, Delete, CornerDownLeft, ShieldCheck, Lightbulb,
   Printer, Monitor, Layers, Filter, Download, ChevronLeft, XCircle, ArrowLeft,
-  Paperclip, ShieldAlert, Phone, DoorClosed, MapPin, Thermometer, Wind, Heart
+  Paperclip, ShieldAlert, Phone, DoorClosed, MapPin, Thermometer, Wind, Heart,
+  Cpu
 } from 'lucide-react';
 
 // --- CONSTANTS & TYPES ---
@@ -107,6 +108,96 @@ const getDirectImageUrl = (url: string) => {
 };
 
 // --- SHARED COMPONENTS ---
+
+const ScanlineOverlay = () => (
+  <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden opacity-[0.03]">
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
+    <div className="absolute inset-0 animate-scanline bg-gradient-to-b from-transparent via-secondary/10 to-transparent h-20 w-full"></div>
+  </div>
+);
+
+const SystemLoader = ({ message = "INICIALIZANDO SISTEMA..." }: { message?: string }) => (
+  <div className="fixed inset-0 z-[10000] bg-[#0a1f14] flex flex-col items-center justify-center p-6">
+    <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden mb-4 relative">
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: "100%" }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="h-full bg-secondary shadow-[0_0_15px_rgba(255,182,144,0.8)]"
+      />
+    </div>
+    <div className="flex items-center gap-3">
+      <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+      <p className="font-headline text-secondary text-[10px] tracking-[0.5em] uppercase animate-hud-pulse">{message}</p>
+    </div>
+    <div className="absolute bottom-12 left-12 font-mono text-[8px] text-white/20 space-y-1">
+      <p>CORE_OS v1.0.4</p>
+      <p>ENCRYPTION: AES-256</p>
+      <p>STATUS: SECURE_LINK_ESTABLISHED</p>
+    </div>
+  </div>
+);
+
+const GlobalHeader = ({ playerData, onViewChange }: { playerData: any, onViewChange: (view: View) => void }) => {
+  const [time, setTime] = useState(new Date().toLocaleTimeString());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-[100] h-16 md:h-20 bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 flex items-center justify-between">
+      <div className="flex items-center gap-4 md:gap-8">
+        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => onViewChange('MENU')}>
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-secondary rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+            <Shield className="text-black" size={20} />
+          </div>
+          <div className="hidden sm:block">
+            <h1 className="font-headline text-lg md:text-xl font-black text-white tracking-tighter leading-none">PREVEN<span className="text-secondary">EHS</span></h1>
+            <p className="text-[8px] font-headline text-white/40 uppercase tracking-widest mt-1">SISTEMA DE GESTIÓN PREVENTIVA</p>
+          </div>
+        </div>
+
+        <div className="h-8 w-[1px] bg-white/10 hidden md:block"></div>
+
+        <div className="hidden lg:flex items-center gap-6">
+          <div className="flex flex-col">
+            <span className="text-[8px] font-headline text-secondary uppercase tracking-widest mb-0.5">ESTADO DEL SISTEMA</span>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-[10px] font-black text-white uppercase tracking-tighter">OPERATIVO / SEGURO</span>
+            </div>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[8px] font-headline text-secondary uppercase tracking-widest mb-0.5">LOCALIZACIÓN</span>
+            <span className="text-[10px] font-black text-white uppercase tracking-tighter">{playerData?.sitio || 'PLANTA_BASE'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 md:gap-8">
+        <div className="hidden md:flex flex-col items-end">
+          <span className="text-[8px] font-headline text-secondary uppercase tracking-widest mb-0.5">RELOJ DEL SISTEMA</span>
+          <span className="text-[10px] font-mono text-white/60">{time}</span>
+        </div>
+
+        <div className="flex items-center gap-3 bg-white/5 p-1.5 md:p-2 rounded-xl border border-white/10">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-secondary/20 flex items-center justify-center border border-secondary/30">
+            <User className="text-secondary" size={18} />
+          </div>
+          <div className="pr-2 md:pr-4">
+            <p className="text-[10px] md:text-xs font-black text-white uppercase tracking-tighter leading-none">{playerData?.nombre || 'OPERADOR_01'}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Zap size={10} className="text-secondary" />
+              <span className="text-[9px] md:text-[10px] font-black text-secondary uppercase tracking-widest">{playerData?.score || 0} PTS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
 
 const Card = ({ card, hidden, onClick, styleClass = "" }: any) => {
   if (!card && !hidden) return <div className="w-24 h-36 sm:w-32 sm:h-48 border-2 border-dashed border-white/10 rounded-lg"></div>;
@@ -242,13 +333,15 @@ const StartScreen = ({ onStart }: { onStart: (data: any) => void }) => {
   const [sitios, setSitios] = useState<string[]>(['CARGANDO...']);
   const [sectores, setSectores] = useState<string[]>(['CARGANDO...']);
   const [loadingConfig, setLoadingConfig] = useState(true);
+  const [enrollmentStep, setEnrollmentStep] = useState(0);
 
   const [formData, setFormData] = useState({
     nombre: '',
     sitio: '',
     sector: '',
     udn: '',
-    edad: ''
+    edad: '',
+    score: 0
   });
 
   useEffect(() => {
@@ -315,213 +408,153 @@ const StartScreen = ({ onStart }: { onStart: (data: any) => void }) => {
     fetchConfig();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.nombre || !formData.udn || !formData.edad || !formData.sector || !formData.sitio) {
-      alert('Por favor complete todos los campos requeridos.');
-      return;
-    }
-    onStart(formData);
+  const handleNext = () => {
+    if (enrollmentStep === 0 && formData.nombre.trim().length < 3) return;
+    if (enrollmentStep < 1) setEnrollmentStep(prev => prev + 1);
+    else onStart(formData);
   };
 
+  if (loadingConfig) return <SystemLoader />;
+
   return (
-    <div className="obsidian-table text-on-surface font-body min-h-screen flex flex-col overflow-x-hidden relative">
-    {/* Animated Background Elements */}
-    <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-      <div className="absolute top-24 left-6 hidden xl:block w-48 opacity-20">
-        <div className="border-l-4 border-t-4 border-primary/30 p-4 space-y-4 bg-primary/5">
-          <div className="h-1.5 w-full bg-primary/20"></div>
-          <div className="h-1.5 w-2/3 bg-primary/20"></div>
-          <div className="h-1.5 w-1/2 bg-primary/20"></div>
-          <div className="font-headline text-[11px] text-primary/60 font-bold uppercase tracking-widest">MODO_ESCÁNER: PASIVO</div>
-        </div>
+    <div className="min-h-screen bg-[#0a1f14] flex items-center justify-center p-4 relative overflow-hidden">
+      <ScanlineOverlay />
+      
+      {/* Background HUD Elements */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+        <div className="absolute top-12 left-12 w-64 h-64 border border-secondary/20 rounded-full animate-hud-pulse" />
+        <div className="absolute bottom-12 right-12 w-96 h-96 border border-secondary/10 rounded-full animate-hud-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[1px] bg-secondary/10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-full w-[1px] bg-secondary/10" />
       </div>
-      <div className="fixed bottom-24 right-6 hidden xl:block w-48 pointer-events-none opacity-20">
-        <div className="border-r-4 border-b-4 border-secondary/30 p-4 space-y-4 text-right bg-secondary/5">
-          <div className="font-headline text-[11px] text-secondary/60 font-bold uppercase tracking-widest">ZONA: RESTRINGIDA</div>
-          <div className="h-1.5 w-1/2 bg-secondary/20 ml-auto"></div>
-          <div className="h-1.5 w-2/3 bg-secondary/20 ml-auto"></div>
-          <div className="h-1.5 w-full bg-secondary/20 ml-auto"></div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative z-10 w-full max-w-lg"
+      >
+        <div className="glass-panel-heavy p-8 md:p-12 rounded-[2rem] border-2 border-secondary/30 shadow-2xl relative overflow-hidden">
+          {/* Terminal Header */}
+          <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center shadow-lg">
+                <Shield className="text-black" size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">ENROLAMIENTO</h2>
+                <p className="text-[8px] font-headline text-secondary uppercase tracking-[0.3em] mt-1">SISTEMA_PREVEN_EHS v1.0</p>
+              </div>
+            </div>
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-mono text-white/40 uppercase">Status</p>
+              <p className="text-[10px] font-mono text-emerald-500 font-bold uppercase">Ready_to_Link</p>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {enrollmentStep === 0 ? (
+              <motion.div 
+                key="step0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div>
+                  <label className="block text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Identificación del Operador</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder="NOMBRE COMPLETO"
+                      className="w-full bg-white/5 border-2 border-white/10 rounded-xl py-4 pl-12 pr-4 text-white font-headline font-bold focus:border-secondary transition-all outline-none uppercase placeholder:text-white/10"
+                      value={formData.nombre}
+                      onChange={e => setFormData({...formData, nombre: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Edad</label>
+                  <input 
+                    type="number" 
+                    placeholder="AÑOS"
+                    className="w-full bg-white/5 border-2 border-white/10 rounded-xl py-4 px-4 text-white font-headline font-bold focus:border-secondary transition-all outline-none uppercase placeholder:text-white/10"
+                    value={formData.edad}
+                    onChange={e => setFormData({...formData, edad: e.target.value})}
+                  />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Sitio Operativo</label>
+                    <select 
+                      className="w-full bg-white/5 border-2 border-white/10 rounded-xl py-4 px-4 text-white font-headline font-bold focus:border-secondary transition-all outline-none uppercase appearance-none cursor-pointer"
+                      value={formData.sitio}
+                      onChange={e => setFormData({...formData, sitio: e.target.value})}
+                    >
+                      {sitios.map(s => <option key={s} value={s} className="bg-[#0a1f14]">{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Sector / Área</label>
+                    <select 
+                      className="w-full bg-white/5 border-2 border-white/10 rounded-xl py-4 px-4 text-white font-headline font-bold focus:border-secondary transition-all outline-none uppercase appearance-none cursor-pointer"
+                      value={formData.sector}
+                      onChange={e => setFormData({...formData, sector: e.target.value})}
+                    >
+                      {sectores.map(s => <option key={s} value={s} className="bg-[#0a1f14]">{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Unidad de Negocio (UDN)</label>
+                  <input 
+                    type="text" 
+                    placeholder="EJ: MINERÍA, ENERGÍA..."
+                    className="w-full bg-white/5 border-2 border-white/10 rounded-xl py-4 px-4 text-white font-headline font-bold focus:border-secondary transition-all outline-none uppercase placeholder:text-white/10"
+                    value={formData.udn}
+                    onChange={e => setFormData({...formData, udn: e.target.value})}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-12 flex items-center gap-4">
+            {enrollmentStep > 0 && (
+              <button 
+                onClick={() => setEnrollmentStep(0)}
+                className="w-16 h-16 rounded-xl border-2 border-white/10 flex items-center justify-center text-white hover:bg-white/5 transition-all"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+            <button 
+              onClick={handleNext}
+              disabled={enrollmentStep === 0 && formData.nombre.trim().length < 3}
+              className="flex-1 bg-secondary text-black font-black uppercase tracking-[0.2em] py-5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg disabled:opacity-30 disabled:scale-100 flex items-center justify-center gap-3"
+            >
+              {enrollmentStep === 0 ? 'SIGUIENTE' : 'VINCULAR SISTEMA'}
+              <ArrowRight size={20} />
+            </button>
+          </div>
+
+          {/* Terminal Footer */}
+          <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-[8px] font-mono text-white/20 uppercase tracking-widest">
+            <p>Protocol: EHS_LINK_SECURE</p>
+            <p>Step: 0{enrollmentStep + 1} / 02</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
-
-    <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-[#0a1f14]/90 backdrop-blur-md border-b-2 border-primary/20">
-      <div className="flex items-center gap-3">
-        <span className="material-symbols-outlined text-secondary symbol-3d">precision_manufacturing</span>
-        <h1 className="font-headline tracking-tighter uppercase text-xl font-bold text-secondary">PREVENEHS GAMES</h1>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-10 h-10 rounded-full border-2 border-secondary overflow-hidden bg-surface-container-highest shadow-[0_0_10px_rgba(255,182,144,0.3)]">
-          <img alt="User" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBms8h7JRRd_1PoJqBQej2uHp7MnIt_Fhj0r8pZUYeAN2R1Z7Jdc1Cbr3Gijm8fON7bWwwtpniWZ1LDe5ErDZVExLx1YktRuc7Vy7tjA_YbZOvz0liUWbZFjkd_MPVXb__p_peJcRjFTpksFLKXoY6sJKkXnpd7aM_TxO0iN2UOurXHpplKlitL6bccYEjQcdSBehQ-7yb2VEEyCMBP-3zD14sgqUTETyVp-S1lwZFe_n6wOkFjL8PQ-BmdQXzGfm-lm_8XIdSv_1n3" />
-        </div>
-      </div>
-    </header>
-
-    <main className="flex-grow flex flex-col items-center justify-center px-4 pt-24 pb-12 relative z-10">
-      <div className="relative mb-12 flex flex-col items-center">
-        <div className="absolute inset-0 bg-secondary/10 blur-[100px] rounded-full scale-150"></div>
-        <div className="relative z-10 w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-[8px] border-[#0a1f14] bg-black/40 animate-hud-pulse flex items-center justify-center overflow-hidden shadow-[0_0_30px_rgba(255,182,144,0.2)]">
-            <div className="absolute top-0 left-0 w-full h-1/2 bg-white/5 skew-y-12"></div>
-            <div className="w-[90%] h-[90%] rounded-full border-2 border-secondary/40 flex items-center justify-center bg-gradient-to-b from-secondary/10 to-transparent">
-              <span className="material-symbols-outlined text-secondary text-[8rem] md:text-[10rem] symbol-3d" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
-            </div>
-          </div>
-          <div className="absolute -top-2 -right-2 w-7 h-7 bg-secondary rounded-full border-4 border-[#0a1f14] shadow-[0_0_15px_rgba(255,182,144,0.5)]"></div>
-          <div className="absolute -bottom-2 -left-2 w-5 h-5 bg-primary rounded-full border-2 border-[#0a1f14] animate-pulse"></div>
-        </div>
-        <div className="mt-6 text-center">
-          <h2 className="font-headline text-2xl md:text-4xl font-black tracking-tighter text-white uppercase leading-none drop-shadow-md">
-            REGISTRO DE JUGADOR
-          </h2>
-          <p className="font-label text-secondary tracking-[0.2em] uppercase text-[10px] mt-2 opacity-80">Mes de la Seguridad 2025</p>
-        </div>
-      </div>
-
-      <div className="w-full max-w-md glass-panel-heavy p-8 rounded-xl border-t border-white/20 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-3 bg-secondary/80 transform translate-x-12 translate-y-3 rotate-45 shadow-sm"></div>
-        <header className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-secondary text-base">person_add</span>
-            <span className="font-label text-[11px] uppercase font-bold text-secondary/70 tracking-widest">Identificación del Personal</span>
-          </div>
-        </header>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-1">
-            <label className="font-label text-[10px] font-bold text-secondary uppercase tracking-wider block">Nombre y Apellido</label>
-            <div className="relative">
-              <input 
-                autoComplete="off" 
-                className="w-full bg-black/40 border-2 border-white/10 p-3 font-headline text-white placeholder:text-white/20 focus:outline-none focus:border-secondary transition-all rounded-sm" 
-                placeholder="Ej: Juan Pérez" 
-                type="text" 
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20">person</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="font-label text-[10px] font-bold text-secondary uppercase tracking-wider block">Sitio</label>
-              <div className="relative">
-                <select 
-                  className="w-full bg-black/40 border-2 border-white/10 p-3 font-headline text-white appearance-none focus:outline-none focus:border-secondary transition-all rounded-sm cursor-pointer"
-                  value={formData.sitio}
-                  onChange={(e) => setFormData({ ...formData, sitio: e.target.value })}
-                  disabled={loadingConfig}
-                >
-                  {sitios.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20 pointer-events-none">expand_more</span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="font-label text-[10px] font-bold text-secondary uppercase tracking-wider block">Sector / Área</label>
-              <div className="relative">
-                <select 
-                  className="w-full bg-black/40 border-2 border-white/10 p-3 font-headline text-white appearance-none focus:outline-none focus:border-secondary transition-all rounded-sm cursor-pointer"
-                  value={formData.sector}
-                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                  disabled={loadingConfig}
-                >
-                  {sectores.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20 pointer-events-none">expand_more</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-label text-[10px] font-bold text-secondary uppercase tracking-wider block">UDN / Legajo</label>
-            <div className="relative">
-              <input 
-                autoComplete="off" 
-                className="w-full bg-black/40 border-2 border-white/10 p-3 font-headline text-white placeholder:text-white/20 focus:outline-none focus:border-secondary transition-all rounded-sm" 
-                placeholder="Ej: 12345" 
-                type="text" 
-                value={formData.udn}
-                onChange={(e) => setFormData({ ...formData, udn: e.target.value })}
-                required
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20">badge</span>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-label text-[10px] font-bold text-secondary uppercase tracking-wider block">Edad</label>
-            <div className="relative">
-              <input 
-                className="w-full bg-black/40 border-2 border-white/10 p-3 font-headline text-white placeholder:text-white/20 focus:outline-none focus:border-secondary transition-all rounded-sm" 
-                placeholder="Ej: 35" 
-                type="number" 
-                value={formData.edad}
-                onChange={(e) => setFormData({ ...formData, edad: e.target.value })}
-                required
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20">event</span>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-label text-[10px] font-bold text-secondary uppercase tracking-wider block">UDN</label>
-            <div className="relative">
-              <input 
-                autoComplete="off" 
-                className="w-full bg-black/40 border-2 border-white/10 p-3 font-headline text-white placeholder:text-white/20 focus:outline-none focus:border-secondary transition-all rounded-sm" 
-                placeholder="Unidad de Negocio" 
-                type="text" 
-                value={formData.udn}
-                onChange={(e) => setFormData({ ...formData, udn: e.target.value })}
-                required
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20">business</span>
-            </div>
-          </div>
-
-          <button className="btn-industrial-orange w-full text-white font-headline font-black py-4 text-lg uppercase tracking-tighter flex items-center justify-center gap-4 mt-4 group" type="submit">
-            <span className="material-symbols-outlined font-bold group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            ACCEDER A MISIONES
-          </button>
-        </form>
-        <footer className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-4">
-          <div className="flex justify-between items-center">
-            <a className="font-label text-[10px] text-white/40 hover:text-secondary uppercase transition-colors font-bold underline decoration-dotted" href="#">¿Olvidó su identificación?</a>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></span>
-              <span className="font-label text-[10px] text-error font-extrabold uppercase tracking-tighter">SISTEMA ENCRIPTADO</span>
-            </div>
-          </div>
-        </footer>
-      </div>
-
-      <div className="mt-12 w-full max-w-md flex flex-col gap-4 opacity-60">
-        <div className="flex justify-between items-end">
-          <div className="text-left font-label text-[10px] text-secondary leading-tight font-bold">
-            ESTADO_TERM: EN LÍNEA<br/>
-            NIVEL_SEC: ALFA-01<br/>
-            ID_NODO: CMD-PRIME
-          </div>
-          <div className="flex-grow mx-4 h-px bg-secondary/20 self-center"></div>
-          <div className="text-right font-label text-[10px] text-secondary leading-tight font-bold">
-            V. 1.0.4<br/>
-            CONEXIÓN SEGURA ESTABLECIDA
-          </div>
-        </div>
-        <div className="w-full bg-secondary/10 h-1 overflow-hidden">
-          <motion.div 
-            initial={{ x: '-100%' }}
-            animate={{ x: '300%' }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            className="bg-secondary h-full w-1/3"
-          />
-        </div>
-      </div>
-    </main>
-  </div>
   );
 };
 
@@ -6089,13 +6122,13 @@ const ProtocoloEmergenciaGame = ({ onExit, onGameOver }: { onExit: () => void, o
   );
 };
 
-// --- MAIN APP COMPONENT ---
-
+// --- APP COMPONENT ---
 export default function App() {
   const [view, setView] = useState<View>('START');
   const [playerData, setPlayerData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
-  // --- GOOGLE SHEETS INTEGRATION ---
   const recordGameResult = async (gameId: string, score: number) => {
     if (!playerData) return;
 
@@ -6129,7 +6162,100 @@ export default function App() {
     }
   };
 
-  // --- TRUCO GAME STATE ---
+  const handleStart = (data: any) => {
+    setLoadingMessage("VINCULANDO OPERADOR...");
+    setIsLoading(true);
+    setTimeout(() => {
+      setPlayerData(data);
+      setView('MENU');
+      setIsLoading(false);
+    }, 2000);
+  };
+
+  const handleSelectGame = (id: string) => {
+    setLoadingMessage("CARGANDO PROTOCOLO DE MISIÓN...");
+    setIsLoading(true);
+    setTimeout(() => {
+      const viewMap: any = {
+        'truco': 'GAME_TRUCO',
+        'oca': 'GAME_OCA',
+        'carrera': 'GAME_CARRERA',
+        'match': 'GAME_MATCH',
+        'escape': 'GAME_ESCAPE',
+        'memoria': 'GAME_MEMORY',
+        'wordle': 'GAME_WORDLE',
+        'jenga': 'GAME_JENGA',
+        'decisiones': 'GAME_DECISIONES',
+        'cazador': 'GAME_CAZADOR',
+        'pare': 'GAME_PARE',
+        'protocolo': 'GAME_PROTOCOLO'
+      };
+      setView(viewMap[id]);
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  const handleGameOver = (score: number) => {
+    setPlayerData((prev: any) => ({
+      ...prev,
+      score: (prev?.score || 0) + score
+    }));
+    recordGameResult(view, score);
+  };
+
+  const renderView = () => {
+    switch (view) {
+      case 'START': return <StartScreen onStart={handleStart} />;
+      case 'MENU': return <EnhancedGameMenu onSelectGame={handleSelectGame} playerData={playerData} />;
+      case 'GAME_TRUCO': return <TrucoGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_OCA': return <OcaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_CARRERA': return <CarreraGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_MATCH': return <MatchGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_ESCAPE': return <EscapeRoomGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_MEMORY': return <MemoryGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_WORDLE': return <WordleGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_JENGA': return <JengaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_DECISIONES': return <DecisionesSegurasGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_CAZADOR': return <CazadorDeRiesgosGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_PARE': return <PareYPidaAyudaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_PROTOCOLO': return <ProtocoloEmergenciaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      default: return <StartScreen onStart={handleStart} />;
+    }
+  };
+
+  return (
+    <div className="font-sans text-white bg-[#0a1f14] min-h-screen selection:bg-secondary selection:text-black">
+      <ScanlineOverlay />
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <motion.div key="loader-container">
+            <SystemLoader message={loadingMessage} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {view !== 'START' && <GlobalHeader playerData={playerData} onViewChange={setView} />}
+      
+      <main className="relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+          >
+            {renderView()}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+}
+
+// --- TRUCO GAME COMPONENT ---
+
+const TrucoGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
   const [playerScore, setPlayerScore] = useState(0);
   const [botScore, setBotScore] = useState(0);
   const [playerHand, setPlayerHand] = useState<any[]>([]);
@@ -6142,8 +6268,8 @@ export default function App() {
   const [handPoints, setHandPoints] = useState(1);
 
   useEffect(() => {
-    if (view === 'GAME_TRUCO' && gameStatus === 'dealing') startNewHand();
-  }, [view, gameStatus]);
+    if (gameStatus === 'dealing') startNewHand();
+  }, [gameStatus]);
 
   const startNewHand = () => {
     const deck = shuffle([...DECK_BASE]);
@@ -6264,7 +6390,6 @@ export default function App() {
       setPlayerScore(newScore);
       setMessage(`¡Misión Cumplida! Sumás ${points} puntos.`);
       
-      // Victory Confetti
       confetti({
         particleCount: 150,
         spread: 70,
@@ -6274,7 +6399,7 @@ export default function App() {
 
       if (newScore >= 15) {
         setGameStatus('gameOver');
-        recordGameResult('truco', newScore);
+        onGameOver(newScore);
       }
       else setTimeout(() => setGameStatus('dealing'), 3500);
     } else {
@@ -6283,315 +6408,257 @@ export default function App() {
       setMessage(`Baja Disponibilidad de Controles. EHS suma ${points} puntos.`);
       if (newScore >= 15) {
         setGameStatus('gameOver');
-        recordGameResult('truco', playerScore);
+        onGameOver(playerScore);
       }
       else setTimeout(() => setGameStatus('dealing'), 3500);
     }
   };
 
-  const handleExitGame = () => {
-    setView('MENU');
-    setPlayerScore(0);
-    setBotScore(0);
-    setGameStatus('dealing');
-  };
-
-  // --- RENDER LOGIC ---
-
   return (
-    <div className="bg-primary-container min-h-screen text-on-surface selection:bg-secondary selection:text-on-primary-fixed">
-      <AnimatePresence mode="wait">
-        {view === 'START' && (
-          <motion.div key="start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <StartScreen onStart={(data) => {
-              setPlayerData(data);
-              setView('MENU');
-            }} />
-          </motion.div>
-        )}
+    <div className="min-h-screen bg-[#050f0a] pt-24 pb-12 px-4 relative overflow-hidden">
+      <ScanlineOverlay />
+      
+      {/* Background HUD Elements */}
+      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border-[1px] border-secondary/10 rounded-full scale-150" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] border-[1px] border-secondary/5 rounded-full" />
+      </div>
 
-        {view === 'MENU' && (
-          <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <EnhancedGameMenu 
-              playerData={playerData}
-              onSelectGame={(id) => {
-                if (id === 'truco') setView('GAME_TRUCO');
-                if (id === 'oca') setView('GAME_OCA');
-                if (id === 'carrera') setView('GAME_CARRERA');
-                if (id === 'match') setView('GAME_MATCH');
-                if (id === 'escape') setView('GAME_ESCAPE');
-                if (id === 'memoria') setView('GAME_MEMORY_V3');
-                if (id === 'wordle') setView('GAME_WORDLE');
-                if (id === 'jenga') setView('GAME_JENGA');
-                if (id === 'decisiones') setView('GAME_DECISIONES');
-                if (id === 'cazador') setView('GAME_CAZADOR');
-                if (id === 'pare') setView('GAME_PARE');
-                if (id === 'protocolo') setView('GAME_PROTOCOLO');
-              }} 
-            />
-          </motion.div>
-        )}
-
-        {view === 'GAME_PROTOCOLO' && (
-          <motion.div key="protocolo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ProtocoloEmergenciaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('protocolo', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_JENGA' && (
-          <motion.div key="jenga" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <JengaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('jenga', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_DECISIONES' && (
-          <motion.div key="decisiones" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <DecisionesSegurasGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('decisiones', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_CAZADOR' && (
-          <motion.div key="cazador" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <CazadorDeRiesgosGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('cazador', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_PARE' && (
-          <motion.div key="pare" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <PareYPidaAyudaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('pare', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_WORDLE' && (
-          <motion.div key="wordle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <WordleGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('wordle', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_MEMORY_V3' && (
-          <motion.div key="memory_v3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <IndustrialMemoryGameV3 onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('memoria', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_MEMORY_V2' && (
-          <motion.div key="memory_v2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <IndustrialMemoryGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('memoria', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_MEMORY' && (
-          <motion.div key="memory" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <MemoryGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('memoria', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_ESCAPE' && (
-          <motion.div key="escape" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <EscapeRoomGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('escape', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_MATCH' && (
-          <motion.div key="match" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <MatchGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('match', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_CARRERA' && (
-          <motion.div key="carrera" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <CarreraGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('carrera', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_OCA' && (
-          <motion.div key="oca" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <OcaGame onExit={() => setView('MENU')} onGameOver={(score) => recordGameResult('oca', score)} />
-          </motion.div>
-        )}
-
-        {view === 'GAME_TRUCO' && (
-          <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="obsidian-table min-h-screen">
-            {gameStatus === 'gameOver' ? (
-              <div className="flex flex-col items-center justify-center h-screen p-8 text-center">
-                <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass-panel-heavy p-12 rounded-2xl border-2 border-secondary shadow-2xl max-w-2xl">
-                  <p className="font-headline text-secondary text-xs tracking-[0.4em] uppercase mb-3 animate-hud-pulse">Resultado de la Operación</p>
-                  <h1 className="text-5xl font-black mb-4 tracking-tighter text-white uppercase">
-                    {playerScore >= 15 ? "¡SEGURIDAD TOTAL!" : "BAJA DISPONIBILIDAD"}
-                  </h1>
-                  <p className="text-lg mb-8 text-on-surface-variant">
-                    {playerScore >= 15 ? "Has mitigado todos los riesgos de la jornada." : "EHS ha demostrado mayor control preventivo en esta sesión."}
-                  </p>
-                  <div className="flex gap-8 justify-center mb-12">
-                    <div className="text-center bg-black/40 border-l-4 border-primary p-6 shadow-inner">
-                      <p className="text-[10px] uppercase tracking-widest text-primary font-bold">Tu Score</p>
-                      <p className="text-5xl font-black text-primary drop-shadow-[0_0_8px_rgba(189,202,192,0.5)]">{playerScore}</p>
-                    </div>
-                    <div className="text-center bg-black/40 border-r-4 border-error p-6 shadow-inner">
-                      <p className="text-[10px] uppercase tracking-widest text-error font-bold">EHS</p>
-                      <p className="text-5xl font-black text-error drop-shadow-[0_0_8px_rgba(255,180,171,0.5)]">{botScore}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setView('MENU')} className="btn-industrial-orange text-white font-headline font-black text-xl px-12 py-5 rounded-sm flex items-center gap-4 tracking-tighter mx-auto">
-                    <span className="material-symbols-outlined text-2xl">dashboard</span>
-                    VOLVER AL PANEL
-                  </button>
-                </motion.div>
+      <div className="max-w-7xl mx-auto relative z-10 flex flex-col gap-6">
+        
+        {/* TOP HUD: SCORES & STATUS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          {/* EHS SCORE */}
+          <div className="glass-panel-heavy p-4 rounded-xl border border-red-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20">
+                <Cpu size={20} />
               </div>
-            ) : (
-              <div className="flex flex-col h-screen relative overflow-hidden">
-                {/* TopAppBar */}
-                <header className="fixed top-0 w-full z-50 bg-[#0a1f14]/90 backdrop-blur-md border-b-2 border-primary/20">
-                  <div className="flex justify-between items-center px-4 md:px-6 h-12 md:h-16 w-full">
-                    <div className="flex items-center gap-2 md:gap-3">
-                      <span className="material-symbols-outlined text-secondary symbol-3d text-base md:text-lg">precision_manufacturing</span>
-                      <h1 className="font-headline tracking-tighter uppercase text-sm md:text-lg font-bold text-secondary">TRUCO SEGURO</h1>
-                    </div>
-                    <div className="hidden md:flex gap-8 items-center">
-                      {/* Navigation links removed as per user request */}
-                    </div>
-                    <div className="flex items-center gap-2 md:gap-4">
-                      <button 
-                        onClick={() => {
-                          recordGameResult('truco', playerScore);
-                          setView('MENU');
-                        }}
-                        className="px-3 md:px-6 py-1 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all"
-                      >
-                        Finalizar
-                      </button>
-                      <button onClick={handleExitGame} className="glass-panel-heavy p-1.5 md:p-2 rounded-lg text-white/50 hover:text-white transition-colors">
-                        <LogOut size={16} />
-                      </button>
-                      <div className="text-right hidden sm:block">
-                        <p className="text-[10px] font-headline uppercase text-primary tracking-widest leading-none">Operador</p>
-                        <p className="font-headline font-bold text-sm text-secondary tracking-tighter">OP-7742</p>
-                      </div>
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-secondary overflow-hidden bg-surface-container-highest shadow-[0_0_10px_rgba(255,182,144,0.3)]">
-                        <img alt="Operator Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIsohKgIZM3xUKL7GlEjr_x_I6f19G5XaV7fEnXfspKlqKS-KaWr9eqnCRabiqVSx98qoChSS2a3Y6Rc_ZmHqH-Hat4T1NW-qiT3hOnw8EJ9skFON9B9zw5ahb99qADyiUs0rgtEyE1Eov6EGw14czxQXsB9mXnYKmB121qZt-o0W6b-n5iDr69gAPKm99q03wrdn53KLPkbfcAIAN8ZsaNRWRf2RWDFwYMB2bsPFaxNXGOKLkT19PIAidc7TfB9ssqPgWUOuDiI91"/>
-                      </div>
-                    </div>
-                  </div>
-                </header>
-
-                <main className="pt-14 md:pt-20 pb-24 md:pb-32 px-4 md:px-6 h-screen flex flex-col items-center justify-between relative">
-                  {/* Scoreboard Header */}
-                  <div className="w-full max-w-4xl flex justify-between items-stretch gap-2 md:gap-4 mb-2">
-                    <div className={`flex-1 bg-black/40 border-l-4 p-2 md:p-4 shadow-inner relative group overflow-hidden transition-all duration-500 ${gameStatus === 'playerTurn' ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-primary/30 opacity-60'}`}>
-                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <div className="flex justify-between items-start">
-                        <p className="font-headline text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-primary mb-1 animate-hud-pulse">Tú</p>
-                        {gameStatus === 'playerTurn' && <span className="text-[7px] md:text-[8px] bg-primary text-on-primary px-1.5 md:px-2 py-0.5 rounded-full font-bold animate-pulse">TU TURNO</span>}
-                      </div>
-                      <div className="flex items-baseline gap-1 md:gap-2">
-                        <span className="text-2xl md:text-4xl font-headline font-black text-primary drop-shadow-[0_0_8px_rgba(189,202,192,0.5)]">{playerScore}</span>
-                        <span className="text-[8px] md:text-xs font-label text-primary/60">PTS</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center px-1">
-                      <div className="w-[1px] h-8 md:h-12 bg-gradient-to-b from-transparent via-outline-variant to-transparent"></div>
-                    </div>
-                    <div className={`flex-1 bg-black/40 border-r-4 p-2 md:p-4 shadow-inner text-right relative group overflow-hidden transition-all duration-500 ${gameStatus === 'botTurn' ? 'border-error ring-2 ring-error/20 scale-[1.02]' : 'border-error/30 opacity-60'}`}>
-                      <div className="absolute inset-0 bg-error/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <div className="flex justify-between items-start flex-row-reverse">
-                        <p className="font-headline text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-error mb-1 animate-hud-pulse">EHS</p>
-                        {gameStatus === 'botTurn' && <span className="text-[7px] md:text-[8px] bg-error text-on-error px-1.5 md:px-2 py-0.5 rounded-full font-bold animate-pulse">TURNO EHS</span>}
-                      </div>
-                      <div className="flex items-baseline justify-end gap-1 md:gap-2">
-                        <span className="text-[8px] md:text-xs font-label text-error/60">PTS</span>
-                        <span className="text-2xl md:text-4xl font-headline font-black text-error drop-shadow-[0_0_8px_rgba(255,180,171,0.5)]">{botScore}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Central Messaging Panel - Moved to top to avoid covering cards */}
-                  <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 w-full max-w-lg px-4 pointer-events-none">
-                    <AnimatePresence mode="wait">
-                      <motion.div 
-                        key={message}
-                        initial={{ y: -20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -20, opacity: 0 }}
-                        className="glass-panel-heavy rounded-xl py-6 px-8 text-center border-t border-white/20 shadow-2xl"
-                      >
-                        <p className="font-headline text-secondary text-[10px] tracking-[0.4em] uppercase mb-2 animate-hud-pulse">Estado del Proceso</p>
-                        <h2 className="font-headline text-xl font-black text-white tracking-tighter leading-tight drop-shadow-md uppercase">
-                          {message}
-                        </h2>
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Play Area (The Stage) */}
-                  <div className="flex-1 w-full flex items-center justify-center gap-8 sm:gap-16">
-                    <div className="flex flex-col items-center gap-4">
-                      <p className="font-headline text-[10px] uppercase tracking-widest text-primary/40">Tu Jugada</p>
-                      <IndustrialCard card={table.player} styleClass="transform -rotate-3 card-glow" />
-                    </div>
-                    <div className="flex flex-col items-center gap-4">
-                      <p className="font-headline text-[10px] uppercase tracking-widest text-error/40">Respuesta EHS</p>
-                      <IndustrialCard card={table.bot} styleClass="transform rotate-6" />
-                    </div>
-                  </div>
-
-                  {/* Controls & Hand Area */}
-                  <div className="w-full flex flex-col items-center gap-4 md:gap-8 relative z-30">
-                    {/* Buttons */}
-                    <div className="flex gap-4 md:gap-8">
-                      <button 
-                        onClick={handleIntervenir} 
-                        disabled={gameStatus !== 'playerTurn' || trucoActive}
-                        className="btn-industrial-orange text-white font-headline font-black text-sm md:text-xl px-6 md:px-12 py-3 md:py-5 rounded-sm flex items-center gap-2 md:gap-4 tracking-tighter disabled:opacity-30 disabled:grayscale"
-                      >
-                        <span className="material-symbols-outlined text-lg md:text-2xl">bolt</span>
-                        INTERVENIR
-                      </button>
-                      <button 
-                        onClick={handleDetener} 
-                        disabled={gameStatus !== 'playerTurn'}
-                        className="btn-industrial-red text-white font-headline font-black text-sm md:text-xl px-6 md:px-12 py-3 md:py-5 rounded-sm flex items-center gap-2 md:gap-4 tracking-tighter disabled:opacity-30 disabled:grayscale"
-                      >
-                        <span className="material-symbols-outlined text-lg md:text-2xl">block</span>
-                        DETENER
-                      </button>
-                    </div>
-
-                    {/* Player Hand */}
-                    <div className="relative w-full max-w-2xl h-24 md:h-36 flex justify-center items-end">
-                      <div className="absolute bottom-[-20%] w-full h-24 md:h-32 bg-secondary/10 blur-[60px] md:blur-[80px] rounded-full"></div>
-                      <div className="flex -space-x-6 md:-space-x-10 translate-y-6 md:translate-y-12">
-                        {playerHand.map((card, i) => (
-                          <IndustrialCard 
-                            key={card.id} 
-                            card={card} 
-                            onClick={() => playCard(i)} 
-                            styleClass={`hover:-translate-y-12 transition-all ${gameStatus === 'playerTurn' ? 'cursor-pointer' : 'opacity-50 grayscale cursor-not-allowed'}`} 
-                            style={{ 
-                              transform: `rotate(${(i - 1) * 12}deg) translateY(${-Math.abs(i - 1) * 4}px)`,
-                              zIndex: i === 1 ? 20 : 10
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </main>
-
-                {/* Decoration HUD Elements removed as per user request */}
-                <div className="fixed bottom-24 right-8 hidden lg:block pointer-events-none">
-                  <div className="flex flex-col items-end gap-2 opacity-30">
-                    <div className="w-32 h-[1px] bg-primary"></div>
-                    <p className="font-mono text-[8px] text-primary">CONSOLE_VER: 4.2.0_INDUSTRIAL</p>
-                  </div>
+              <div>
+                <p className="text-[8px] font-mono text-white/40 uppercase tracking-widest">SISTEMA EHS</p>
+                <div className="h-1.5 w-24 bg-white/5 rounded-full mt-1 overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-red-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(botScore / 15) * 100}%` }}
+                  />
                 </div>
               </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+            <p className="text-4xl font-black text-red-500 tracking-tighter leading-none">{botScore}</p>
+          </div>
+
+          {/* CENTRAL MESSAGE BAR */}
+          <div className="glass-panel-heavy p-4 rounded-xl border border-secondary/30 bg-secondary/5 flex flex-col items-center justify-center min-h-[80px] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
+            
+            {/* TURN INDICATOR */}
+            <div className="flex items-center gap-6 mb-2">
+              <div className={`flex items-center gap-2 transition-opacity duration-300 ${gameStatus === 'botTurn' || gameStatus === 'resolution' ? 'opacity-100' : 'opacity-20'}`}>
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                <span className="text-[7px] font-black text-red-500 uppercase tracking-widest">EHS_THINKING</span>
+              </div>
+              <div className="w-12 h-px bg-white/10" />
+              <div className={`flex items-center gap-2 transition-opacity duration-300 ${gameStatus === 'playerTurn' ? 'opacity-100' : 'opacity-20'}`}>
+                <span className="text-[7px] font-black text-emerald-500 uppercase tracking-widest">USER_ACTION_REQUIRED</span>
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.p 
+                key={message}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="text-white font-headline text-sm md:text-base font-bold text-center uppercase tracking-tight"
+              >
+                {message}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+
+          {/* PLAYER SCORE */}
+          <div className="glass-panel-heavy p-4 rounded-xl border border-emerald-500/20 flex items-center justify-between">
+            <p className="text-4xl font-black text-emerald-500 tracking-tighter leading-none">{playerScore}</p>
+            <div className="flex items-center gap-3 text-right">
+              <div>
+                <p className="text-[8px] font-mono text-white/40 uppercase tracking-widest">OPERADOR</p>
+                <div className="h-1.5 w-24 bg-white/5 rounded-full mt-1 overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-emerald-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(playerScore / 15) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                <User size={20} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN GAME AREA */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          {/* LEFT: ROUND INDICATORS & LOG */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="glass-panel-heavy p-5 rounded-2xl border border-white/10">
+              <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Layers size={12} /> Rondas de la Mano
+              </h4>
+              <div className="flex justify-center gap-4 py-2">
+                {[0, 1, 2].map(i => (
+                  <div 
+                    key={i} 
+                    className={`w-4 h-4 rounded-full border-2 transition-all duration-500 ${
+                      rounds[i] === 'player' ? 'bg-emerald-500 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]' :
+                      rounds[i] === 'bot' ? 'bg-red-500 border-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                      rounds[i] === 'tie' ? 'bg-yellow-500 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.5)]' :
+                      'bg-white/5 border-white/10'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <div className="flex justify-between text-[9px] font-mono text-white/40 uppercase">
+                  <span>Valor de la Mano:</span>
+                  <span className="text-secondary font-bold">{handPoints} PTS</span>
+                </div>
+                {trucoActive && (
+                  <div className="mt-1 flex justify-between text-[9px] font-mono text-red-400 uppercase animate-pulse">
+                    <span>Estado:</span>
+                    <span className="font-bold">INTERVENCIÓN ACTIVA</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="glass-panel-heavy p-5 rounded-2xl border border-white/10 hidden lg:block">
+              <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Historial de Turnos</h4>
+              <div className="h-40 overflow-y-auto space-y-2 font-mono text-[9px] pr-2 scrollbar-hide opacity-60">
+                <p className="text-white/80 border-l-2 border-secondary/30 pl-2 py-1">{message}</p>
+                <p className="text-white/40 border-l-2 border-transparent pl-2 py-1 italic">Esperando respuesta del sistema...</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CENTER: TABLE */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="glass-panel-heavy aspect-[16/9] md:aspect-video rounded-[2.5rem] border-2 border-white/5 relative flex items-center justify-center overflow-hidden bg-gradient-to-b from-white/[0.02] to-transparent">
+               {/* Table HUD Overlay */}
+               <div className="absolute inset-0 opacity-20 pointer-events-none">
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] border border-secondary/20 rounded-full" />
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[1px] bg-secondary/10" />
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-full w-[1px] bg-secondary/10" />
+                 <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[8px] font-mono text-secondary/40 tracking-[1em] uppercase">Sector_de_Operaciones</div>
+               </div>
+
+               <div className="flex gap-6 md:gap-12 relative z-10 items-center">
+                 <div className="flex flex-col items-center gap-2">
+                   <p className="text-[8px] font-black text-red-500/60 uppercase tracking-widest mb-2">Respuesta EHS</p>
+                   <AnimatePresence mode="wait">
+                     {table.bot ? (
+                       <motion.div 
+                        key={table.bot.id}
+                        initial={{ opacity: 0, y: -100, rotate: -15, scale: 0.8 }}
+                        animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
+                        className="w-28 md:w-40 shadow-2xl"
+                       >
+                         <IndustrialCard card={table.bot} />
+                       </motion.div>
+                     ) : (
+                       <div className="w-28 md:w-40 h-40 md:h-56 border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center">
+                         <Cpu className="text-white/5 animate-pulse" size={32} />
+                       </div>
+                     )}
+                   </AnimatePresence>
+                 </div>
+
+                 <div className="w-px h-32 bg-gradient-to-b from-transparent via-white/10 to-transparent hidden md:block" />
+
+                 <div className="flex flex-col items-center gap-2">
+                   <p className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mb-2">Acción Operador</p>
+                   <AnimatePresence mode="wait">
+                     {table.player ? (
+                       <motion.div 
+                        key={table.player.id}
+                        initial={{ opacity: 0, y: 100, rotate: 15, scale: 0.8 }}
+                        animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
+                        className="w-28 md:w-40 shadow-2xl"
+                       >
+                         <IndustrialCard card={table.player} />
+                       </motion.div>
+                     ) : (
+                       <div className="w-28 md:w-40 h-40 md:h-56 border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center">
+                         <User className="text-white/5 animate-pulse" size={32} />
+                       </div>
+                     )}
+                   </AnimatePresence>
+                 </div>
+               </div>
+            </div>
+
+            {/* PLAYER HAND & CONTROLS */}
+            <div className="flex flex-col md:flex-row gap-6 items-center md:items-end bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+              <div className="flex-1 flex gap-3 md:gap-4 justify-center md:justify-start">
+                {playerHand.map((card, idx) => (
+                  <motion.div 
+                    key={card.id}
+                    whileHover={{ y: -15, scale: 1.05, rotate: idx === 0 ? -5 : idx === 2 ? 5 : 0 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`w-20 md:w-32 cursor-pointer transition-opacity duration-300 ${gameStatus !== 'playerTurn' ? 'opacity-50 grayscale' : 'opacity-100'}`}
+                    onClick={() => playCard(idx)}
+                  >
+                    <IndustrialCard card={card} />
+                  </motion.div>
+                ))}
+                {playerHand.length === 0 && (
+                  <div className="h-32 flex items-center text-white/20 font-mono text-[10px] uppercase tracking-widest">
+                    Mano finalizada
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 w-full md:w-auto">
+                <button 
+                  onClick={handleIntervenir}
+                  disabled={gameStatus !== 'playerTurn' || trucoActive}
+                  className="flex-1 md:flex-none px-8 py-4 bg-secondary text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,182,144,0.3)] disabled:opacity-30 disabled:grayscale disabled:scale-100"
+                >
+                  Intervenir
+                </button>
+                <button 
+                  onClick={handleDetener}
+                  disabled={gameStatus !== 'playerTurn'}
+                  className="flex-1 md:flex-none px-8 py-4 bg-white/5 text-white/60 font-black uppercase rounded-xl hover:bg-white/10 hover:text-white transition-all disabled:opacity-30 disabled:scale-100"
+                >
+                  Irse al Mazo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* EXIT BUTTON */}
+      <button 
+        onClick={onExit}
+        className="fixed top-6 right-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/20 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 border border-transparent transition-all z-50 group"
+      >
+        <X size={20} className="group-hover:rotate-90 transition-transform" />
+      </button>
+
+      {/* FOOTER HUD */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-8 opacity-20 pointer-events-none">
+        <p className="text-[7px] font-mono text-white uppercase tracking-[0.5em]">PREVEN_EHS_TRUCO_MODULE_ACTIVE</p>
+        <div className="w-32 h-px bg-white/20" />
+        <p className="text-[7px] font-mono text-white uppercase tracking-[0.5em]">TERMINAL_ID: {Math.random().toString(36).substring(7).toUpperCase()}</p>
+      </div>
     </div>
   );
-}
+};
 
 // --- DATA CON COLORES PASTELES PARA V3 ---
 const MEMORY_PAIRS_PASTEL = [
