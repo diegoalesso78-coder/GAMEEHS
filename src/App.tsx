@@ -15,16 +15,110 @@ import {
   BarChart3, Calendar, Delete, CornerDownLeft, ShieldCheck, Lightbulb,
   Printer, Monitor, Layers, Filter, Download, ChevronLeft, XCircle, ArrowLeft,
   Paperclip, ShieldAlert, Phone, DoorClosed, MapPin, Thermometer, Wind, Heart,
-  Cpu
+  Cpu, Activity, Check, Circle, History, Image, ListChecks, Menu, PlayCircle, RefreshCw, Settings2, Target,
+  Quote, Sparkles, MessageCircle
 } from 'lucide-react';
 
 // --- CONSTANTS & TYPES ---
-type View = 'START' | 'MENU' | 'GAME_TRUCO' | 'GAME_OCA' | 'GAME_CARRERA' | 'GAME_MATCH' | 'GAME_ESCAPE' | 'GAME_MEMORY' | 'GAME_MEMORY_V2' | 'GAME_MEMORY_V3' | 'GAME_WORDLE' | 'GAME_JENGA' | 'GAME_DECISIONES' | 'GAME_CAZADOR' | 'GAME_PARE' | 'GAME_PROTOCOLO';
+type View = 'START' | 'MENU' | 'GAME_TRUCO' | 'GAME_OCA' | 'GAME_CARRERA' | 'GAME_MATCH' | 'GAME_ESCAPE' | 'GAME_MEMORY' | 'GAME_MEMORY_V2' | 'GAME_MEMORY_V3' | 'GAME_WORDLE' | 'GAME_JENGA' | 'GAME_DECISIONES' | 'GAME_CAZADOR' | 'GAME_PARE' | 'GAME_PROTOCOLO' | 'GAME_ESPEJO' | 'GAME_RESOLVE';
 
 // URLs de configuración (Pega aquí tus links CSV cuando los tengas)
 const SITIOS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1753638195&single=true&output=csv'; 
 const AREAS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=980501442&single=true&output=csv'; 
 const CONFIG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2102419216&single=true&output=csv'; 
+const CAZADOR_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=123456789&single=true&output=csv'; // Placeholder GID
+
+const CAZADOR_FALLBACK = [
+  {
+    id: 'f1',
+    escena: 'Planta Industrial',
+    imagen_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200',
+    peligros: [
+      { id: 1, peligro: 'Derrame de Aceite', x: 400, y: 300, radio: 40, medida: 'Limpieza inmediata y señalización', norma: 'ISO 45001' },
+      { id: 2, peligro: 'Cable Expuesto', x: 200, y: 150, radio: 30, medida: 'Aislamiento y reparación', norma: 'NFPA 70E' }
+    ]
+  }
+];
+
+const RESOLVE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1792989854&single=true&output=csv';
+
+const RESOLVE_FALLBACK = [
+  {
+    id: '1',
+    titulo: 'Guarda de prensa retirada',
+    descripcion: 'Al iniciar el turno, notás que la guarda de seguridad de la prensa hidráulica no está colocada.',
+    imagen_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    pasos_correctos: ['Falta de protección mecánica', 'Riesgo de atrapamiento por partes móviles', 'Bloquear equipo y reportar a mantenimiento', 'Verificar que la guarda esté instalada y el sensor activo'],
+    opciones: [
+      ['Falta de protección mecánica', 'Desorden en el área', 'Falta de iluminación'],
+      ['Riesgo de atrapamiento por partes móviles', 'Riesgo de caída al mismo nivel', 'Riesgo eléctrico'],
+      ['Bloquear equipo y reportar a mantenimiento', 'Seguir operando con cuidado', 'Buscar la guarda por la planta'],
+      ['Verificar que la guarda esté instalada y el sensor activo', 'Limpiar la máquina', 'Firmar el registro de producción']
+    ],
+    aprendizaje: 'Nunca operes sin protecciones. El bloqueo es vital.',
+    dificultad: 'Media'
+  },
+  {
+    id: '2',
+    titulo: 'Derrame de aceite en pasillo',
+    descripcion: 'Se detecta una mancha de aceite importante en el pasillo principal de logística.',
+    imagen_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    pasos_correctos: ['Condición insegura: Superficie resbaladiza', 'Riesgo de caída al mismo nivel', 'Delimitar zona y usar kit antiderrames', 'Confirmar que el piso esté seco y limpio'],
+    opciones: [
+      ['Condición insegura: Superficie resbaladiza', 'Falta de EPP', 'Ruido excesivo'],
+      ['Riesgo de caída al mismo nivel', 'Riesgo de incendio', 'Riesgo de corte'],
+      ['Delimitar zona y usar kit antiderrames', 'Poner un cartón encima', 'Esperar al turno de limpieza'],
+      ['Confirmar que el piso esté seco y limpio', 'Seguir caminando', 'Avisar por radio']
+    ],
+    aprendizaje: 'La limpieza y el orden (5S) previenen la mayoría de los accidentes.',
+    dificultad: 'Baja'
+  },
+  {
+    id: '3',
+    titulo: 'Uso incorrecto de autoelevador',
+    descripcion: 'Un compañero circula con la carga elevada obstruyendo su visión.',
+    imagen_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    pasos_correctos: ['Acto inseguro: Conducción temeraria', 'Riesgo de choque o vuelco', 'Intervenir con respeto y pedir bajar la carga', 'Asegurar que circule con carga baja y visión clara'],
+    opciones: [
+      ['Acto inseguro: Conducción temeraria', 'Falla mecánica', 'Carga mal estibada'],
+      ['Riesgo de choque o vuelco', 'Riesgo de explosión', 'Riesgo ergonómico'],
+      ['Intervenir con respeto y pedir bajar la carga', 'Sacar una foto de lejos', 'Ignorar si no es de mi área'],
+      ['Asegurar que circule con carga baja y visión clara', 'Verificar el nivel de combustible', 'Controlar la velocidad']
+    ],
+    aprendizaje: 'La seguridad es responsabilidad de todos. Intervenir a tiempo salva vidas.',
+    dificultad: 'Alta'
+  },
+  {
+    id: '4',
+    titulo: 'Ruido extraño en ventilador',
+    descripcion: 'Un extractor de aire en el techo emite un chirrido metálico constante.',
+    imagen_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    pasos_correctos: ['Falla potencial de rodamiento', 'Riesgo de rotura y proyección de partes', 'Informar a mantenimiento preventivo', 'Validar que el ruido desapareció tras la reparación'],
+    opciones: [
+      ['Falla potencial de rodamiento', 'Falta de limpieza', 'Uso de aire comprimido'],
+      ['Riesgo de rotura y proyección de partes', 'Riesgo de sordera', 'Riesgo de incendio'],
+      ['Informar a mantenimiento preventivo', 'Usar protectores auditivos', 'Subir el volumen de la música'],
+      ['Validar que el ruido desapareció tras la reparación', 'Encender el equipo', 'Limpiar el área']
+    ],
+    aprendizaje: 'Escuchar a las máquinas es parte de la prevención.',
+    dificultad: 'Media'
+  },
+  {
+    id: '5',
+    titulo: 'EPP dañado',
+    descripcion: 'Tus guantes de protección contra cortes tienen un agujero en la palma.',
+    imagen_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    pasos_correctos: ['EPP en mal estado', 'Riesgo de herida cortante', 'Solicitar cambio inmediato de guantes', 'Verificar que el nuevo EPP sea el adecuado'],
+    opciones: [
+      ['EPP en mal estado', 'Falta de capacitación', 'Herramienta defectuosa'],
+      ['Riesgo de herida cortante', 'Riesgo de dermatitis', 'Riesgo de golpe'],
+      ['Solicitar cambio inmediato de guantes', 'Poner cinta sobre el agujero', 'Usarlos al revés'],
+      ['Verificar que el nuevo EPP sea el adecuado', 'Guardar los viejos', 'Seguir trabajando']
+    ],
+    aprendizaje: 'Tu EPP es tu última barrera de defensa. Mantenelo impecable.',
+    dificultad: 'Baja'
+  }
+];
 
 let MISSION_OF_THE_WEEK = 'memoria'; 
 
@@ -38,6 +132,8 @@ const GAMES = [
   { id: 'wordle', title: 'PREVENWORDLE', subtitle: 'MISIÓN_07', icon: 'spellcheck', active: true, color: 'bg-emerald-600', level: 'INTERMEDIO', stats: '12 VIC / 4 RGO', img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800' },
   { id: 'jenga', title: 'JENGA SEGURO', subtitle: 'MISIÓN_08', icon: 'view_in_ar', active: true, color: 'bg-amber-600', level: 'EXPERTO', stats: '5 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&q=80&w=800' },
   { id: 'decisiones', title: 'DECISIONES SEGURAS', subtitle: 'MISIÓN_09', icon: 'fact_check', active: true, color: 'bg-indigo-600', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
+  { id: 'espejo', title: 'EL ESPEJO DEL TURNO', subtitle: 'MISIÓN_10', icon: 'visibility', active: true, color: 'bg-purple-600', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
+  { id: 'resolve', title: 'RESOLVÉ EN EL PUESTO', subtitle: 'MISIÓN_13', icon: 'build', active: true, color: 'bg-blue-600', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800' },
 ];
 
 // --- JERARQUÍA DE PODER TRUCO ---
@@ -2771,534 +2867,7 @@ const EscapeRoomStageRenderer = ({ stage, data, onComplete }: { stage: number, d
 
 // --- COMPONENTES DE MEMORY PREVENTIVO ---
 
-const MEMORY_PAIRS = [
-  {
-    riesgo: { emoji: '🔥', titulo: 'FUEGO', desc: 'Riesgo de incendio por materiales inflamables.', color: '#d71920', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🧯', titulo: 'EXTINTOR', desc: 'Uso de extintor ABC para sofocar el fuego.', color: '#d71920', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🔊', titulo: 'RUIDO', desc: 'Niveles de ruido superiores a 85dB.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🎧', titulo: 'PROTECCIÓN', desc: 'Uso obligatorio de protectores auditivos.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🧱', titulo: 'CAÍDA OBJETOS', desc: 'Riesgo de desprendimiento de materiales.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '👷', titulo: 'CASCO', desc: 'Uso de casco de seguridad industrial.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '✨', titulo: 'CHISPAS', desc: 'Proyección de partículas en procesos de corte.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🥽', titulo: 'ANTIPARRAS', desc: 'Protección ocular contra impactos.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '⚡', titulo: 'ELECTRICIDAD', desc: 'Riesgo de choque eléctrico en tableros.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🧤', titulo: 'GUANTES DIEL.', desc: 'Uso de guantes dieléctricos certificados.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🧪', titulo: 'QUÍMICOS', desc: 'Manipulación de sustancias corrosivas.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🧤', titulo: 'GUANTES QUIM.', desc: 'Uso de guantes de nitrilo o químicos.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🌫️', titulo: 'VAPORES', desc: 'Presencia de gases o vapores tóxicos.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '😷', titulo: 'RESPIRADOR', desc: 'Uso de máscara con filtros específicos.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🪜', titulo: 'ALTURA', desc: 'Trabajos por encima de 1.8 metros.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🧗', titulo: 'ARNÉS', desc: 'Uso de arnés y línea de vida.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🌡️', titulo: 'CALOR', desc: 'Superficies con altas temperaturas.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🧤', titulo: 'GUANTES TÉRM.', desc: 'Uso de guantes para protección térmica.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '⚙️', titulo: 'ATRAPAMIENTO', desc: 'Partes móviles de maquinaria sin resguardo.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🛑', titulo: 'PARADA EMERG.', desc: 'Accionamiento de parada de emergencia.', color: '#d71920', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '💦', titulo: 'DERRAME', desc: 'Fuga de líquidos peligrosos en el piso.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '📦', titulo: 'KIT DERRAMES', desc: 'Uso de absorbentes y barreras.', color: '#008a44', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '📦', titulo: 'CARGA PESADA', desc: 'Levantamiento manual de cargas excesivas.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🛒', titulo: 'CARRO', desc: 'Uso de medios mecánicos de transporte.', color: '#008a44', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🌑', titulo: 'OSCURIDAD', desc: 'Falta de iluminación en vías de escape.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🔦', titulo: 'LINTERNA', desc: 'Uso de iluminación de emergencia.', color: '#008a44', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '⛸️', titulo: 'PISO RESBAL.', desc: 'Pisos mojados o con presencia de aceite.', color: '#ffcc00', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🥾', titulo: 'CALZADO', desc: 'Uso de calzado con suela antideslizante.', color: '#0054a6', tipo: 'MITIGACIÓN' }
-  },
-  {
-    riesgo: { emoji: '🚑', titulo: 'ACCIDENTE', desc: 'Lesión que requiere atención inmediata.', color: '#d71920', tipo: 'RIESGO' },
-    mitigacion: { emoji: '🩹', titulo: 'BOTIQUÍN', desc: 'Uso de elementos de primeros auxilios.', color: '#008a44', tipo: 'MITIGACIÓN' }
-  }
-];
 
-const MemoryGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
-  const [view, setView] = useState<'INTRO' | 'GAME' | 'END'>('INTRO');
-  const [players, setPlayers] = useState([{ id: 1, name: 'Operador 1', score: 0, turns: 0 }]);
-  const [difficulty, setDifficulty] = useState(6);
-  const [cards, setCards] = useState<any[]>([]);
-  const [flipped, setFlipped] = useState<number[]>([]);
-  const [matched, setMatched] = useState<number[]>([]);
-  const [currentPlayerIdx, setCurrentPlayerIdx] = useState(0);
-  const [gameData, setGameData] = useState<any[]>([]);
-  const [showMatchInfo, setShowMatchInfo] = useState<any>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const startGame = () => {
-    const selectedPairs = shuffle([...MEMORY_PAIRS]).slice(0, difficulty);
-    const gameCards: any[] = [];
-    
-    selectedPairs.forEach((pair, idx) => {
-      // Card A: Riesgo
-      gameCards.push({
-        id: `R-${idx}`,
-        pairId: idx,
-        type: 'RIESGO',
-        content: pair.riesgo.emoji,
-        titulo: pair.riesgo.titulo,
-        desc: pair.riesgo.desc,
-        bgColor: pair.riesgo.color,
-        data: pair
-      });
-      // Card B: Mitigación
-      gameCards.push({
-        id: `M-${idx}`,
-        pairId: idx,
-        type: 'MITIGACIÓN',
-        content: pair.mitigacion.emoji,
-        titulo: pair.mitigacion.titulo,
-        desc: pair.mitigacion.desc,
-        bgColor: pair.mitigacion.color,
-        data: pair
-      });
-    });
-
-    setCards(shuffle(gameCards));
-    setFlipped([]);
-    setMatched([]);
-    setCurrentPlayerIdx(0);
-    setPlayers(players.map(p => ({ ...p, score: 0, turns: 0 })));
-    setView('GAME');
-  };
-
-  const handleCardClick = (cardIdx: number) => {
-    if (isProcessing || flipped.includes(cardIdx) || matched.includes(cardIdx)) return;
-
-    const newFlipped = [...flipped, cardIdx];
-    setFlipped(newFlipped);
-
-    if (newFlipped.length === 2) {
-      setIsProcessing(true);
-      const [firstIdx, secondIdx] = newFlipped;
-      const firstCard = cards[firstIdx];
-      const secondCard = cards[secondIdx];
-
-      const newPlayers = [...players];
-      newPlayers[currentPlayerIdx].turns += 1;
-      setPlayers(newPlayers);
-
-      if (firstCard.pairId === secondCard.pairId) {
-        setTimeout(() => {
-          setMatched([...matched, firstIdx, secondIdx]);
-          setFlipped([]);
-          setShowMatchInfo(firstCard.data);
-          
-          const updatedPlayers = [...players];
-          updatedPlayers[currentPlayerIdx].score += 1;
-          setPlayers(updatedPlayers);
-
-          setTimeout(() => {
-            setShowMatchInfo(null);
-            setIsProcessing(false);
-            if (matched.length + 2 === cards.length) {
-              onGameOver(updatedPlayers[0].score);
-              setView('END');
-            }
-          }, 1500);
-        }, 500);
-      } else {
-        setTimeout(() => {
-          setFlipped([]);
-          setCurrentPlayerIdx((currentPlayerIdx + 1) % players.length);
-          setIsProcessing(false);
-        }, 1500);
-      }
-    }
-  };
-
-  const addPlayer = () => {
-    if (players.length < 4) {
-      setPlayers([...players, { id: players.length + 1, name: `Operador ${players.length + 1}`, score: 0, turns: 0 }]);
-    }
-  };
-
-  const removePlayer = () => {
-    if (players.length > 1) {
-      setPlayers(players.slice(0, -1));
-    }
-  };
-
-  const updatePlayerName = (id: number, name: string) => {
-    setPlayers(players.map(p => p.id === id ? { ...p, name } : p));
-  };
-
-  if (view === 'INTRO') return (
-    <MemoryIntro 
-      players={players} 
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      addPlayer={addPlayer}
-      removePlayer={removePlayer}
-      updatePlayerName={updatePlayerName}
-      onStart={startGame} 
-      onExit={onExit}
-    />
-  );
-
-  if (view === 'END') return (
-    <MemoryEnd 
-      players={players} 
-      onRestart={() => setView('INTRO')} 
-    />
-  );
-
-  return (
-    <div className="flex-1 obsidian-table flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full h-screen overflow-hidden relative">
-      <div className="absolute inset-0 bg-hex-grid opacity-20 pointer-events-none"></div>
-      
-      {/* HUD Superior */}
-      <div className="glass-panel-heavy p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center gap-6 border-b-2 border-tertiary/30 relative z-10">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => {
-              onGameOver(players[0].score);
-              onExit();
-            }}
-            className="px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all ml-4"
-          >
-            Finalizar Partida
-          </button>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-widest text-tertiary">Entrenamiento ISO 45001</span>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Memory Preventivo</h2>
-          </div>
-          <div className="h-10 w-px bg-white/10 hidden md:block"></div>
-          <div className="flex gap-4">
-            {players.map((p, idx) => (
-              <div 
-                key={p.id} 
-                className={`px-4 py-2 rounded-xl border-2 transition-all ${
-                  currentPlayerIdx === idx 
-                  ? 'bg-tertiary/20 border-tertiary scale-105 shadow-[0_0_15px_rgba(247,190,29,0.2)]' 
-                  : 'bg-white/5 border-white/10 opacity-50'
-                }`}
-              >
-                <p className="text-[8px] font-black uppercase text-tertiary">{p.name}</p>
-                <p className="text-xl font-black text-white">{p.score} <span className="text-[10px] opacity-50">PARES</span></p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-[10px] font-black uppercase tracking-widest text-tertiary">Progreso</p>
-            <p className="text-2xl font-mono font-bold text-white">
-              {matched.length / 2} / {difficulty}
-            </p>
-          </div>
-          <button 
-            onClick={() => setView('INTRO')}
-            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
-          >
-            <RotateCcw className="w-5 h-5 text-white group-hover:rotate-180 transition-transform duration-500" />
-          </button>
-        </div>
-      </div>
-
-      {/* Grilla de Cartas */}
-      <div className={`flex-1 grid gap-4 ${
-        difficulty === 6 ? 'grid-cols-3 md:grid-cols-4' : 
-        difficulty === 12 ? 'grid-cols-4 md:grid-cols-6' : 
-        'grid-cols-5 md:grid-cols-8'
-      } content-center overflow-y-auto pr-2 custom-scrollbar relative z-10`}>
-        {cards.map((card, idx) => (
-          <MemoryCard 
-            key={card.id}
-            card={card}
-            isFlipped={flipped.includes(idx)}
-            isMatched={matched.includes(idx)}
-            onClick={() => handleCardClick(idx)}
-          />
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {showMatchInfo && (
-          <motion.div 
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50"
-          >
-            <div className="glass-panel-heavy p-6 rounded-3xl border-2 border-emerald-500 shadow-2xl flex items-center gap-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
-              <div className="flex gap-2 flex-shrink-0">
-                <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl shadow-lg border-2 border-white/10"
-                  style={{ backgroundColor: showMatchInfo.riesgo.color }}
-                >
-                  {showMatchInfo.riesgo.emoji}
-                </div>
-                <div className="flex items-center justify-center">
-                  <ArrowRight className="w-4 h-4 text-emerald-500" />
-                </div>
-                <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl shadow-lg border-2 border-white/10"
-                  style={{ backgroundColor: showMatchInfo.mitigacion.color }}
-                >
-                  {showMatchInfo.mitigacion.emoji}
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">¡MITIGACIÓN CORRECTA!</span>
-                </div>
-                <h4 className="text-xl font-black text-white uppercase tracking-tighter mb-1 leading-none">
-                  {showMatchInfo.riesgo.titulo} + {showMatchInfo.mitigacion.titulo}
-                </h4>
-                <p className="text-xs text-on-surface-variant leading-relaxed italic opacity-80">
-                  {showMatchInfo.mitigacion.desc}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const MemoryCard = ({ card, isFlipped, isMatched, onClick }: any) => {
-  return (
-    <div 
-      className="relative aspect-[3/4] cursor-pointer group"
-      onClick={onClick}
-      style={{ perspective: '1000px' }}
-    >
-      <motion.div 
-        className="w-full h-full relative"
-        initial={false}
-        animate={{ rotateY: isFlipped || isMatched ? 180 : 0 }}
-        transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        {/* Front (Hidden) */}
-        <div 
-          className="absolute inset-0 obsidian-table border-2 border-white/10 rounded-xl flex items-center justify-center overflow-hidden"
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          <div className="absolute inset-0 bg-hex-grid opacity-20"></div>
-          <Shield className="w-12 h-12 text-white/5 group-hover:text-tertiary/20 transition-colors" />
-          <div className="absolute inset-2 border border-white/5 rounded-lg"></div>
-          <div className="absolute bottom-2 right-2 opacity-20">
-            <span className="text-[8px] font-black text-white uppercase tracking-widest">STITCH_OS</span>
-          </div>
-        </div>
-
-        {/* Back (Revealed) */}
-        <div 
-          className={`absolute inset-0 rounded-xl flex flex-col items-center justify-center p-2 border-4 ${
-            isMatched ? 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'border-white/20'
-          }`}
-          style={{ 
-            backfaceVisibility: 'hidden', 
-            rotateY: '180deg',
-            backgroundColor: card.bgColor 
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-30 pointer-events-none"></div>
-          
-          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
-            <span className="text-4xl md:text-5xl mb-2 drop-shadow-2xl filter saturate-150">{card.content}</span>
-            
-            <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 w-full text-center">
-              <p className="text-[10px] font-black uppercase tracking-tighter text-white leading-none mb-1">
-                {card.titulo}
-              </p>
-              <p className="text-[7px] font-bold uppercase tracking-widest text-white/60 leading-none">
-                {card.type}
-              </p>
-            </div>
-          </div>
-
-          {/* Industrial Corner Accents */}
-          <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-white/40"></div>
-          <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-white/40"></div>
-          <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-white/40"></div>
-          <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-white/40"></div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-const MemoryIntro = ({ players, difficulty, setDifficulty, addPlayer, removePlayer, updatePlayerName, onStart, onExit }: any) => (
-  <div className="h-screen obsidian-table flex items-center justify-center p-6 relative overflow-hidden">
-    <div className="absolute inset-0 bg-hex-grid opacity-20 pointer-events-none"></div>
-    <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-transparent to-charcoal pointer-events-none"></div>
-    
-    <motion.div 
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl w-full glass-panel-heavy p-12 rounded-[3rem] border border-tertiary/20 shadow-2xl relative z-10"
-    >
-      <button onClick={onExit} className="text-[10px] font-headline uppercase tracking-widest opacity-50 hover:opacity-100 mb-6 flex items-center gap-2 transition-opacity">
-        <ArrowRight className="rotate-180" size={12} /> Volver al Menú
-      </button>
-      <div className="text-center mb-12">
-        <div className="mb-6 inline-block p-4 bg-tertiary/10 rounded-full border-2 border-tertiary/30">
-          <LayoutGrid className="w-12 h-12 text-tertiary" />
-        </div>
-        <h1 className="text-6xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
-          MEMORY <span className="text-tertiary">PREVENTIVO</span>
-        </h1>
-        <p className="text-tertiary font-black uppercase tracking-[0.4em] text-xs">Señalética ISO 45001 / 7010</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-tertiary" /> Operadores
-            </h3>
-            <div className="flex gap-2">
-              <button onClick={removePlayer} className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 text-white font-black transition-colors">-</button>
-              <button onClick={addPlayer} className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 text-white font-black transition-colors">+</button>
-            </div>
-          </div>
-          <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-            {players.map((p: any) => (
-              <div key={p.id} className="flex gap-4 items-center bg-black/20 p-4 rounded-xl border border-white/5 group hover:border-tertiary/30 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-tertiary/20 flex items-center justify-center text-tertiary font-black text-xs">
-                  {p.id}
-                </div>
-                <input 
-                  type="text" 
-                  value={p.name}
-                  onChange={(e) => updatePlayerName(p.id, e.target.value)}
-                  className="bg-transparent border-b border-white/10 focus:border-tertiary outline-none text-white font-bold flex-1 transition-colors"
-                  placeholder="Nombre del Operador"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-            <Shield className="w-4 h-4 text-tertiary" /> Nivel de Entrenamiento
-          </h3>
-          <div className="grid grid-cols-1 gap-4">
-            {[
-              { val: 6, label: 'FÁCIL', desc: '6 Pares - Entrenamiento Básico' },
-              { val: 12, label: 'MEDIO', desc: '12 Pares - Operador Calificado' },
-              { val: 20, label: 'DIFÍCIL', desc: '20 Pares - Experto en Seguridad' }
-            ].map(d => (
-              <button 
-                key={d.val}
-                onClick={() => setDifficulty(d.val)}
-                className={`p-6 rounded-2xl border-2 text-left transition-all relative overflow-hidden group ${
-                  difficulty === d.val 
-                  ? 'bg-tertiary/20 border-tertiary shadow-[0_0_15px_rgba(247,190,29,0.1)]' 
-                  : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'
-                }`}
-              >
-                <div className="relative z-10">
-                  <p className="text-xs font-black text-tertiary mb-1 uppercase tracking-widest">{d.label}</p>
-                  <p className="text-white font-bold tracking-tight">{d.desc}</p>
-                </div>
-                {difficulty === d.val && (
-                  <motion.div 
-                    layoutId="difficulty-active"
-                    className="absolute inset-0 bg-tertiary/5"
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <button 
-        onClick={onStart}
-        className="mt-12 w-full py-6 btn-industrial-orange text-charcoal font-headline font-black rounded-sm block-shadow hover:translate-y-[-4px] active:translate-y-0 transition-all uppercase tracking-widest text-2xl"
-      >
-        Iniciar Jornada
-      </button>
-    </motion.div>
-  </div>
-);
-
-const MemoryEnd = ({ players, onRestart }: any) => {
-  const sorted = [...players].sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.turns - b.turns;
-  });
-
-  return (
-    <div className="h-screen obsidian-table flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-hex-grid opacity-20 pointer-events-none"></div>
-      
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-2xl w-full glass-panel-heavy p-12 rounded-[3rem] border border-emerald-500/20 text-center shadow-2xl relative z-10"
-      >
-        <div className="mb-8 inline-block p-4 bg-emerald-500/10 rounded-full border-2 border-emerald-500/30">
-          <Trophy className="w-12 h-12 text-emerald-500" />
-        </div>
-        <h2 className="text-5xl font-black text-white mb-2 tracking-tighter uppercase leading-none">¡ENTRENAMIENTO COMPLETADO!</h2>
-        <p className="text-on-surface-variant font-black uppercase tracking-[0.4em] text-[10px] mb-12 opacity-60">Resultados de la Auditoría</p>
-        
-        <div className="space-y-4 mb-12 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-          {sorted.map((p, idx) => (
-            <div 
-              key={p.id} 
-              className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all ${
-                idx === 0 
-                ? 'bg-tertiary/20 border-tertiary scale-105 shadow-[0_0_20px_rgba(247,190,29,0.2)]' 
-                : 'bg-white/5 border-white/10'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className={`text-2xl font-black ${idx === 0 ? 'text-tertiary' : 'text-white/40'}`}>{idx + 1}°</span>
-                <div className="text-left">
-                  <p className="text-white font-black uppercase tracking-tight">{p.name}</p>
-                  <p className="text-[10px] text-on-surface-variant uppercase opacity-60">{p.turns} turnos realizados</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-black text-white leading-none">{p.score}</p>
-                <p className="text-[10px] text-tertiary font-black uppercase tracking-widest">PARES</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button 
-          onClick={onRestart}
-          className="w-full py-6 btn-industrial-orange text-charcoal font-headline font-black rounded-sm block-shadow hover:translate-y-[-4px] transition-all uppercase tracking-widest text-xl"
-        >
-          Nueva Partida
-        </button>
-      </motion.div>
-    </div>
-  );
-};
 
 // --- COMPONENTES DE PREVENWORDLE ---
 
@@ -4844,29 +4413,7 @@ const DecisionesSegurasGame = ({ onExit, onGameOver }: { onExit: () => void, onG
 
 // --- CAZADOR DE RIESGOS GAME ---
 
-const CAZADOR_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1792989854&single=true&output=csv';
 
-const CAZADOR_FALLBACK = [
-  {
-    escena: "Taller de Mantenimiento",
-    imagen_url: "",
-    peligros: [
-      { id: 1, peligro: "Cable Pelado", x: 150, y: 400, radio: 40, medida: "Aislar y reemplazar cableado", norma: "IRAM 2059" },
-      { id: 2, peligro: "Caja bloqueando salida", x: 700, y: 350, radio: 50, medida: "Liberar vías de escape", norma: "Ley 19587 Cap. 18" },
-      { id: 3, peligro: "Extintor vencido", x: 50, y: 200, radio: 35, medida: "Recargar y verificar manómetro", norma: "NFPA 10" },
-      { id: 4, peligro: "Operario sin casco", x: 400, y: 150, radio: 45, medida: "Uso obligatorio de EPP", norma: "Res. SRT 299/11" }
-    ]
-  },
-  {
-    escena: "Almacén Central",
-    imagen_url: "",
-    peligros: [
-      { id: 5, peligro: "Derrame sin señalizar", x: 300, y: 450, radio: 60, medida: "Limpiar y colocar cartelería", norma: "SGA / GHS" },
-      { id: 6, peligro: "Estantes sobrecargados", x: 600, y: 100, radio: 55, medida: "Respetar carga máxima", norma: "EN 15635" },
-      { id: 7, peligro: "Iluminación deficiente", x: 400, y: 50, radio: 40, medida: "Aumentar luxes en puesto", norma: "ISO 8995" }
-    ]
-  }
-];
 
 const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
   const [scenes, setScenes] = useState<any[]>([]);
@@ -4889,34 +4436,58 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
         
         const grouped: { [key: string]: any } = {};
         rows.forEach(row => {
+          // Robust CSV split handling quotes
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-          const escena = cols[1] || "";
-          const imgUrl = getDirectImageUrl(cols[2]); // C=escena_url
+          
+          // Mapping based on user screenshot:
+          // A: ESCENA (0)
+          // B: IMAGEN_URL (1)
+          // C: PELIGRO (2)
+          // D: X (3)
+          // E: Y (4)
+          // F: RADIO (5)
+          // G: MEDIDA (6)
+          
+          const escena = cols[0] || "Escena Desconocida";
+          const imgUrl = getDirectImageUrl(cols[1]); 
           if (!imgUrl) return;
           
           if (!grouped[imgUrl]) {
             grouped[imgUrl] = {
-              id: cols[0], // A=escena_id
-              escena: escena.length > 50 ? "Inspección de Planta" : escena,
+              id: Math.random().toString(36).substring(7),
+              escena: escena,
               imagen_url: imgUrl,
               peligros: []
             };
           }
           
-          grouped[imgUrl].peligros.push({
-            id: Math.random(),
-            peligro: cols[5], // F=riesgo_nombre
-            x: parseFloat(cols[3]), // D=riesgo_x
-            y: parseFloat(cols[4]), // E=riesgo_y
-            radio: 30, // Default
-            medida: cols[6], // G=riesgo_detalle
-            norma: cols[7] // H=riesgo_norma
-          });
+          const x = parseFloat(cols[3]);
+          const y = parseFloat(cols[4]);
+          const radio = parseFloat(cols[5]) || 35;
+          
+          if (!isNaN(x) && !isNaN(y)) {
+            grouped[imgUrl].peligros.push({
+              id: Math.random(),
+              peligro: cols[2] || "Riesgo No Identificado",
+              x: x,
+              y: y,
+              radio: radio,
+              medida: cols[6] || "Sin medida preventiva registrada",
+              norma: cols[7] || "Normativa General EHS"
+            });
+          }
         });
         
         const parsed = Object.values(grouped);
-        if (parsed.length > 0) setScenes(parsed);
-        else setScenes(CAZADOR_FALLBACK);
+        if (parsed.length > 0) {
+          setScenes(parsed);
+          // If only one scene, skip selection
+          if (parsed.length === 1) {
+            handleStartScene(parsed[0]);
+          }
+        } else {
+          setScenes(CAZADOR_FALLBACK);
+        }
       } catch (error) {
         console.error("Error fetching scenes:", error);
         setScenes(CAZADOR_FALLBACK);
@@ -4945,6 +4516,20 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
     setGameState('PLAY');
   };
 
+  const [scannerPos, setScannerPos] = useState({ x: 0, y: 0 });
+  const [showScanner, setShowScanner] = useState(false);
+  const [activePeligro, setActivePeligro] = useState<any>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (gameState !== 'PLAY' || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setScannerPos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    setShowScanner(true);
+  };
+
   const handleClick = (e: React.MouseEvent) => {
     if (gameState !== 'PLAY' || !selectedScene || !containerRef.current) return;
     
@@ -4968,6 +4553,9 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
         setScore(s => s + 100);
         found = true;
         foundPeligro = p;
+        setActivePeligro(p);
+        // Auto-clear active danger after 4s
+        setTimeout(() => setActivePeligro(null), 4000);
       }
     });
 
@@ -4975,7 +4563,7 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
     setTimeout(() => setLastClick(null), 800);
 
     if (found && foundIds.length + 1 === selectedScene.peligros.length) {
-      handleGameOver();
+      setTimeout(handleGameOver, 2000);
     }
   };
 
@@ -5149,32 +4737,64 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
             className="flex-1 flex flex-col lg:flex-row overflow-hidden"
           >
             {/* Main Inspection Area */}
-            <div className="flex-1 p-8 flex items-center justify-center bg-black relative">
+            <div className="flex-1 p-4 md:p-8 flex flex-col items-center justify-center bg-[#050505] relative overflow-hidden">
+              <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                 <div className="flex items-center gap-2 bg-rose-500/20 px-3 py-1 rounded-full border border-rose-500/30">
+                    <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
+                    <p className="text-[8px] font-black text-rose-500 uppercase tracking-widest">SISTEMA_SCAN_ACTIVO</p>
+                 </div>
+                 <p className="text-[10px] font-mono text-white/40 uppercase tracking-tighter">
+                    REF_COORD: {containerRef.current ? Math.round((scannerPos.x / containerRef.current.getBoundingClientRect().width) * 800) : 0}, 
+                    {containerRef.current ? Math.round((scannerPos.y / containerRef.current.getBoundingClientRect().height) * 500) : 0}
+                 </p>
+              </div>
+
               <div 
                 ref={containerRef}
                 onClick={handleClick}
-                className="relative max-w-[800px] w-full aspect-[800/500] bg-slate-900 rounded-2xl overflow-hidden cursor-crosshair shadow-2xl border border-white/10"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={() => setShowScanner(false)}
+                className="relative max-w-[1000px] w-full aspect-[800/500] bg-slate-900 rounded-3xl overflow-hidden cursor-none shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 group"
               >
                 {selectedScene.imagen_url ? (
                   <img 
                     src={selectedScene.imagen_url} 
-                    className="w-full h-full object-contain pointer-events-none" 
+                    className="w-full h-full object-contain pointer-events-none z-0" 
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  renderFallbackSVG(selectedScene.escena)
+                  <div className="z-0 w-full h-full">
+                    {renderFallbackSVG(selectedScene.escena)}
+                  </div>
+                )}
+
+                {/* Scanner Overlay */}
+                {showScanner && (
+                  <motion.div 
+                    className="absolute pointer-events-none z-[100]"
+                    animate={{ x: scannerPos.x - 60, y: scannerPos.y - 60 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+                  >
+                    <div className="w-32 h-32 border-2 border-rose-500 rounded-full relative flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.3)]">
+                      <div className="absolute inset-0 bg-rose-500/5 rounded-full animate-pulse"></div>
+                      <div className="w-full h-[1px] bg-rose-500/30 absolute top-1/2"></div>
+                      <div className="h-full w-[1px] bg-rose-500/30 absolute left-1/2"></div>
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[7px] font-black text-rose-500 uppercase tracking-widest whitespace-nowrap bg-black/80 px-2 py-0.5 rounded">MODO_ESCÁNER_EHS</div>
+                    </div>
+                  </motion.div>
                 )}
 
                 {/* Found Markers */}
                 {selectedScene.peligros.map((p: any) => foundIds.includes(p.id) && (
                   <motion.div
                     key={p.id}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute w-12 h-12 border-4 border-emerald-500 rounded-full flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute w-10 h-10 border-2 border-emerald-500 rounded-full flex items-center justify-center -translate-x-1/2 -translate-y-1/2 z-20"
                     style={{ left: `${(p.x / 800) * 100}%`, top: `${(p.y / 500) * 100}%` }}
                   >
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                    <div className="w-full h-full bg-emerald-500/20 rounded-full animate-pulse"></div>
+                    <CheckCircle2 size={16} className="text-emerald-500" />
                   </motion.div>
                 ))}
 
@@ -5182,60 +4802,108 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
                 {lastClick && (
                   <motion.div
                     initial={{ scale: 0, opacity: 1 }}
-                    animate={{ scale: 1.5, opacity: 0 }}
-                    className={`absolute w-8 h-8 rounded-full border-2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center ${lastClick.success ? 'border-emerald-500' : 'border-rose-500'}`}
+                    animate={{ scale: 2, opacity: 0 }}
+                    className={`absolute w-12 h-12 rounded-full border-2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-40 ${lastClick.success ? 'border-emerald-500' : 'border-rose-500'}`}
                     style={{ left: lastClick.x, top: lastClick.y }}
                   >
-                    {lastClick.success ? <CheckCircle2 size={16} className="text-emerald-500" /> : <X size={16} className="text-rose-500" />}
+                    {lastClick.success ? <ShieldCheck size={24} className="text-emerald-500" /> : <AlertTriangle size={24} className="text-rose-500" />}
                   </motion.div>
                 )}
 
-                {/* HUD Overlay */}
-                <div className="absolute inset-0 pointer-events-none border-[20px] border-white/5"></div>
-                <div className="absolute top-4 left-4 flex gap-2">
-                   <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
-                   <p className="text-[8px] font-black text-rose-500 uppercase tracking-widest">Rec: Live Feed</p>
-                </div>
+                {/* HUD Overlay Elements */}
+                <div className="absolute inset-0 pointer-events-none border-[1px] border-white/10 m-4 rounded-2xl"></div>
+                <div className="absolute bottom-4 right-4 text-[7px] font-mono text-white/20 uppercase tracking-[0.5em]">EHS_SCANNER_v4.2.0</div>
               </div>
+
+              {/* Active Danger Detail Popup */}
+              <AnimatePresence>
+                {activePeligro && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 w-full max-w-md"
+                  >
+                    <div className="glass-panel-heavy p-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                          <ShieldCheck size={24} />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Riesgo Neutralizado</h4>
+                          <h3 className="text-lg font-black uppercase tracking-tight leading-tight">{activePeligro.peligro}</h3>
+                          <div className="h-px w-full bg-white/10 my-2"></div>
+                          <p className="text-[10px] font-bold text-white/80 leading-relaxed">
+                            <span className="text-emerald-500/60 uppercase mr-1">Medida:</span> {activePeligro.medida}
+                          </p>
+                          <p className="text-[9px] font-mono text-white/40 mt-2 italic">Ref: {activePeligro.norma}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Sidebar HUD */}
-            <div className="w-full lg:w-[400px] bg-white/5 border-l border-white/10 p-8 overflow-y-auto space-y-8">
-              <div className="space-y-4">
-                <h3 className="text-xs font-black text-white/40 uppercase tracking-widest flex items-center gap-2">
-                  <ClipboardList size={14} /> Hallazgos Detectados
-                </h3>
-                <div className="space-y-4">
-                  {foundIds.length === 0 && (
-                    <div className="p-6 border-2 border-dashed border-white/10 rounded-2xl text-center">
-                      <p className="text-xs text-white/20 font-bold uppercase tracking-widest">Escaneando escena...</p>
+            {/* Sidebar: Risk Inventory */}
+            <div className="w-full lg:w-80 bg-black/60 backdrop-blur-xl border-l border-white/5 p-6 flex flex-col gap-6 overflow-y-auto">
+              <div className="space-y-1">
+                <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em]">Inventario de Riesgos</h3>
+                <p className="text-white/40 text-[9px] font-mono uppercase">Detectar {selectedScene.peligros.length} condiciones críticas</p>
+              </div>
+
+              <div className="space-y-3">
+                {selectedScene.peligros.map((p: any, idx: number) => (
+                  <div 
+                    key={p.id}
+                    className={`p-3 rounded-xl border transition-all duration-500 ${
+                      foundIds.includes(p.id) 
+                        ? 'bg-emerald-500/10 border-emerald-500/30' 
+                        : 'bg-white/5 border-white/5 opacity-40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${
+                        foundIds.includes(p.id) ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white/40'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <p className={`text-[10px] font-black uppercase tracking-tight truncate ${
+                          foundIds.includes(p.id) ? 'text-white' : 'text-white/20'
+                        }`}>
+                          {foundIds.includes(p.id) ? p.peligro : '????????????'}
+                        </p>
+                        {foundIds.includes(p.id) && (
+                          <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-[8px] font-mono text-emerald-500/60 uppercase mt-1"
+                          >
+                            Identificado
+                          </motion.p>
+                        )}
+                      </div>
+                      {foundIds.includes(p.id) && <CheckCircle2 size={12} className="text-emerald-500" />}
                     </div>
-                  )}
-                  {foundIds.map(id => {
-                    const p = selectedScene.peligros.find((x: any) => x.id === id);
-                    return (
-                      <motion.div 
-                        key={id}
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        className="p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-3"
-                      >
-                        <div className="flex justify-between items-start">
-                          <h4 className="text-sm font-black text-emerald-500 uppercase tracking-tight">{p.peligro}</h4>
-                          <span className="text-[9px] font-black bg-emerald-500 text-black px-2 py-0.5 rounded">OK</span>
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold text-white/80 leading-relaxed">
-                            <span className="text-white/40 uppercase mr-1">Control:</span> {p.medida}
-                          </p>
-                          <p className="text-[9px] font-mono text-emerald-500/60">
-                            Ref: {p.norma}
-                          </p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-auto pt-6 border-t border-white/5">
+                 <div className="bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20">
+                    <p className="text-[8px] font-black text-rose-500 uppercase tracking-widest mb-2">Estado de Auditoría</p>
+                    <div className="flex justify-between items-end">
+                       <p className="text-2xl font-black text-white tabular-nums">{Math.round((foundIds.length / selectedScene.peligros.length) * 100)}%</p>
+                       <p className="text-[10px] font-mono text-white/40 uppercase">Completado</p>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full mt-3 overflow-hidden">
+                       <motion.div 
+                        className="h-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
+                        animate={{ width: `${(foundIds.length / selectedScene.peligros.length) * 100}%` }}
+                       />
+                    </div>
+                 </div>
               </div>
             </div>
           </motion.div>
@@ -5246,62 +4914,66 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
             key="result"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex-1 flex items-center justify-center p-6"
+            className="flex-1 flex items-center justify-center p-8 bg-[#050505]"
           >
-            <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Score Card */}
-              <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-10 relative overflow-hidden">
-                <div className={`absolute top-0 left-0 w-full h-2 ${foundIds.length === selectedScene.peligros.length ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+            <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Report Card */}
+              <div className="glass-panel-heavy p-8 rounded-[2rem] border border-white/10 space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                   <ShieldCheck size={200} />
+                </div>
                 
+                <div className="space-y-2">
+                  <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em]">Informe de Auditoría</h3>
+                  <h2 className="text-4xl font-black uppercase tracking-tight leading-none">Inspección <span className="text-rose-600">Finalizada</span></h2>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p className="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Riesgos Hallados</p>
+                    <p className="text-3xl font-black text-emerald-500">{foundIds.length} / {selectedScene.peligros.length}</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p className="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Puntaje Final</p>
+                    <p className="text-3xl font-black text-rose-500">{score.toLocaleString()}</p>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
-                  <h2 className="text-xs font-black tracking-[0.5em] uppercase text-white/40">Inspección Finalizada</h2>
-                  <h3 className="text-5xl font-black tracking-tighter uppercase leading-none">
-                    {foundIds.length === selectedScene.peligros.length ? 'Planta Segura' : 'Riesgos Pendientes'}
-                  </h3>
+                   <p className="text-[11px] font-mono text-white/60 uppercase leading-relaxed">
+                      La inspección en <span className="text-white font-bold">{selectedScene.escena}</span> ha sido completada exitosamente. Se han identificado las condiciones inseguras y se han registrado las medidas preventivas correspondientes en la base de datos central.
+                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
-                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Puntaje</p>
-                    <p className="text-4xl font-black text-rose-500 tabular-nums">{score.toLocaleString()}</p>
-                  </div>
-                  <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
-                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Hallazgos</p>
-                    <p className="text-4xl font-black text-white tabular-nums">{foundIds.length} / {selectedScene.peligros.length}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   <button 
                     onClick={() => setGameState('SELECT')}
-                    className="w-full py-6 bg-rose-600 text-white font-black rounded-2xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all"
+                    className="w-full py-5 bg-emerald-600 text-black font-black rounded-xl uppercase tracking-widest hover:bg-emerald-500 active:scale-95 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                   >
                     Nueva Inspección
                   </button>
                   <button 
                     onClick={onExit}
-                    className="w-full py-6 bg-white/5 text-white/60 font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                    className="w-full py-5 bg-rose-600 text-white font-black rounded-xl uppercase tracking-widest hover:bg-rose-500 transition-all shadow-[0_0_20px_rgba(244,63,94,0.3)]"
                   >
-                    Volver al Menú
+                    Finalizar y Salir
                   </button>
                 </div>
               </div>
 
-              {/* Ranking Card */}
-              <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 space-y-8">
-                <h3 className="text-xl font-black uppercase tracking-widest text-white/40 border-b border-white/10 pb-4">Top Inspectores</h3>
-                <div className="space-y-4">
-                  {ranking.length > 0 ? ranking.map((r, i) => (
-                    <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                      <div className="flex items-center gap-4">
-                        <span className="text-rose-500 font-black text-lg">#{i+1}</span>
-                        <span className="text-xs font-bold text-white/60 uppercase tracking-widest">{r.date}</span>
-                      </div>
-                      <span className="font-mono font-black text-white">{r.score.toLocaleString()}</span>
-                    </div>
-                  )) : (
-                    <p className="text-center text-white/20 font-bold uppercase tracking-widest py-12">Sin registros previos</p>
-                  )}
+              {/* Recommendation Card */}
+              <div className="space-y-6">
+                <div className="glass-panel-heavy p-10 rounded-[2rem] border border-white/10 bg-rose-500/5 h-full flex flex-col justify-center">
+                   <div className="w-16 h-16 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-500 mb-6">
+                      <ShieldAlert size={32} />
+                   </div>
+                   <h3 className="text-[12px] font-black text-rose-500 uppercase tracking-[0.3em] mb-4">Recomendación Estratégica</h3>
+                   <p className="text-lg font-medium text-white/90 leading-relaxed italic mb-8">
+                      "La seguridad no es un destino, es un viaje continuo. Tu capacidad de observación hoy previene el accidente de mañana."
+                   </p>
+                   <div className="pt-6 border-t border-white/10">
+                      <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">ID_AUDITORÍA: {Math.random().toString(36).substring(2, 10).toUpperCase()}</p>
+                   </div>
                 </div>
               </div>
             </div>
@@ -5310,6 +4982,602 @@ const CazadorDeRiesgosGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
       </AnimatePresence>
     </div>
   );
+};
+
+// --- EL ESPEJO DEL TURNO GAME ---
+
+const ESPEJO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1346735467&single=true&output=csv';
+const ESPEJO_APPS_SCRIPT_URL = 'TU_URL_APPS_SCRIPT';
+
+const ESPEJO_FALLBACK = [
+  { id: '1', situacion: "A veces apuro el último paso porque ya terminó el turno.", categoria: "Conducta", pregunta_debate: "¿Qué riesgos reales corremos al apurarnos al final?", reflexion: "El cansancio del final del turno es el momento de mayor riesgo. Pausar asegura llegar a casa sano." },
+  { id: '2', situacion: "Usé un EPP deteriorado porque no había otro disponible.", categoria: "Autocuidado", pregunta_debate: "¿Por qué a veces aceptamos EPP en mal estado?", reflexion: "Tu seguridad depende de la integridad de tu equipo. Si no es seguro, no se usa." },
+  { id: '3', situacion: "Vi una condición insegura y no la reporté para no demorar.", categoria: "Confianza", pregunta_debate: "¿Qué nos frena a reportar condiciones inseguras?", reflexion: "Reportar hoy evita el accidente de mañana. Tu voz es la mejor herramienta de prevención." },
+  { id: '4', situacion: "Operé una máquina con la guarda abierta por un momento.", categoria: "Conducta", pregunta_debate: "¿Por qué creemos que 'un momento' no es peligroso?", reflexion: "Los accidentes ocurren en fracciones de segundo. Las guardas son barreras de vida." },
+  { id: '5', situacion: "Empecé una tarea sin AST porque ya la conozco de memoria.", categoria: "Conocimiento", pregunta_debate: "¿El exceso de confianza nos hace olvidar pasos críticos?", reflexion: "El AST no es solo un papel, es el momento de pensar antes de actuar." },
+  { id: '6', situacion: "Levanté una carga pesado solo para no molestar a nadie.", categoria: "Autocuidado", pregunta_debate: "¿Por qué nos cuesta pedir ayuda para tareas físicas?", reflexion: "Tu espalda tiene memoria. Pedir ayuda o usar medios mecánicos es de profesionales." },
+  { id: '7', situacion: "Usé una herramienta en mal estado porque era la única.", categoria: "Conducta", pregunta_debate: "¿Qué impacto tiene una herramienta defectuosa en la calidad y seguridad?", reflexion: "Una herramienta improvisada es un accidente anunciado. Exigí lo necesario para trabajar bien." },
+  { id: '8', situacion: "Vine con mucho cansancio sin avisar a nadie cómo me sentía.", categoria: "Autocuidado", pregunta_debate: "¿Cómo afecta el cansancio nuestra percepción del riesgo?", reflexion: "Estar apto es el primer paso de la tarea. Avisar a tiempo permite reasignar tareas críticas." },
+  { id: '9', situacion: "Vi a un compañero en riesgo y no le dije nada por no generar conflicto.", categoria: "Confianza", pregunta_debate: "¿Cómo podemos decir algo sin que se sienta como un ataque?", reflexion: "Cuidar al compañero es la base de la cultura de seguridad. El silencio puede ser fatal." },
+  { id: '10', situacion: "Sé exactamente dónde está el punto de encuentro de mi sector.", categoria: "Conocimiento", pregunta_debate: "¿Podríamos llegar a ciegas en caso de humo o corte de luz?", reflexion: "En una emergencia, el instinto debe estar entrenado. Conocer las rutas salva vidas." },
+  { id: '11', situacion: "Puedo explicar los pasos del CATA sin consultar nada.", categoria: "Conocimiento", pregunta_debate: "¿Qué paso del CATA es el que más solemos olvidar?", reflexion: "El CATA es nuestra brújula. Dominarlo es dominar nuestra propia seguridad." },
+  { id: '12', situacion: "Puedo nombrar dos operaciones críticas de mi sector.", categoria: "Conocimiento", pregunta_debate: "¿Cuáles son los riesgos fatales de esas operaciones?", reflexion: "Identificar el peligro es el 50% de la prevención. No pierdas de vista lo crítico." },
+  { id: '13', situacion: "Sé cómo reportar un incidente en la app Estoy Seguro.", categoria: "Conocimiento", pregunta_debate: "¿Qué nos frena a veces para reportar un incidente?", reflexion: "Reportar es prevenir. Tu reporte de hoy es el accidente que evitamos mañana." },
+];
+
+const ESPEJO_CATEGORY_COLORS: { [key: string]: string } = {
+  "Autocuidado": "bg-emerald-500 shadow-emerald-500/50",
+  "Conducta": "bg-blue-500 shadow-blue-500/50",
+  "Confianza": "bg-purple-500 shadow-purple-500/50",
+  "Conocimiento": "bg-amber-500 shadow-amber-500/50",
+  "Entorno": "bg-rose-500 shadow-rose-500/50"
+};
+
+const EspejoDelTurnoGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
+  const [gameState, setGameState] = useState<'START' | 'IDENTIFICATION' | 'GAME' | 'PROFILE' | 'CONFIRMATION'>('START');
+  const [mode, setMode] = useState<'INDIVIDUAL' | 'FACILITADOR' | null>(null);
+  const [userData, setUserData] = useState({ udn: '', area: '' });
+  const [cards, setCards] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [responses, setResponses] = useState<any[]>([]);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [showDebate, setShowDebate] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const r = await fetch(ESPEJO_SHEETS_URL);
+        const csv = await r.text();
+        const lines = csv.split('\n').filter(l => l.trim() !== '').slice(1);
+        const parsed = lines.map(line => {
+          const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+          if (cols.length < 5) return null;
+          return {
+            id: cols[0],
+            situacion: cols[1],
+            categoria: cols[2],
+            pregunta_debate: cols[3],
+            reflexion: cols[4]
+          };
+        }).filter(c => c !== null);
+        if (parsed.length > 0) setCards(parsed.slice(0, 15));
+        else setCards(ESPEJO_FALLBACK);
+      } catch (e) {
+        setCards(ESPEJO_FALLBACK);
+      }
+    };
+    fetchCards();
+  }, []);
+
+  const handleResponse = (value: string) => {
+    if (mode === 'INDIVIDUAL') {
+      setResponses([...responses, { id: cards[currentIndex].id, categoria: cards[currentIndex].categoria, value }]);
+    }
+    setIsFlipped(true);
+  };
+
+  const nextCard = () => {
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+      setShowDebate(false);
+    } else {
+      if (mode === 'INDIVIDUAL') setGameState('PROFILE');
+      else setGameState('CONFIRMATION');
+    }
+  };
+
+  const getProfile = () => {
+    const rojos = responses.filter(r => r.value === 'siempre').length;
+    if (rojos <= 4) return { label: 'OPERADOR CONSCIENTE', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: <ShieldCheck size={48} className="text-emerald-400" />, desc: 'Tu nivel de conciencia sobre los riesgos es alto. Seguí así y sé ejemplo para tus compañeros.' };
+    if (rojos <= 9) return { label: 'OPERADOR EN ALERTA', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: <AlertTriangle size={48} className="text-amber-400" />, desc: 'Detectamos algunas conductas que podrían ponerte en riesgo. Es momento de reenfocar tu atención.' };
+    return { label: 'OPERADOR EN RIESGO', color: 'text-rose-400', bg: 'bg-rose-500/20', icon: <ShieldAlert size={48} className="text-rose-400" />, desc: 'Tus respuestas indican una alta exposición al riesgo. Detenete un momento y priorizá tu seguridad.' };
+  };
+
+  const saveResults = async () => {
+    setIsSending(true);
+    const profile = getProfile();
+    const data = {
+      timestamp: new Date().toISOString(),
+      udn: userData.udn,
+      area: userData.area,
+      rojos: responses.filter(r => r.value === 'siempre').length,
+      amarillos: responses.filter(r => r.value === 'a veces').length,
+      verdes: responses.filter(r => r.value === 'no').length,
+      perfil: profile.label,
+      respuestas: responses
+    };
+
+    try {
+      await fetch(ESPEJO_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      onGameOver(100);
+      setGameState('CONFIRMATION');
+    } catch (e) {
+      onGameOver(100);
+      setGameState('CONFIRMATION');
+    }
+    setIsSending(false);
+  };
+
+  if (gameState === 'START') {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 md:p-12 bg-[#050505] relative overflow-y-auto min-h-screen font-sans">
+        {/* Scanlines Effect */}
+        <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.03]" style={{ background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 2px, 3px 100%' }} />
+        
+        {/* Background Ambient Glows */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.1, 0.2, 0.1],
+              x: [0, 50, 0],
+              y: [0, -30, 0]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600 rounded-full blur-[150px]" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1.2, 1, 1.2],
+              opacity: [0.1, 0.15, 0.1],
+              x: [0, -40, 0],
+              y: [0, 60, 0]
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+            className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600 rounded-full blur-[150px]" 
+          />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 max-w-5xl w-full text-center space-y-8 md:space-y-16 py-12 md:py-20"
+        >
+          <div className="space-y-4 md:space-y-6">
+            <motion.div 
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 backdrop-blur-md"
+            >
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              SISTEMA DE REFLEXIÓN EHS
+            </motion.div>
+            
+            <h1 className="text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter uppercase leading-[0.85] italic text-white">
+              El Espejo <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)]">del Turno</span>
+            </h1>
+            
+            <p className="text-white/40 font-medium max-w-2xl mx-auto text-base md:text-xl leading-relaxed px-4">
+              Una interfaz de introspección diseñada para calibrar nuestras conductas y asegurar que el compromiso con la vida sea nuestra única prioridad.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-4">
+            <motion.button 
+              whileHover={{ scale: 1.02, y: -5, backgroundColor: 'rgba(255,255,255,0.08)' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { setMode('INDIVIDUAL'); setGameState('IDENTIFICATION'); }} 
+              className="group p-8 md:p-12 bg-white/5 rounded-[2rem] md:rounded-[3rem] border border-white/10 hover:border-blue-500/50 transition-all text-left space-y-6 md:space-y-8 relative overflow-hidden backdrop-blur-xl"
+            >
+              <div className="absolute top-0 right-0 p-6 md:p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                <User size={120} className="md:w-40 md:h-40" />
+              </div>
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-blue-600 flex items-center justify-center shadow-[0_0_40px_rgba(37,99,235,0.4)] group-hover:shadow-blue-600/60 transition-all">
+                <User size={32} className="text-white md:w-10 md:h-10" />
+              </div>
+              <div className="space-y-2 md:space-y-3">
+                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none text-white">Modo Individual</h2>
+                <p className="text-white/40 font-medium text-sm md:text-lg">Autoevaluación confidencial para detectar tus propios puntos ciegos.</p>
+              </div>
+              <div className="flex items-center gap-3 text-blue-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">
+                INICIAR <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform md:w-[18px] md:h-[18px]" />
+              </div>
+            </motion.button>
+
+            <motion.button 
+              whileHover={{ scale: 1.02, y: -5, backgroundColor: 'rgba(255,255,255,0.08)' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { setMode('FACILITADOR'); setGameState('GAME'); }} 
+              className="group p-8 md:p-12 bg-white/5 rounded-[2rem] md:rounded-[3rem] border border-white/10 hover:border-purple-500/50 transition-all text-left space-y-6 md:space-y-8 relative overflow-hidden backdrop-blur-xl"
+            >
+              <div className="absolute top-0 right-0 p-6 md:p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Users size={120} className="md:w-40 md:h-40" />
+              </div>
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-purple-600 flex items-center justify-center shadow-[0_0_40px_rgba(147,51,234,0.4)] group-hover:shadow-purple-600/60 transition-all">
+                <Users size={32} className="text-white md:w-10 md:h-10" />
+              </div>
+              <div className="space-y-2 md:space-y-3">
+                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none text-white">Modo Facilitador</h2>
+                <p className="text-white/40 font-medium text-sm md:text-lg">Dinámica de equipo para proyectar y debatir conductas en conjunto.</p>
+              </div>
+              <div className="flex items-center gap-3 text-purple-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">
+                ABRIR SESIÓN <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform md:w-[18px] md:h-[18px]" />
+              </div>
+            </motion.button>
+          </div>
+
+          <button 
+            onClick={onExit} 
+            className="flex items-center gap-3 mx-auto text-white/20 hover:text-white font-black text-[10px] md:text-xs uppercase tracking-[0.4em] transition-all hover:tracking-[0.5em]"
+          >
+            <ArrowLeft size={16} className="md:w-[18px] md:h-[18px]" /> VOLVER AL CENTRO DE CONTROL
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (gameState === 'IDENTIFICATION') {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 md:p-8 bg-[#050505] relative overflow-y-auto min-h-screen">
+        <ScanlineOverlay />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md bg-white/5 p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-white/10 space-y-6 md:space-y-8 backdrop-blur-xl relative z-10"
+        >
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-white">Identificación</h2>
+            <p className="text-white/40 font-medium text-xs md:text-sm">Completá estos datos para contextualizar tu perfil.</p>
+          </div>
+          
+          <div className="space-y-4 md:space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 ml-2">UDN / Planta</label>
+              <input 
+                type="text" 
+                value={userData.udn} 
+                onChange={e => setUserData({...userData, udn: e.target.value})} 
+                className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-5 text-white focus:border-blue-500 outline-none transition-all font-bold text-sm md:text-base" 
+                placeholder="Ej: Planta Luque" 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 ml-2">Área / Sector</label>
+              <input 
+                type="text" 
+                value={userData.area} 
+                onChange={e => setUserData({...userData, area: e.target.value})} 
+                className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-5 text-white focus:border-blue-500 outline-none transition-all font-bold text-sm md:text-base" 
+                placeholder="Ej: Montaje Final" 
+              />
+            </div>
+          </div>
+
+          <button 
+            disabled={!userData.udn || !userData.area} 
+            onClick={() => setGameState('GAME')} 
+            className="w-full py-4 md:py-5 bg-blue-600 rounded-xl md:rounded-2xl font-black text-white shadow-xl shadow-blue-600/20 disabled:opacity-20 disabled:grayscale transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-xs md:text-sm"
+          >
+            Comenzar Evaluación
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (gameState === 'GAME') {
+    const card = cards[currentIndex];
+    if (!card) return (
+      <div className="flex-1 flex items-center justify-center bg-[#050505]">
+        <RefreshCw className="text-blue-500 animate-spin" size={64} />
+      </div>
+    );
+
+    return (
+      <div className="min-h-screen flex flex-col p-4 md:p-8 bg-[#050505] relative overflow-y-auto pt-24">
+        {/* Scanlines Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.02]" style={{ background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 2px, 3px 100%' }} />
+
+        <div className="max-w-4xl w-full mx-auto flex flex-col space-y-6 md:space-y-10 relative z-10">
+          {/* Progress Header */}
+          <div className="flex flex-col sm:flex-row items-center justify-between bg-white/5 p-4 md:p-6 rounded-3xl border border-white/10 backdrop-blur-md gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em]">MÓDULO DE INTROSPECCIÓN</p>
+              <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">Tarjeta {currentIndex + 1} <span className="text-white/20">/ {cards.length}</span></h3>
+            </div>
+            <div className="flex flex-col items-center sm:items-end gap-2">
+              <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">PROGRESO DEL TURNO</div>
+              <div className="w-48 md:w-64 h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.6)]" 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Card Container */}
+          <div className="relative w-full h-[500px] md:h-[650px]" style={{ perspective: '3000px' }}>
+            <motion.div 
+              className="w-full h-full relative"
+              initial={false}
+              animate={{ rotateY: isFlipped ? 180 : 0 }}
+              transition={{ duration: 1, type: 'spring', stiffness: 80, damping: 15 }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {/* FRONT: Situation */}
+              <div className="absolute inset-0 bg-white/5 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 flex flex-col items-center justify-center text-center space-y-8 md:space-y-12 backdrop-blur-xl overflow-y-auto scrollbar-hide" style={{ backfaceVisibility: 'hidden' }}>
+                {/* Glossy Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+                
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-2xl flex-shrink-0 ${ESPEJO_CATEGORY_COLORS[card.categoria] || 'bg-slate-600'}`}
+                >
+                  {card.categoria}
+                </motion.div>
+                
+                <div className="space-y-4 md:space-y-8 max-w-2xl relative flex-1 flex flex-col justify-center">
+                  <Quote size={40} className="absolute -top-8 -left-8 text-blue-500/20 hidden md:block" />
+                  <h3 className="text-xl md:text-3xl lg:text-4xl font-black leading-[1.1] tracking-tighter uppercase italic text-white drop-shadow-2xl">
+                    "{card.situacion}"
+                  </h3>
+                  <div className="h-1 w-24 bg-gradient-to-r from-transparent via-blue-600 to-transparent mx-auto rounded-full opacity-50 mt-4" />
+                </div>
+
+                <div className="w-full max-w-md grid gap-3 flex-shrink-0">
+                  {[
+                    { val: 'siempre', label: 'Me pasa siempre', color: 'rose', icon: '🔴' },
+                    { val: 'a veces', label: 'Me pasa a veces', color: 'amber', icon: '🟡' },
+                    { val: 'no', label: 'No me pasa', color: 'emerald', icon: '🟢' }
+                  ].map((opt) => (
+                    <motion.button 
+                      key={opt.val}
+                      whileHover={{ scale: 1.02, x: 5, backgroundColor: `rgba(var(--${opt.color}-500), 0.2)` }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleResponse(opt.val)} 
+                      className={`flex items-center gap-4 p-4 md:p-5 bg-${opt.color}-500/10 border border-${opt.color}-500/30 rounded-2xl text-${opt.color}-400 font-black uppercase tracking-[0.2em] text-[10px] md:text-xs hover:bg-${opt.color}-500 hover:text-white transition-all shadow-lg`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg bg-${opt.color}-500/20 flex items-center justify-center text-lg`}>
+                        {opt.icon}
+                      </div>
+                      {opt.label}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* BACK: Reflection (The "Mirror" Side) */}
+              <div className="absolute inset-0 bg-blue-950/40 border-2 border-blue-500/30 shadow-[0_0_60px_rgba(37,99,235,0.2)] rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 flex flex-col items-center justify-center text-center space-y-6 md:space-y-10 backdrop-blur-[40px] overflow-y-auto scrollbar-hide" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                {/* Mirror Reflection Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-black/40 pointer-events-none opacity-50" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] pointer-events-none" />
+                
+                {/* Silhouette Reflection (Subtle) */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-full opacity-[0.03] pointer-events-none flex items-end justify-center">
+                  <User size={400} className="text-white" />
+                </div>
+
+                <div className="relative z-10 space-y-6 md:space-y-10 max-w-2xl flex-1 flex flex-col justify-center">
+                  <motion.div 
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(37,99,235,0.5)] border border-white/20 flex-shrink-0"
+                  >
+                    <Sparkles size={32} className="text-white" />
+                  </motion.div>
+                  
+                  <div className="space-y-4 md:space-y-6">
+                    <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.5em] drop-shadow-glow">REFLEXIÓN DEL ESPEJO</h4>
+                    <p className="text-lg md:text-2xl lg:text-3xl font-black leading-tight tracking-tighter uppercase italic text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+                      {card.reflexion}
+                    </p>
+                  </div>
+                  
+                  {mode === 'FACILITADOR' && (
+                    <div className="pt-6 md:pt-10 border-t border-white/10 w-full flex-shrink-0">
+                      {!showDebate ? (
+                        <motion.button 
+                          whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(147,51,234,0.4)' }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setShowDebate(true)} 
+                          className="px-8 md:px-12 py-4 md:py-5 bg-purple-600 rounded-2xl font-black text-[10px] md:text-xs text-white uppercase tracking-[0.3em] shadow-2xl transition-all"
+                        >
+                          ABRIR DEBATE GRUPAL
+                        </motion.button>
+                      ) : (
+                        <motion.div 
+                          initial={{ y: 20, opacity: 0 }} 
+                          animate={{ y: 0, opacity: 1 }} 
+                          className="p-6 md:p-10 bg-purple-600/20 border border-purple-600/30 rounded-[2rem] space-y-4 md:space-y-6 backdrop-blur-md"
+                        >
+                          <div className="flex items-center justify-center gap-3 text-purple-400">
+                            <MessageCircle size={16} />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">PREGUNTA PARA EL EQUIPO</span>
+                          </div>
+                          <p className="text-base md:text-xl font-black text-white leading-tight tracking-tight uppercase italic">
+                            "{card.pregunta_debate}"
+                          </p>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Navigation Footer */}
+          <div className="h-24 md:h-32 flex items-center justify-center">
+            <AnimatePresence>
+              {isFlipped && (
+                <motion.button 
+                  initial={{ opacity: 0, scale: 0.8, y: 30 }} 
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: 30 }}
+                  whileHover={{ scale: 1.05, backgroundColor: '#fff' }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={nextCard} 
+                  className="group flex items-center gap-4 md:gap-6 px-10 md:px-16 py-4 md:py-6 bg-white/90 text-black rounded-2xl md:rounded-[2rem] font-black text-xs md:text-xl uppercase tracking-[0.2em] shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-md transition-all"
+                >
+                  {currentIndex < cards.length - 1 ? 'Siguiente Tarjeta' : 'Ver Resultados Finales'}
+                  <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform md:w-7 md:h-7" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'PROFILE') {
+    const profile = getProfile();
+    const stats = {
+      rojos: responses.filter(r => r.value === 'siempre').length,
+      amarillos: responses.filter(r => r.value === 'a veces').length,
+      verdes: responses.filter(r => r.value === 'no').length
+    };
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[#050505] relative overflow-y-auto pt-24">
+        {/* Scanlines Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.02]" style={{ background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 2px, 3px 100%' }} />
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-3xl bg-white/5 rounded-[2rem] md:rounded-[4rem] border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl relative z-10"
+        >
+          <div className={`p-8 md:p-20 text-center space-y-6 md:space-y-8 ${profile.bg} relative overflow-hidden`}>
+            <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+              <div className="absolute top-[-30%] left-[-30%] w-[80%] h-[80%] bg-current rounded-full blur-[120px]" />
+            </div>
+            
+            <motion.div 
+              initial={{ rotate: -10, scale: 0.8 }}
+              animate={{ rotate: 0, scale: 1 }}
+              className="w-20 h-20 md:w-32 md:h-32 rounded-2xl md:rounded-[2.5rem] bg-white/10 flex items-center justify-center mx-auto backdrop-blur-xl border border-white/20 shadow-2xl relative z-10"
+            >
+              {profile.icon}
+            </motion.div>
+            
+            <div className="space-y-2 md:space-y-3 relative z-10">
+              <h2 className={`text-4xl md:text-7xl font-black uppercase tracking-tighter leading-[0.85] italic ${profile.color} drop-shadow-glow`}>
+                {profile.label}
+              </h2>
+              <p className="text-white/40 font-black uppercase tracking-[0.4em] text-[10px]">DIAGNÓSTICO DE CONDUCTA EHS</p>
+            </div>
+            
+            <p className="text-white/80 font-medium text-base md:text-xl leading-relaxed max-w-lg mx-auto relative z-10">
+              {profile.desc}
+            </p>
+          </div>
+
+          <div className="p-8 md:p-16 space-y-8 md:space-y-12 bg-black/20">
+            <div className="grid grid-cols-1 gap-6 md:gap-10">
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex justify-between items-end">
+                  <div className="space-y-1">
+                    <p className="text-[8px] md:text-[10px] font-black text-emerald-400 uppercase tracking-[0.4em]">CONDUCTAS SEGURAS (BAJO RIESGO)</p>
+                    <p className="text-xl md:text-3xl font-black">{stats.verdes} <span className="text-white/20 text-sm md:text-lg">/ {cards.length}</span></p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl md:text-3xl font-black text-emerald-400">{Math.round((stats.verdes / cards.length) * 100)}%</span>
+                  </div>
+                </div>
+                <div className="h-3 md:h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(stats.verdes / cards.length) * 100}%` }}
+                    transition={{ duration: 1, delay: 0.2 }}
+                    className="h-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)] rounded-full" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex justify-between items-end">
+                  <div className="space-y-1">
+                    <p className="text-[8px] md:text-[10px] font-black text-rose-400 uppercase tracking-[0.4em]">CONDUCTAS EN RIESGO (ALTA EXPOSICIÓN)</p>
+                    <p className="text-xl md:text-3xl font-black">{stats.rojos} <span className="text-white/20 text-sm md:text-lg">/ {cards.length}</span></p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl md:text-3xl font-black text-rose-400">{Math.round((stats.rojos / cards.length) * 100)}%</span>
+                  </div>
+                </div>
+                <div className="h-3 md:h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(stats.rojos / cards.length) * 100}%` }}
+                    transition={{ duration: 1, delay: 0.4 }}
+                    className="h-full bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.4)] rounded-full" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <motion.button 
+              whileHover={{ scale: 1.02, backgroundColor: '#2563eb' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={saveResults} 
+              disabled={isSending} 
+              className="w-full py-5 md:py-7 bg-blue-600 rounded-2xl md:rounded-[2rem] font-black text-lg md:text-2xl text-white shadow-[0_20px_50px_rgba(37,99,235,0.3)] disabled:opacity-20 uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4"
+            >
+              {isSending ? <RefreshCw className="animate-spin" /> : 'FINALIZAR Y GUARDAR'}
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (gameState === 'CONFIRMATION') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[#050505] relative overflow-y-auto text-center">
+        {/* Scanlines Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.02]" style={{ background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 2px, 3px 100%' }} />
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-2xl bg-white/5 rounded-[2rem] md:rounded-[4rem] p-8 md:p-20 space-y-8 md:space-y-10 backdrop-blur-2xl shadow-[0_0_80px_rgba(0,0,0,0.5)] relative z-10"
+        >
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', damping: 12 }}
+            className="w-20 h-20 md:w-32 md:h-32 bg-emerald-500/20 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center mx-auto border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.2)]"
+          >
+            <CheckCircle2 className="w-10 h-10 md:w-16 md:h-16 text-emerald-400" />
+          </motion.div>
+          
+          <div className="space-y-3 md:space-y-4">
+            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic text-white drop-shadow-glow">¡SESIÓN FINALIZADA!</h2>
+            <p className="text-white/40 font-black uppercase tracking-[0.4em] text-[10px]">DATOS SINCRONIZADOS CORRECTAMENTE</p>
+          </div>
+          
+          <p className="text-white/60 text-base md:text-xl font-medium max-w-sm mx-auto leading-relaxed">
+            Gracias por participar en El Espejo del Turno. Tu reflexión honesta es la herramienta más poderosa para prevenir accidentes.
+          </p>
+          
+          <motion.button 
+            whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onExit()} 
+            className="w-full py-5 md:py-7 border border-white/10 rounded-2xl md:rounded-[2rem] font-black text-base md:text-xl text-white uppercase tracking-[0.3em] transition-all hover:border-white/20"
+          >
+            VOLVER AL MENÚ PRINCIPAL
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 // --- PARE Y PIDA AYUDA GAME ---
@@ -6123,6 +6391,403 @@ const ProtocoloEmergenciaGame = ({ onExit, onGameOver }: { onExit: () => void, o
 };
 
 // --- APP COMPONENT ---
+// --- RESOLVÉ EN EL PUESTO GAME COMPONENT ---
+const ResolveEnElPuestoGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
+  const [gameState, setGameState] = useState<'MENU' | 'PLAY' | 'RESULT'>('MENU');
+  const [problems, setProblems] = useState<any[]>([]);
+  const [selectedProblem, setSelectedProblem] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [score, setScore] = useState(0);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('Todos');
+  const [feedback, setFeedback] = useState<{ index: number, type: 'correct' | 'error' } | null>(null);
+
+  const steps = [
+    { id: 'identificar', label: 'Identificar', icon: <Target size={20} />, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+    { id: 'analizar', label: 'Analizar', icon: <Activity size={20} />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { id: 'actuar', label: 'Actuar', icon: <PlayCircle size={20} />, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { id: 'verificar', label: 'Verificar', icon: <CheckCircle2 size={20} />, color: 'text-blue-500', bg: 'bg-blue-500/10' }
+  ];
+
+  useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        const response = await fetch(RESOLVE_SHEETS_URL);
+        const csv = await response.text();
+        const rows = csv.split('\n').filter(row => row.trim() !== '').slice(1);
+        const normalize = (s: string) => 
+          (s || "").trim().toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[—–-]/g, '-')
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        const parsed = rows.map(row => {
+          // Regex robusto para CSV que ignora comas dentro de comillas
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+          if (cols.length < 12) return null;
+          
+          const rawCorrect = [cols[4], cols[5], cols[6], cols[7]].map(p => p?.trim() || "");
+          const rawOpts = [
+            (cols[8] || '').split('|').map(o => o.trim()),
+            (cols[9] || '').split('|').map(o => o.trim()),
+            (cols[10] || '').split('|').map(o => o.trim()),
+            (cols[11] || '').split('|').map(o => o.trim())
+          ];
+
+          // Garantizar integridad: La respuesta correcta DEBE estar en las opciones
+          const finalCorrect = rawCorrect.map((correct, i) => {
+            const opts = rawOpts[i];
+            if (opts.includes(correct)) return correct;
+            const match = opts.find(o => normalize(o) === normalize(correct));
+            return match || opts[0]; // Si no hay match, forzamos la primera opción como correcta para no bloquear
+          });
+
+          return {
+            id: cols[0] || Math.random().toString(),
+            titulo: cols[1] || "Sin título",
+            descripcion: cols[2] || "Sin descripción",
+            imagen_url: cols[3] || "https://images.unsplash.com/photo-1581092160562-40aa08e78837",
+            pasos_correctos: finalCorrect,
+            opciones: rawOpts,
+            aprendizaje: cols[12] || "La seguridad es lo primero.",
+            dificultad: cols[13] || 'Media'
+          };
+        }).filter(p => p !== null);
+        setProblems(parsed.length > 0 ? parsed : RESOLVE_FALLBACK);
+      } catch (error) {
+        console.error('Error fetching Resolve problems:', error);
+        setProblems(RESOLVE_FALLBACK);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProblems();
+  }, []);
+
+  const startGame = (problem: any) => {
+    setSelectedProblem(problem);
+    setCurrentStep(0);
+    setScore(0);
+    setHistory([]);
+    setGameState('PLAY');
+  };
+
+  const handleOptionSelect = (option: string, index: number) => {
+    if (feedback) return; // Prevent multiple clicks during feedback
+
+    const normalize = (s: string) => 
+      (s || "").trim().toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[—–-]/g, '-')
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    const correctText = selectedProblem.pasos_correctos[currentStep];
+    const isCorrect = normalize(option) === normalize(correctText);
+    
+    setFeedback({ index, type: isCorrect ? 'correct' : 'error' });
+
+    if (isCorrect) {
+      const newScore = score + 25;
+      const newHistory = [...history, { step: steps[currentStep].label, option, isCorrect }];
+      setHistory(newHistory);
+      setScore(newScore);
+      
+      setTimeout(() => {
+        setFeedback(null);
+        if (currentStep < 3) {
+          setCurrentStep(prev => prev + 1);
+        } else {
+          setGameState('RESULT');
+          onGameOver(newScore);
+        }
+      }, 1000);
+    } else {
+      setScore(prev => Math.max(0, prev - 5));
+      setTimeout(() => {
+        setFeedback(null);
+      }, 800);
+    }
+  };
+
+  const filteredProblems = problems.filter(p => filter === 'Todos' || p.dificultad === filter);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#0a0a0a]">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        >
+          <RefreshCw className="text-secondary" size={48} />
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#0a0a0a] text-white overflow-hidden font-sans">
+      {/* Header */}
+      <div className="h-20 border-b border-white/10 flex items-center justify-between px-8 bg-black/50 backdrop-blur-md z-20">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <Settings2 size={24} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-black tracking-tighter uppercase leading-none">Resolvé en el Puesto</h1>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1">Control Room Interface v2.0</p>
+          </div>
+        </div>
+        <button 
+          onClick={onExit}
+          className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {gameState === 'MENU' && (
+          <motion.div 
+            key="menu"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex-1 overflow-y-auto p-8"
+          >
+            <div className="max-w-6xl mx-auto space-y-8">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                  <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">Panel de Desafíos</h2>
+                  <p className="text-white/40 font-medium max-w-xl">Seleccioná un problema real detectado en planta y aplicá la metodología de 4 pasos para resolverlo con éxito.</p>
+                </div>
+                <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+                  {['Todos', 'Baja', 'Media', 'Alta'].map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${filter === f ? 'bg-blue-600 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProblems.map((p, idx) => (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => startGame(p)}
+                    className="group relative bg-white/5 rounded-3xl border border-white/10 overflow-hidden cursor-pointer hover:border-blue-500/50 transition-all hover:shadow-2xl hover:shadow-blue-500/10"
+                  >
+                    <div className="aspect-video relative overflow-hidden">
+                      <img 
+                        src={p.imagen_url} 
+                        alt={p.titulo} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60" />
+                      <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${p.dificultad === 'Alta' ? 'text-rose-500' : p.dificultad === 'Media' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                          {p.dificultad}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-6 space-y-3">
+                      <h3 className="text-xl font-black uppercase tracking-tight leading-tight group-hover:text-blue-400 transition-colors">{p.titulo}</h3>
+                      <p className="text-sm text-white/40 line-clamp-2 font-medium">{p.descripcion}</p>
+                      <div className="pt-4 flex items-center justify-between border-t border-white/5">
+                        <div className="flex -space-x-2">
+                          {steps.map((s, i) => (
+                            <div key={i} className={`w-8 h-8 rounded-full border-2 border-[#0a0a0a] ${s.bg} flex items-center justify-center text-[10px] font-bold`}>
+                              {i + 1}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-widest">
+                          Iniciar <ArrowRight size={14} />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'PLAY' && (
+          <motion.div 
+            key="play"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col md:flex-row"
+          >
+            {/* Left Panel: Context */}
+            <div className="w-full md:w-[400px] border-r border-white/10 bg-black/30 flex flex-col">
+              <div className="p-8 space-y-6">
+                <div className="aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                  <img 
+                    src={selectedProblem.imagen_url} 
+                    alt="Contexto" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <div className="inline-block px-3 py-1 rounded-full bg-blue-600/20 border border-blue-600/30 text-[10px] font-black text-blue-400 uppercase tracking-widest">
+                    Problema Detectado
+                  </div>
+                  <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">{selectedProblem.titulo}</h2>
+                  <p className="text-white/60 font-medium leading-relaxed">{selectedProblem.descripcion}</p>
+                </div>
+              </div>
+              
+              <div className="mt-auto p-8 border-t border-white/10 bg-white/5">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Progreso Metodológico</span>
+                  <span className="text-xl font-black text-blue-400">{Math.round((currentStep / 4) * 100)}%</span>
+                </div>
+                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(currentStep / 4) * 100}%` }}
+                    className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.5)]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Panel: Game Logic */}
+            <div className="flex-1 p-8 md:p-12 flex flex-col items-center justify-center relative">
+              <div className="max-w-2xl w-full space-y-12">
+                {/* Steps Indicator */}
+                <div className="flex justify-between relative">
+                  <div className="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2 z-0" />
+                  {steps.map((s, idx) => (
+                    <div key={s.id} className="relative z-10 flex flex-col items-center gap-3">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 border-2 ${idx === currentStep ? 'bg-blue-600 border-blue-400 shadow-2xl shadow-blue-600/40 scale-110' : idx < currentStep ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-white/20'}`}>
+                        {idx < currentStep ? <Check size={24} /> : s.icon}
+                      </div>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${idx === currentStep ? 'text-white' : 'text-white/20'}`}>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Question Area */}
+                <div className="space-y-8">
+                  <div className="text-center space-y-2">
+                    <h3 className={`text-sm font-black uppercase tracking-[0.3em] ${steps[currentStep].color}`}>Paso {currentStep + 1}: {steps[currentStep].label}</h3>
+                    <h4 className="text-3xl font-black uppercase tracking-tight">¿Qué acción corresponde a esta etapa?</h4>
+                  </div>
+
+                  <div className="grid gap-4">
+                    {selectedProblem.opciones[currentStep].map((opt: string, idx: number) => (
+                      <motion.button
+                        key={idx}
+                        whileHover={{ scale: 1.02, x: 10 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={feedback?.index === idx ? (feedback.type === 'correct' ? { scale: [1, 1.05, 1], borderColor: '#10b981' } : { x: [0, -10, 10, -10, 10, 0], borderColor: '#ef4444' }) : {}}
+                        onClick={() => handleOptionSelect(opt, idx)}
+                        className={`group flex items-center gap-6 p-6 rounded-2xl border transition-all text-left ${
+                          feedback?.index === idx 
+                            ? (feedback.type === 'correct' ? 'bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-rose-500/20 border-rose-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]')
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-500/50'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all ${
+                          feedback?.index === idx 
+                            ? (feedback.type === 'correct' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white')
+                            : 'bg-white/5 text-white/20 group-hover:bg-blue-600 group-hover:text-white'
+                        }`}>
+                          {feedback?.index === idx ? (feedback.type === 'correct' ? <Check size={20} /> : <X size={20} />) : String.fromCharCode(65 + idx)}
+                        </div>
+                        <span className={`flex-1 text-lg font-bold transition-colors ${
+                          feedback?.index === idx ? 'text-white' : 'text-white/80 group-hover:text-white'
+                        }`}>{opt}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === 'RESULT' && (
+          <motion.div 
+            key="result"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="flex-1 flex items-center justify-center p-8"
+          >
+            <div className="max-w-4xl w-full bg-white/5 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl flex flex-col md:flex-row">
+              <div className="w-full md:w-1/2 p-12 bg-blue-600 flex flex-col items-center justify-center text-center space-y-6">
+                <div className="w-32 h-32 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md border-4 border-white/30">
+                  <Trophy size={64} className="text-white" />
+                </div>
+                <div>
+                  <h2 className="text-5xl font-black uppercase tracking-tighter leading-none">¡Problema Resuelto!</h2>
+                  <p className="text-white/80 font-bold uppercase tracking-widest mt-4">Puntaje de Eficiencia</p>
+                  <div className="text-7xl font-black mt-2">{score}</div>
+                </div>
+              </div>
+              
+              <div className="flex-1 p-12 space-y-8 bg-black/40">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em]">Aprendizaje Clave</h3>
+                  <div className="p-6 bg-blue-600/10 rounded-2xl border border-blue-600/20 italic text-xl font-medium leading-relaxed">
+                    "{selectedProblem.aprendizaje}"
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.3em]">Recorrido Metodológico</h3>
+                  <div className="space-y-3">
+                    {history.map((h, i) => (
+                      <div key={i} className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/10">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${h.isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                          {h.isCorrect ? <Check size={12} /> : <X size={12} />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-black uppercase text-white/40">{h.step}</p>
+                          <p className="text-sm font-bold truncate">{h.option}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    onClick={() => setGameState('MENU')}
+                    className="flex-1 py-4 bg-white text-black font-black rounded-2xl uppercase tracking-widest hover:bg-white/90 transition-all shadow-xl"
+                  >
+                    Volver al Panel
+                  </button>
+                  <button 
+                    onClick={onExit}
+                    className="px-8 py-4 bg-white/5 text-white font-black rounded-2xl uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10"
+                  >
+                    Salir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export default function App() {
   const [view, setView] = useState<View>('START');
   const [playerData, setPlayerData] = useState<any>(null);
@@ -6182,13 +6847,13 @@ export default function App() {
         'carrera': 'GAME_CARRERA',
         'match': 'GAME_MATCH',
         'escape': 'GAME_ESCAPE',
-        'memoria': 'GAME_MEMORY',
         'wordle': 'GAME_WORDLE',
         'jenga': 'GAME_JENGA',
         'decisiones': 'GAME_DECISIONES',
-        'cazador': 'GAME_CAZADOR',
         'pare': 'GAME_PARE',
-        'protocolo': 'GAME_PROTOCOLO'
+        'protocolo': 'GAME_PROTOCOLO',
+        'espejo': 'GAME_ESPEJO',
+        'resolve': 'GAME_RESOLVE'
       };
       setView(viewMap[id]);
       setIsLoading(false);
@@ -6212,13 +6877,13 @@ export default function App() {
       case 'GAME_CARRERA': return <CarreraGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_MATCH': return <MatchGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_ESCAPE': return <EscapeRoomGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
-      case 'GAME_MEMORY': return <MemoryGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_WORDLE': return <WordleGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_JENGA': return <JengaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_DECISIONES': return <DecisionesSegurasGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
-      case 'GAME_CAZADOR': return <CazadorDeRiesgosGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_PARE': return <PareYPidaAyudaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       case 'GAME_PROTOCOLO': return <ProtocoloEmergenciaGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_ESPEJO': return <EspejoDelTurnoGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
+      case 'GAME_RESOLVE': return <ResolveEnElPuestoGame onExit={() => setView('MENU')} onGameOver={handleGameOver} />;
       default: return <StartScreen onStart={handleStart} />;
     }
   };
@@ -6661,7 +7326,8 @@ const TrucoGame = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (sc
 };
 
 // --- DATA CON COLORES PASTELES PARA V3 ---
-const MEMORY_PAIRS_PASTEL = [
+/* Removed MEMORY_PAIRS_PASTEL */
+const MEMORY_PAIRS = [
   {
     riesgo: { emoji: '🔥', titulo: 'FUEGO', desc: 'Riesgo de incendio.', color: '#FFB3BA', tipo: 'RIESGO' },
     mitigacion: { emoji: '🧯', titulo: 'EXTINTOR', desc: 'Uso de extintor ABC.', color: '#FFB3BA', tipo: 'MITIGACIÓN' }
@@ -6724,366 +7390,9 @@ const MEMORY_PAIRS_PASTEL = [
   }
 ];
 
-// --- INDUSTRIAL MEMORY GAME (V3) ---
-// Mejoras: Colores pasteles, proporciones corregidas, scroll funcional y textos legibles.
-
-const MEMORY_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1346735467&single=true&output=csv';
-
-const IndustrialMemoryGameV3 = ({ onExit, onGameOver }: { onExit: () => void, onGameOver: (score: number) => void }) => {
-  const [view, setView] = useState<'INTRO' | 'GAME' | 'END'>('INTRO');
-  const [difficulty, setDifficulty] = useState(6);
-  const [cards, setCards] = useState<any[]>([]);
-  const [flipped, setFlipped] = useState<number[]>([]);
-  const [matched, setMatched] = useState<number[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [energy, setEnergy] = useState(100);
-  const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(1);
-  const [lastMatchTime, setLastMatchTime] = useState(0);
-  const [showMatchInfo, setShowMatchInfo] = useState<any>(null);
-  const [gameData, setGameData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(MEMORY_SHEETS_URL);
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1);
-        const parsed = rows.map(row => {
-          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-          return {
-            emoji: cols[0],
-            descripcion: cols[1],
-            tipo: cols[2],
-            color: cols[3],
-            norma: cols[4],
-            desc_larga: cols[5]
-          };
-        }).filter(item => item.emoji && item.desc_larga);
-        setGameData(parsed);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading sheets:", error);
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    let interval: any;
-    if (view === 'GAME' && energy > 0 && matched.length < cards.length) {
-      interval = setInterval(() => {
-        setEnergy(prev => Math.max(0, prev - (0.25 + (matched.length / 8))));
-      }, 100);
-    } else if (energy === 0 && view === 'GAME') {
-      setTimeout(() => setView('END'), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [view, energy, matched, cards]);
-
-  const startGame = (diff: number) => {
-    setDifficulty(diff);
-    const selectedPairs = [...gameData].sort(() => Math.random() - 0.5).slice(0, diff);
-    const gameCards: any[] = [];
-    
-    selectedPairs.forEach((item, idx) => {
-      gameCards.push({
-        id: `v-${idx}`,
-        pairId: idx,
-        type: 'SÍMBOLO',
-        content: item.emoji,
-        titulo: item.descripcion,
-        desc_larga: item.desc_larga,
-        bgColor: item.color,
-        category: item.tipo
-      });
-      gameCards.push({
-        id: `t-${idx}`,
-        pairId: idx,
-        type: 'ESPECIFICACIÓN',
-        content: item.desc_larga,
-        titulo: item.descripcion,
-        desc_larga: item.desc_larga,
-        bgColor: '#1a1a1a',
-        category: item.tipo
-      });
-    });
-
-    setCards(gameCards.sort(() => Math.random() - 0.5));
-    setFlipped([]);
-    setMatched([]);
-    setEnergy(100);
-    setScore(0);
-    setCombo(1);
-    setView('GAME');
-  };
-
-  const handleCardClick = (idx: number) => {
-    if (isProcessing || flipped.includes(idx) || matched.includes(idx) || energy <= 0) return;
-    const newFlipped = [...flipped, idx];
-    setFlipped(newFlipped);
-    if (newFlipped.length === 2) {
-      setIsProcessing(true);
-      const [f, s] = newFlipped;
-      if (cards[f].pairId === cards[s].pairId) {
-        const now = Date.now();
-        const newCombo = (now - lastMatchTime < 4000) ? combo + 1 : 1;
-        setCombo(newCombo);
-        setLastMatchTime(now);
-        const points = 150 * newCombo;
-        setScore(p => p + points);
-        setEnergy(e => Math.min(100, e + 25));
-        setTimeout(() => {
-          setMatched([...matched, f, s]);
-          setFlipped([]);
-          setShowMatchInfo(cards[f]);
-          setIsProcessing(false);
-          if (matched.length + 2 === cards.length) setTimeout(() => { onGameOver(score + points); setView('END'); }, 1500);
-          setTimeout(() => setShowMatchInfo(null), 4000);
-        }, 600);
-      } else {
-        setCombo(1);
-        setEnergy(e => Math.max(0, e - 12));
-        setTimeout(() => { setFlipped([]); setIsProcessing(false); }, 1000);
-      }
-    }
-  };
-
-  if (view === 'INTRO') return (
-    <div className="flex-1 bg-[#050505] flex flex-col items-center justify-center p-8 relative overflow-hidden h-screen">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 to-transparent"></div>
-      
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }} 
-        animate={{ y: 0, opacity: 1 }} 
-        className="glass-panel-heavy p-12 rounded-[2rem] border-t-4 border-secondary shadow-[0_0_50px_rgba(255,182,144,0.1)] max-w-2xl w-full text-center relative z-10"
-      >
-        <div className="w-24 h-24 bg-secondary/20 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-secondary/30 shadow-[0_0_30px_rgba(255,182,144,0.2)]">
-          <ShieldAlert className="w-12 h-12 text-secondary animate-pulse" />
-        </div>
-        
-        <h2 className="text-5xl font-black text-white uppercase tracking-tighter mb-4 leading-none">
-          MEMORIA <span className="text-secondary">CRÍTICA</span>
-        </h2>
-        <p className="text-white/40 mb-12 text-sm font-medium tracking-wide max-w-md mx-auto">
-          Protocolo de validación de competencias EHS. Asocia la simbología visual con su especificación técnica normativa.
-        </p>
-
-        <div className="grid grid-cols-3 gap-6 mb-12">
-          {[6, 12, 15].map(n => (
-            <button 
-              key={n} 
-              disabled={loading} 
-              onClick={() => startGame(n)} 
-              className="group relative p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-secondary transition-all overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-secondary/0 group-hover:bg-secondary/5 transition-colors"></div>
-              <p className="text-3xl font-black text-white relative z-10">{n}</p>
-              <p className="text-[10px] font-bold text-secondary uppercase tracking-widest relative z-10">Pares</p>
-            </button>
-          ))}
-        </div>
-
-        <button onClick={onExit} className="text-white/20 hover:text-white uppercase text-[10px] font-black tracking-[0.3em] transition-colors">
-          Abortar Misión
-        </button>
-      </motion.div>
-    </div>
-  );
-
-  if (view === 'END') return (
-    <div className="flex-1 bg-[#050505] flex flex-col items-center justify-center p-8 h-screen relative">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }} 
-        animate={{ scale: 1, opacity: 1 }} 
-        className="glass-panel-heavy p-12 rounded-[2.5rem] border-t-4 border-emerald-500 text-center max-w-md w-full relative z-10"
-      >
-        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/30">
-          <Trophy className="w-10 h-10 text-emerald-500" />
-        </div>
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">CERTIFICADO</h2>
-        <p className="text-white/40 text-xs uppercase tracking-widest mb-8">Operación Finalizada con Éxito</p>
-        
-        <div className="bg-black/40 border border-white/5 p-8 rounded-2xl mb-10 shadow-inner">
-          <p className="text-white/30 text-[10px] uppercase font-black tracking-[0.2em] mb-2">Puntaje de Eficiencia</p>
-          <p className="text-6xl font-black text-white tracking-tighter">{score}</p>
-        </div>
-
-        <div className="flex gap-4">
-          <button onClick={() => setView('INTRO')} className="flex-1 btn-industrial-orange py-4 font-black uppercase text-xs tracking-widest">Reiniciar</button>
-          <button onClick={onExit} className="flex-1 bg-white/5 hover:bg-white/10 py-4 rounded-xl text-white font-black uppercase text-xs tracking-widest border border-white/10 transition-all">Panel</button>
-        </div>
-      </motion.div>
-    </div>
-  );
-
-  return (
-    <div className="flex-1 bg-[#080808] flex flex-col h-screen overflow-hidden relative">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 to-transparent pointer-events-none"></div>
-      
-      {/* INDUSTRIAL HUD */}
-      <div className="p-6 flex justify-between items-center border-b border-white/5 bg-black/60 backdrop-blur-xl relative z-20">
-        <div className="flex items-center gap-6">
-          <button onClick={onExit} className="w-10 h-10 flex items-center justify-center hover:bg-white/5 rounded-xl text-white/40 hover:text-white transition-all border border-white/5">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <div className="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest">SISTEMA DE ENTRENAMIENTO <span className="text-secondary">V3.2</span></h2>
-            </div>
-            <div className="flex gap-6">
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-tight">EFICIENCIA: <span className="text-white font-black">{score}</span></span>
-              {combo > 1 && <span className="text-[10px] font-black text-secondary uppercase animate-bounce">COMBO X{combo}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-8">
-          <div className="w-64 hidden md:block">
-            <div className="flex justify-between mb-1.5">
-              <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Estabilidad del Sistema</span>
-              <span className={`text-[9px] font-black ${energy < 30 ? 'text-error animate-pulse' : 'text-emerald-500'}`}>{Math.round(energy)}%</span>
-            </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 p-[1px]">
-              <motion.div 
-                className={`h-full rounded-full ${energy < 30 ? 'bg-error shadow-[0_0_10px_rgba(255,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`} 
-                animate={{ width: `${energy}%` }} 
-                transition={{ type: 'spring', stiffness: 50 }}
-              />
-            </div>
-          </div>
-          <div className="flex flex-col items-end">
-             <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">ID SESIÓN</p>
-             <p className="text-[10px] font-mono text-white/60">EHS-PRV-{difficulty}P</p>
-          </div>
-        </div>
-      </div>
-
-      {/* GAME GRID */}
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
-        <div className={`grid gap-6 mx-auto max-w-7xl ${
-          difficulty === 6 ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4' : 
-          difficulty === 12 ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6' : 
-          'grid-cols-4 sm:grid-cols-6 md:grid-cols-8'
-        }`}>
-          {cards.map((card, idx) => (
-            <div 
-              key={card.id} 
-              className="relative aspect-[3/4] cursor-pointer group" 
-              onClick={() => handleCardClick(idx)} 
-              style={{ perspective: '1200px' }}
-            >
-              <motion.div 
-                className="w-full h-full relative" 
-                animate={{ rotateY: flipped.includes(idx) || matched.includes(idx) ? 180 : 0 }} 
-                transition={{ duration: 0.6, type: 'spring', damping: 20 }} 
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                {/* BACK (REVERSO INDUSTRIAL) */}
-                <div className="absolute inset-0 bg-[#121212] border-2 border-white/5 rounded-2xl flex flex-col items-center justify-center shadow-2xl overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-                  <div className="absolute inset-2 border border-white/5 rounded-xl"></div>
-                  <Shield className="w-12 h-12 text-white/5 group-hover:text-secondary/10 transition-colors duration-500" />
-                  <div className="absolute bottom-4 flex gap-1">
-                    <div className="w-1 h-1 rounded-full bg-white/10"></div>
-                    <div className="w-1 h-1 rounded-full bg-white/10"></div>
-                    <div className="w-1 h-1 rounded-full bg-white/10"></div>
-                  </div>
-                </div>
-
-                {/* FRONT (CONTENIDO TÉCNICO) */}
-                <div 
-                  className={`absolute inset-0 rounded-2xl flex flex-col items-center justify-between p-4 border-2 shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${matched.includes(idx) ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/10 bg-[#1a1a1a]'}`} 
-                  style={{ 
-                    backfaceVisibility: 'hidden', 
-                    rotateY: '180deg'
-                  }}
-                >
-                  <div className="w-full flex justify-between items-start">
-                    <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">{card.type}</span>
-                    <div className={`w-2 h-2 rounded-full ${matched.includes(idx) ? 'bg-emerald-500 animate-pulse' : 'bg-white/10'}`}></div>
-                  </div>
-
-                  <div className="flex-1 flex items-center justify-center w-full px-2">
-                    {card.type === 'SÍMBOLO' ? (
-                      <div 
-                        className="w-24 h-24 rounded-3xl flex items-center justify-center text-6xl shadow-inner relative overflow-hidden"
-                        style={{ backgroundColor: card.bgColor }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-                        <span className="relative z-10 drop-shadow-2xl">{card.content}</span>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex flex-col justify-center items-center text-center">
-                        <div className="w-full h-[1px] bg-white/5 mb-4"></div>
-                        <p className="font-mono text-white/90 text-[10px] leading-relaxed tracking-tight px-2">
-                          {card.content}
-                        </p>
-                        <div className="w-full h-[1px] bg-white/5 mt-4"></div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="w-full bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/5">
-                    <p className="text-[10px] font-black text-white uppercase leading-tight text-center truncate tracking-tighter">{card.titulo}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          ))}
-        </div>
-        <div className="h-24 w-full"></div>
-      </div>
-
-      {/* MATCH INFO OVERLAY (PREMIUM) */}
-      <AnimatePresence>
-        {showMatchInfo !== null && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 50 }} 
-            animate={{ opacity: 1, scale: 1, y: 0 }} 
-            exit={{ opacity: 0, scale: 0.9, y: 50 }} 
-            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-6 pointer-events-none"
-          >
-            <div className="glass-panel-heavy p-8 rounded-[2.5rem] border-2 border-emerald-500/50 shadow-[0_0_60px_rgba(16,185,129,0.2)] flex items-center gap-8 pointer-events-auto relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500">
-                <motion.div 
-                  className="h-full bg-white/50" 
-                  initial={{ width: '100%' }} 
-                  animate={{ width: '0%' }} 
-                  transition={{ duration: 4 }} 
-                />
-              </div>
-              
-              <div 
-                className="w-32 h-32 rounded-[2rem] flex items-center justify-center text-7xl shadow-2xl flex-shrink-0 relative overflow-hidden"
-                style={{ backgroundColor: showMatchInfo.bgColor }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
-                <span className="relative z-10">{showMatchInfo.content}</span>
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="px-2 py-0.5 bg-emerald-500 text-black text-[9px] font-black uppercase rounded-md">VALIDADO</div>
-                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">PROTOCOLO EHS-7010</span>
-                </div>
-                <h4 className="text-2xl font-black text-white uppercase tracking-tighter leading-none mb-3">{showMatchInfo.titulo}</h4>
-                <p className="text-xs text-white/60 leading-relaxed font-medium italic border-l-2 border-emerald-500/30 pl-4">
-                  {showMatchInfo.desc_larga}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+/* Removed _unused_IndustrialMemoryGameV3_REMOVED */
+const _unused_IndustrialMemoryGameV3_REMOVED = () => {
+  return null;
 };
 
 // --- INDUSTRIAL MEMORY GAME (V2) ---
@@ -7485,21 +7794,19 @@ const GAMES_ENHANCED = [
   },
   { 
     id: 'memoria', 
-    title: 'MEMORY PREVENTIVO', 
+    title: 'PRÓXIMAMENTE', 
     subtitle: 'MISIÓN_06', 
-    icon: 'brain', 
-    active: true, 
-    color: 'bg-yellow-500', 
-    level: 'PRINCIPIANTE', 
-    stats: '30 VIC / 1 RGO', 
+    icon: 'lock', 
+    active: false, 
+    color: 'bg-slate-500', 
+    level: 'BLOQUEADO', 
+    stats: '---', 
     img: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800',
-    desc: 'Entrena tu memoria visual con elementos de protección personal y señalética.',
-    obj: 'Encontrar todos los pares de elementos de seguridad.',
+    desc: 'Módulo en desarrollo para futuros desafíos de memoria preventiva.',
+    obj: 'Próximamente disponible.',
     rules: [
-      'Voltea dos cartas para intentar encontrar un par.',
-      'Si son iguales, permanecen visibles.',
-      'Si son distintas, se vuelven a ocultar.',
-      'Completa el tablero con el menor número de movimientos.'
+      'Contenido bloqueado.',
+      'En desarrollo.'
     ]
   },
   { 
@@ -7561,22 +7868,22 @@ const GAMES_ENHANCED = [
     ]
   },
   { 
-    id: 'cazador', 
-    title: 'CAZADOR DE RIESGOS', 
+    id: 'espejo', 
+    title: 'EL ESPEJO DEL TURNO', 
     subtitle: 'MISIÓN_10', 
-    icon: 'center_focus_weak', 
+    icon: 'mirror', 
     active: true, 
-    color: 'bg-rose-600', 
-    level: 'EXPERTO', 
+    color: 'bg-purple-600', 
+    level: 'INTERMEDIO', 
     stats: '0 VIC / 0 RGO', 
-    img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
-    desc: 'Identificá condiciones inseguras en imágenes reales de planta antes de que ocurra un accidente.',
-    obj: 'Encontrar todos los peligros ocultos en la escena bajo presión de tiempo.',
+    img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
+    desc: 'Una pausa para reflexionar sobre nuestras conductas y cuidarnos entre todos.',
+    obj: 'Autoevaluación de conductas para todo el personal de MABE.',
     rules: [
-      'Seleccioná una escena operativa para inspeccionar.',
-      'Hacé clic sobre los peligros que detectes en la imagen.',
-      'Tenés 60 segundos para encontrar todas las condiciones inseguras.',
-      'Cada acierto revela la medida de control y la norma técnica.'
+      'Seleccioná el modo de juego (Individual o Facilitador).',
+      'Leé atentamente la situación planteada en la tarjeta.',
+      'Respondé con sinceridad sobre tu conducta habitual.',
+      'Reflexioná sobre el mensaje y participá en el debate si estás en grupo.'
     ]
   },
   { 
@@ -7618,18 +7925,23 @@ const GAMES_ENHANCED = [
     ]
   },
   { 
-    id: 'mision_13', 
-    title: 'PRÓXIMA MISIÓN', 
+    id: 'resolve', 
+    title: 'RESOLVÉ EN EL PUESTO', 
     subtitle: 'MISIÓN_13', 
-    icon: 'lock', 
-    active: false, 
-    color: 'bg-slate-700', 
-    level: 'BLOQUEADO', 
-    stats: '-- VIC / -- RGO', 
-    img: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&q=80&w=800',
-    desc: 'Contenido en desarrollo. Próximamente disponible.',
-    obj: 'Bloqueado',
-    rules: ['Próximamente']
+    icon: 'build', 
+    active: true, 
+    color: 'bg-blue-600', 
+    level: 'INTERMEDIO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    desc: 'Metodología de 4 pasos para resolver problemas reales en tu puesto de trabajo.',
+    obj: 'Aplicar Identificar, Analizar, Actuar y Verificar ante desafíos de planta.',
+    rules: [
+      'Seleccioná un problema de la lista.',
+      'Seguí la secuencia de los 4 pasos obligatorios.',
+      'Elegí la opción correcta en cada etapa.',
+      'Aprendé con la retroalimentación inmediata y el resumen final.'
+    ]
   },
 ];
 

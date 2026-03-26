@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EL ESPEJO DEL TURNO — Autocuidado y Reflexión</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        .perspective { perspective: 1000px; }
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+        .flip-card-back { transform: rotateY(180deg); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // CONFIGURACIÓN
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1346735467&single=true&output=csv';
+        const APPS_SCRIPT_URL = 'TU_URL_APPS_SCRIPT';
+
+        const FALLBACK_CARDS = [
+            { id: 1, situacion: "A veces apuro el último paso porque ya terminó el turno.", categoria: "Conducta", pregunta_debate: "¿Qué riesgos reales corremos al apurarnos al final?", reflexion: "El cansancio del final del turno es el momento de mayor riesgo. Pausar asegura llegar a casa sano." },
+            { id: 2, situacion: "Usé un EPP deteriorado porque no había otro disponible.", categoria: "Autocuidado", pregunta_debate: "¿Por qué a veces aceptamos EPP en mal estado?", reflexion: "Tu seguridad depende de la integridad de tu equipo. Si no es seguro, no se usa." },
+            { id: 3, situacion: "Vi una condición insegura y no la reporté para no demorar.", categoria: "Confianza", pregunta_debate: "¿Qué nos frena a reportar condiciones inseguras?", reflexion: "Reportar hoy evita el accidente de mañana. Tu voz es la mejor herramienta de prevención." },
+            { id: 4, situacion: "Operé una máquina con la guarda abierta por un momento.", categoria: "Conducta", pregunta_debate: "¿Por qué creemos que 'un momento' no es peligroso?", reflexion: "Los accidentes ocurren en fracciones de segundo. Las guardas son barreras de vida." },
+            { id: 5, situacion: "Empecé una tarea sin AST porque ya la conozco de memoria.", categoria: "Conocimiento", pregunta_debate: "¿El exceso de confianza nos hace olvidar pasos críticos?", reflexion: "El AST no es solo un papel, es el momento de pensar antes de actuar." },
+            { id: 6, situacion: "Levanté una carga pesado solo para no molestar a nadie.", categoria: "Autocuidado", pregunta_debate: "¿Por qué nos cuesta pedir ayuda para tareas físicas?", reflexion: "Tu espalda tiene memoria. Pedir ayuda o usar medios mecánicos es de profesionales." },
+            { id: 7, situacion: "Usé una herramienta en mal estado porque era la única.", categoria: "Conducta", pregunta_debate: "¿Qué impacto tiene una herramienta defectuosa en la calidad y seguridad?", reflexion: "Una herramienta improvisada es un accidente anunciado. Exigí lo necesario para trabajar bien." },
+            { id: 8, situacion: "Vine con mucho cansancio sin avisar a nadie cómo me sentía.", categoria: "Autocuidado", pregunta_debate: "¿Cómo afecta el cansancio nuestra percepción del riesgo?", reflexion: "Estar apto es el primer paso de la tarea. Avisar a tiempo permite reasignar tareas críticas." },
+            { id: 9, situacion: "Vi a un compañero en riesgo y no le dije nada por no generar conflicto.", categoria: "Confianza", pregunta_debate: "¿Cómo podemos decir algo sin que se sienta como un ataque?", reflexion: "Cuidar al compañero es la base de la cultura de seguridad. El silencio puede ser fatal." },
+            { id: 10, situacion: "Sé exactamente dónde está el punto de encuentro de mi sector.", categoria: "Conocimiento", pregunta_debate: "¿Podríamos llegar a ciegas en caso de humo o corte de luz?", reflexion: "En una emergencia, el instinto debe estar entrenado. Conocer las rutas salva vidas." },
+            { id: 11, situacion: "Puedo explicar los pasos del CATA sin consultar nada.", categoria: "Conocimiento", pregunta_debate: "¿Qué paso del CATA es el que más solemos olvidar?", reflexion: "El CATA es nuestra brújula. Dominarlo es dominar nuestra propia seguridad." },
+            { id: 12, situacion: "Puedo nombrar dos operaciones críticas de mi sector.", categoria: "Conocimiento", pregunta_debate: "¿Cuáles son los riesgos fatales de esas operaciones?", reflexion: "Identificar el peligro es el 50% de la prevención. No pierdas de vista lo crítico." },
+            { id: 13, situacion: "Sé cómo reportar un incidente en la app Estoy Seguro.", categoria: "Confianza", pregunta_debate: "¿Sentimos que los reportes realmente generan cambios?", reflexion: "La app es el canal directo para mejorar tu entorno. Usala para que todos estemos mejor." },
+            { id: 14, situacion: "Conozco el EPP específico para cada tarea de mi puesto.", categoria: "Conocimiento", pregunta_debate: "¿Hay algún EPP que nos resulte incómodo y por qué?", reflexion: "El EPP correcto para la tarea correcta. No hay margen para la improvisación." },
+            { id: 15, situacion: "Si algo me parece inseguro me siento con confianza para decirlo.", categoria: "Confianza", pregunta_debate: "¿Sentimos el respaldo de los líderes al detener una tarea?", reflexion: "Tenés el derecho y el deber de detener una tarea insegura. MABE respalda tu decisión." }
+        ];
+
+        const CATEGORY_COLORS = {
+            "Autocuidado": "bg-green-500",
+            "Conducta": "bg-amber-500",
+            "Conocimiento": "bg-blue-500",
+            "Confianza": "bg-purple-500"
+        };
+
+        function App() {
+            const [view, setView] = useState('START');
+            const [mode, setMode] = useState(null);
+            const [userData, setUserData] = useState({ udn: '', area: '' });
+            const [cards, setCards] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [responses, setResponses] = useState([]);
+            const [isFlipped, setIsFlipped] = useState(false);
+            const [showDebate, setShowDebate] = useState(false);
+            const [isSending, setIsSending] = useState(false);
+
+            useEffect(() => {
+                fetch(SHEETS_URL)
+                    .then(r => r.text())
+                    .then(csv => {
+                        const lines = csv.split('\n').slice(1);
+                        const parsed = lines.map(line => {
+                            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                            if (cols.length < 5) return null;
+                            return {
+                                id: cols[0],
+                                situacion: cols[1],
+                                categoria: cols[2],
+                                pregunta_debate: cols[3],
+                                reflexion: cols[4]
+                            };
+                        }).filter(c => c !== null);
+                        if (parsed.length > 0) setCards(parsed.slice(0, 15));
+                        else setCards(FALLBACK_CARDS);
+                    })
+                    .catch(() => setCards(FALLBACK_CARDS));
+            }, []);
+
+            const handleResponse = (value) => {
+                if (mode === 'INDIVIDUAL') {
+                    setResponses([...responses, { id: cards[currentIndex].id, categoria: cards[currentIndex].categoria, value }]);
+                }
+                setIsFlipped(true);
+            };
+
+            const nextCard = () => {
+                if (currentIndex < cards.length - 1) {
+                    setCurrentIndex(currentIndex + 1);
+                    setIsFlipped(false);
+                    setShowDebate(false);
+                } else {
+                    setView(mode === 'INDIVIDUAL' ? 'PROFILE' : 'CONFIRMATION');
+                }
+            };
+
+            const getProfile = () => {
+                const rojos = responses.filter(r => r.value === 'siempre').length;
+                if (rojos <= 4) return { label: 'OPERADOR CONSCIENTE', color: 'text-green-500', bg: 'bg-green-500/20', icon: '🟢' };
+                if (rojos <= 9) return { label: 'OPERADOR EN ALERTA', color: 'text-yellow-500', bg: 'bg-yellow-500/20', icon: '🟡' };
+                return { label: 'OPERADOR EN RIESGO', color: 'text-red-500', bg: 'bg-red-500/20', icon: '🔴' };
+            };
+
+            const saveResults = async () => {
+                setIsSending(true);
+                const profile = getProfile();
+                const data = {
+                    timestamp: new Date().toISOString(),
+                    udn: userData.udn,
+                    area: userData.area,
+                    rojos: responses.filter(r => r.value === 'siempre').length,
+                    amarillos: responses.filter(r => r.value === 'a veces').length,
+                    verdes: responses.filter(r => r.value === 'no').length,
+                    perfil: profile.label,
+                    respuestas: responses
+                };
+
+                try {
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    setView('CONFIRMATION');
+                } catch (e) {
+                    console.error(e);
+                    setView('CONFIRMATION'); // Fallback to confirmation anyway
+                }
+                setIsSending(false);
+            };
+
+            if (view === 'START') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+                        <h1 className="text-4xl font-extrabold mb-4 tracking-tighter">EL ESPEJO DEL TURNO</h1>
+                        <p className="text-slate-400 mb-12 max-w-md">Una pausa para reflexionar sobre nuestras conductas y cuidarnos entre todos.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
+                            <button onClick={() => { setMode('INDIVIDUAL'); setView('IDENTIFICATION'); }} className="p-8 bg-slate-800 rounded-2xl border-2 border-transparent hover:border-blue-500 transition-all group">
+                                <div className="text-4xl mb-4">📱</div>
+                                <h2 className="text-xl font-bold mb-2">MODO INDIVIDUAL</h2>
+                                <p className="text-sm text-slate-400">Autoevaluación anónima desde tu celular.</p>
+                            </button>
+                            <button onClick={() => { setMode('FACILITADOR'); setView('GAME'); }} className="p-8 bg-slate-800 rounded-2xl border-2 border-transparent hover:border-purple-500 transition-all group">
+                                <div className="text-4xl mb-4">📢</div>
+                                <h2 className="text-xl font-bold mb-2">MODO FACILITADOR</h2>
+                                <p className="text-sm text-slate-400">Dinámica grupal para proyector y debate.</p>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'IDENTIFICATION') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div className="w-full max-w-md bg-slate-800 p-8 rounded-3xl">
+                            <h2 className="text-2xl font-bold mb-6">Identificación</h2>
+                            <div className="space-y-4 mb-8">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-slate-500 mb-2">UDN</label>
+                                    <input type="text" value={userData.udn} onChange={e => setUserData({...userData, udn: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 focus:border-blue-500 outline-none" placeholder="Ej: San Luis" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Área / Sector</label>
+                                    <input type="text" value={userData.area} onChange={e => setUserData({...userData, area: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 focus:border-blue-500 outline-none" placeholder="Ej: Montaje" />
+                                </div>
+                            </div>
+                            <button disabled={!userData.udn || !userData.area} onClick={() => setView('GAME')} className="w-full py-4 bg-blue-600 rounded-xl font-bold disabled:opacity-50">COMENZAR</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'GAME') {
+                const card = cards[currentIndex];
+                if (!card) return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+
+                return (
+                    <div className="min-h-screen flex flex-col p-6">
+                        <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col">
+                            <div className="flex justify-between items-center mb-8">
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Tarjeta {currentIndex + 1} de {cards.length}</span>
+                                <div className="w-32 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}></div>
+                                </div>
+                            </div>
+
+                            <div className={`flex-1 perspective relative mb-8 ${isFlipped ? 'flipped' : ''}`}>
+                                <div className="flip-card-inner w-full h-full">
+                                    {/* ANVERSO */}
+                                    <div className="flip-card-front bg-slate-800 border border-slate-700 shadow-2xl">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase mb-6 ${CATEGORY_COLORS[card.categoria] || 'bg-slate-600'}`}>
+                                            {card.categoria}
+                                        </span>
+                                        <h3 className="text-2xl md:text-3xl font-bold text-center leading-tight mb-12">
+                                            "{card.situacion}"
+                                        </h3>
+                                        <div className="w-full max-w-sm space-y-3">
+                                            <button onClick={() => handleResponse('siempre')} className="w-full py-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 font-bold hover:bg-red-500 hover:text-white transition-all">🔴 Me pasa siempre</button>
+                                            <button onClick={() => handleResponse('a veces')} className="w-full py-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl text-yellow-500 font-bold hover:bg-yellow-500 hover:text-white transition-all">🟡 Me pasa a veces</button>
+                                            <button onClick={() => handleResponse('no')} className="w-full py-4 bg-green-500/10 border border-green-500/50 rounded-xl text-green-500 font-bold hover:bg-green-500 hover:text-white transition-all">🟢 No me pasa</button>
+                                        </div>
+                                    </div>
+
+                                    {/* REVERSO */}
+                                    <div className="flip-card-back bg-slate-900 border border-slate-700 shadow-2xl">
+                                        <div className="text-center max-w-md">
+                                            <div className="text-4xl mb-6">💡</div>
+                                            <h4 className="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">Reflexión</h4>
+                                            <p className="text-xl md:text-2xl font-medium leading-relaxed mb-8 italic">
+                                                {card.reflexion}
+                                            </p>
+                                            
+                                            {mode === 'FACILITADOR' && (
+                                                <div className="mt-4">
+                                                    {!showDebate ? (
+                                                        <button onClick={() => setShowDebate(true)} className="px-6 py-3 bg-purple-600 rounded-full font-bold text-sm">DEBATIR</button>
+                                                    ) : (
+                                                        <div className="p-6 bg-purple-600/20 border border-purple-600/50 rounded-2xl animate-bounce">
+                                                            <p className="text-purple-300 font-bold">{card.pregunta_debate}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {isFlipped && (
+                                <button onClick={nextCard} className="w-full py-5 bg-white text-slate-900 rounded-2xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                                    {currentIndex < cards.length - 1 ? 'SIGUIENTE TARJETA' : 'VER RESULTADOS'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'PROFILE') {
+                const profile = getProfile();
+                const stats = {
+                    rojos: responses.filter(r => r.value === 'siempre').length,
+                    amarillos: responses.filter(r => r.value === 'a veces').length,
+                    verdes: responses.filter(r => r.value === 'no').length
+                };
+
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div className="w-full max-w-lg bg-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+                            <div className={`p-10 text-center ${profile.bg}`}>
+                                <div className="text-6xl mb-4">{profile.icon}</div>
+                                <h2 className={`text-3xl font-black mb-2 ${profile.color}`}>{profile.label}</h2>
+                                <p className="text-slate-400 text-sm">Perfil de Autocuidado basado en tus respuestas.</p>
+                            </div>
+                            <div className="p-8">
+                                <div className="space-y-6 mb-10">
+                                    <div>
+                                        <div className="flex justify-between text-xs font-bold mb-2">
+                                            <span>CONDUCTAS SEGURAS</span>
+                                            <span>{Math.round((stats.verdes / 15) * 100)}%</span>
+                                        </div>
+                                        <div className="h-3 bg-slate-900 rounded-full overflow-hidden">
+                                            <div className="h-full bg-green-500" style={{ width: `${(stats.verdes / 15) * 100}%` }}></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between text-xs font-bold mb-2">
+                                            <span>CONDUCTAS EN RIESGO</span>
+                                            <span>{Math.round((stats.rojos / 15) * 100)}%</span>
+                                        </div>
+                                        <div className="h-3 bg-slate-900 rounded-full overflow-hidden">
+                                            <div className="h-full bg-red-500" style={{ width: `${(stats.rojos / 15) * 100}%` }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={saveResults} disabled={isSending} className="w-full py-5 bg-blue-600 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-500 transition-all">
+                                    {isSending ? 'ENVIANDO...' : 'GUARDAR Y TERMINAR'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'CONFIRMATION') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+                        <div className="text-7xl mb-6">✅</div>
+                        <h2 className="text-4xl font-black mb-4">¡Sesión Finalizada!</h2>
+                        <p className="text-slate-400 mb-12 max-w-md">Gracias por participar en El Espejo del Turno. Tu reflexión es el primer paso para un trabajo más seguro.</p>
+                        <button onClick={() => window.location.reload()} className="px-12 py-4 bg-slate-800 border border-slate-700 rounded-2xl font-bold hover:bg-slate-700 transition-all">NUEVA SESIÓN</button>
+                        
+                        <div className="mt-20 p-6 bg-slate-900/50 rounded-2xl border border-slate-800 text-left max-w-lg">
+                            <h4 className="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">Nota para el Administrador</h4>
+                            <p className="text-[10px] text-slate-500 leading-relaxed">
+                                Para guardar los resultados, asegúrate de desplegar el Apps Script con la función doPost proporcionada y actualizar la variable APPS_SCRIPT_URL en el código.
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
