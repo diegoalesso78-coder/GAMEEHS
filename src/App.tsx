@@ -120,7 +120,7 @@ const RESOLVE_FALLBACK = [
   }
 ];
 
-let MISSION_OF_THE_WEEK = 'memoria'; 
+let MISSIONS_OF_THE_WEEK: string[] = ['memoria']; 
 
 const GAMES = [
   { id: 'truco', title: 'TRUCO SEGURO', subtitle: 'MISIÓN_01', icon: 'precision_manufacturing', active: true, color: 'bg-emerald-500', level: 'EXPERTO', stats: '42 VIC / 12 RGO', img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800' },
@@ -451,21 +451,63 @@ const StartScreen = ({ onStart }: { onStart: (data: any) => void }) => {
           
           if (rowsC.length >= 2) {
             const rawValue = rowsC[1].split(',')[0].trim().toLowerCase();
+            const values = rawValue.split(';').map(v => v.trim()); // Soporte para múltiples juegos separados por ";"
+            
             const idMap: {[key: string]: string} = {
               'truco seguro': 'truco',
+              'mision 01': 'truco',
+              'misión 01': 'truco',
               'caza de riesgos': 'match',
+              'mision 02': 'match',
+              'misión 02': 'match',
               'la oca': 'oca',
+              'mision 03': 'oca',
+              'misión 03': 'oca',
               'carrera mente': 'carrera',
+              'mision 04': 'carrera',
+              'misión 04': 'carrera',
               'escape room': 'escape',
+              'mision 05': 'escape',
+              'misión 05': 'escape',
               'memory preventivo': 'memoria',
+              'mision 06': 'memoria',
+              'misión 06': 'memoria',
               'prevenwordle': 'wordle',
-              'jenga seguro': 'jenga'
+              'mision 07': 'wordle',
+              'misión 07': 'wordle',
+              'jenga seguro': 'jenga',
+              'mision 08': 'jenga',
+              'misión 08': 'jenga',
+              'decisiones seguras': 'decisiones',
+              'mision 09': 'decisiones',
+              'misión 09': 'decisiones',
+              'el espejo del turno': 'espejo',
+              'mision 10': 'espejo',
+              'misión 10': 'espejo',
+              'pare y pida ayuda': 'pare',
+              'mision 11': 'pare',
+              'misión 11': 'pare',
+              'protocolo de emergencia': 'protocolo',
+              'mision 12': 'protocolo',
+              'misión 12': 'protocolo',
+              'resolvé en el puesto': 'resolve',
+              'mision 13': 'resolve',
+              'misión 13': 'resolve'
             };
             
-            if (idMap[rawValue]) {
-              MISSION_OF_THE_WEEK = idMap[rawValue];
-            } else if (['truco', 'match', 'oca', 'carrera', 'escape', 'memoria', 'wordle', 'jenga'].includes(rawValue)) {
-              MISSION_OF_THE_WEEK = rawValue;
+            const newMissions: string[] = [];
+            const validIds = ['truco', 'match', 'oca', 'carrera', 'escape', 'memoria', 'wordle', 'jenga', 'decisiones', 'espejo', 'pare', 'protocolo', 'resolve'];
+            
+            values.forEach(v => {
+              if (idMap[v]) {
+                newMissions.push(idMap[v]);
+              } else if (validIds.includes(v)) {
+                newMissions.push(v);
+              }
+            });
+            
+            if (newMissions.length > 0) {
+              MISSIONS_OF_THE_WEEK = newMissions;
             }
           }
         }
@@ -7410,6 +7452,7 @@ const IndustrialMemoryGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
   const [combo, setCombo] = useState(1);
   const [lastMatchTime, setLastMatchTime] = useState(0);
   const [showMatchInfo, setShowMatchInfo] = useState<any>(null);
+  const [timer, setTimer] = useState(0);
 
   // Timer logic
   useEffect(() => {
@@ -7417,7 +7460,8 @@ const IndustrialMemoryGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
     if (view === 'GAME' && energy > 0 && matched.length < cards.length) {
       interval = setInterval(() => {
         setEnergy(prev => Math.max(0, prev - (0.5 + (matched.length / 4))));
-      }, 100);
+        setTimer(prev => prev + 1);
+      }, 1000);
     } else if (energy === 0 && view === 'GAME') {
       // Game Over by energy depletion
       setTimeout(() => setView('END'), 1000);
@@ -7668,32 +7712,97 @@ const IndustrialMemoryGame = ({ onExit, onGameOver }: { onExit: () => void, onGa
         ))}
       </div>
 
-      {/* MATCH INFO OVERLAY */}
-      <AnimatePresence>
-        {showMatchInfo !== null && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4"
+      {/* FOOTER */}
+      <div className="mt-8 flex justify-between items-center relative z-10">
+        <div className="flex gap-4">
+          <button 
+            onClick={onExit}
+            className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-lg border border-white/10 transition-all text-xs font-black uppercase tracking-widest"
           >
-            <div className="glass-panel-heavy p-6 rounded-2xl border-2 border-emerald-500 shadow-2xl flex items-center gap-6">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-              </div>
-              <div>
-                <p className="text-emerald-500 font-black text-xs uppercase tracking-widest mb-1">Módulo Asegurado</p>
-                <h4 className="text-white font-black text-xl uppercase tracking-tighter">Mitigación Exitosa</h4>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Abandonar Misión
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Tiempo Transcurrido</p>
+            <p className="text-xl font-mono text-white">{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
-
-// --- ENHANCED MENU COMPONENTS ---
+const RulesModal = ({ game, onClose }: { game: any, onClose: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="glass-panel-heavy p-8 rounded-3xl border-2 border-secondary shadow-2xl max-w-xl w-full relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors">
+          <X size={24} />
+        </button>
+        
+        <div className="flex items-center gap-4 mb-6">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${game.color} shadow-lg`}>
+            <span className="material-symbols-outlined text-white text-2xl">{game.icon}</span>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em]">{game.subtitle}</p>
+            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{game.title}</h2>
+          </div>
+        </div>
+        
+        <div className="space-y-6">
+          <section>
+            <h3 className="text-secondary font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
+              <Info size={14} /> Descripción
+            </h3>
+            <p className="text-white/80 text-sm leading-relaxed">{game.desc}</p>
+          </section>
+          
+          <section>
+            <h3 className="text-secondary font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
+              <ShieldCheck size={14} /> Objetivo
+            </h3>
+            <p className="text-white/80 text-sm leading-relaxed">{game.obj}</p>
+          </section>
+          
+          <section>
+            <h3 className="text-secondary font-black text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
+              <ClipboardList size={14} /> Reglas del Juego
+            </h3>
+            <ul className="space-y-2">
+              {game.rules.map((rule: string, i: number) => (
+                <li key={i} className="flex items-start gap-3 text-white/70 text-xs">
+                  <div className="mt-1 w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></div>
+                  {rule}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+        
+        <button 
+          onClick={onClose}
+          className="w-full mt-8 py-4 bg-secondary text-black font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+        >
+          ENTENDIDO
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 const GAMES_ENHANCED = [
   { 
@@ -7794,19 +7903,21 @@ const GAMES_ENHANCED = [
   },
   { 
     id: 'memoria', 
-    title: 'PRÓXIMAMENTE', 
+    title: 'MEMORY PREVENTIVO', 
     subtitle: 'MISIÓN_06', 
-    icon: 'lock', 
-    active: false, 
-    color: 'bg-slate-500', 
-    level: 'BLOQUEADO', 
-    stats: '---', 
+    icon: 'memory', 
+    active: true, 
+    color: 'bg-purple-500', 
+    level: 'PRINCIPIANTE', 
+    stats: '18 VIC / 4 RGO', 
     img: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800',
-    desc: 'Módulo en desarrollo para futuros desafíos de memoria preventiva.',
-    obj: 'Próximamente disponible.',
+    desc: 'Entrena tu memoria visual para recordar la ubicación de elementos de seguridad críticos.',
+    obj: 'Encontrar todos los pares de elementos de seguridad en el menor tiempo.',
     rules: [
-      'Contenido bloqueado.',
-      'En desarrollo.'
+      'Gira las cartas para revelar los iconos de seguridad.',
+      'Memoriza la posición de cada elemento.',
+      'Forma parejas idénticas para despejar el tablero.',
+      'Completa el desafío antes de que el tiempo se agote.'
     ]
   },
   { 
@@ -7852,38 +7963,38 @@ const GAMES_ENHANCED = [
     id: 'decisiones', 
     title: 'DECISIONES SEGURAS', 
     subtitle: 'MISIÓN_09', 
-    icon: 'fact_check', 
+    icon: 'alt_route', 
     active: true, 
-    color: 'bg-indigo-600', 
+    color: 'bg-cyan-500', 
     level: 'INTERMEDIO', 
-    stats: '0 VIC / 0 RGO', 
-    img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
-    desc: 'Enfrentá escenarios reales de la operación y tomá la decisión más segura.',
-    obj: 'Resolver dilemas éticos y técnicos de seguridad industrial.',
+    stats: '14 VIC / 6 RGO', 
+    img: 'https://images.unsplash.com/photo-1454165833767-027ffea9e77b?auto=format&fit=crop&q=80&w=800',
+    desc: 'Enfréntate a dilemas éticos y operativos donde cada decisión impacta en la seguridad del equipo.',
+    obj: 'Tomar las decisiones más seguras para completar la jornada sin incidentes.',
     rules: [
-      'Analizá la imagen y la descripción del escenario.',
-      'Elegí entre 3 opciones de conducta (A, B o C).',
-      'Las respuestas correctas multiplican tu puntaje por racha.',
-      'Aprendé con el principio preventivo revelado en cada turno.'
+      'Se te presentarán situaciones críticas de planta.',
+      'Elige entre dos o más cursos de acción.',
+      'Cada elección tiene consecuencias en el nivel de riesgo.',
+      'Llega al final del turno con el indicador de riesgo en verde.'
     ]
   },
   { 
     id: 'espejo', 
     title: 'EL ESPEJO DEL TURNO', 
     subtitle: 'MISIÓN_10', 
-    icon: 'mirror', 
+    icon: 'auto_awesome', 
     active: true, 
-    color: 'bg-purple-600', 
-    level: 'INTERMEDIO', 
-    stats: '0 VIC / 0 RGO', 
-    img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
-    desc: 'Una pausa para reflexionar sobre nuestras conductas y cuidarnos entre todos.',
-    obj: 'Autoevaluación de conductas para todo el personal de MABE.',
+    color: 'bg-indigo-500', 
+    level: 'PRINCIPIANTE', 
+    stats: '20 VIC / 1 RGO', 
+    img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800',
+    desc: 'Refleja las mejores prácticas de seguridad identificando comportamientos seguros e inseguros.',
+    obj: 'Validar comportamientos seguros en una serie de escenarios visuales.',
     rules: [
-      'Seleccioná el modo de juego (Individual o Facilitador).',
-      'Leé atentamente la situación planteada en la tarjeta.',
-      'Respondé con sinceridad sobre tu conducta habitual.',
-      'Reflexioná sobre el mensaje y participá en el debate si estás en grupo.'
+      'Observa la escena industrial presentada.',
+      'Identifica rápidamente los actos inseguros.',
+      'Propón la corrección inmediata para cada riesgo.',
+      'Acumula puntos por cada detección correcta y rápida.'
     ]
   },
   { 
@@ -7894,7 +8005,7 @@ const GAMES_ENHANCED = [
     active: true, 
     color: 'bg-red-600', 
     level: 'INTERMEDIO', 
-    stats: '0 VIC / 0 RGO', 
+    stats: '12 VIC / 2 RGO', 
     img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800',
     desc: 'Simulador de situaciones críticas con narrativa ramificada. El foco es la reflexión y el aprendizaje.',
     obj: 'Tomar las decisiones correctas ante escenarios de alto riesgo.',
@@ -7913,7 +8024,7 @@ const GAMES_ENHANCED = [
     active: true, 
     color: 'bg-red-700', 
     level: 'EXPERTO', 
-    stats: '0 VIC / 0 RGO', 
+    stats: '8 VIC / 1 RGO', 
     img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
     desc: 'Ordená los pasos de respuesta ante emergencias bajo presión de tiempo.',
     obj: 'Validar la secuencia correcta del protocolo de seguridad.',
@@ -7930,95 +8041,24 @@ const GAMES_ENHANCED = [
     subtitle: 'MISIÓN_13', 
     icon: 'build', 
     active: true, 
-    color: 'bg-blue-600', 
-    level: 'INTERMEDIO', 
-    stats: '0 VIC / 0 RGO', 
-    img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
-    desc: 'Metodología de 4 pasos para resolver problemas reales en tu puesto de trabajo.',
-    obj: 'Aplicar Identificar, Analizar, Actuar y Verificar ante desafíos de planta.',
+    color: 'bg-teal-500', 
+    level: 'EXPERTO', 
+    stats: '30 VIC / 5 RGO', 
+    img: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&q=80&w=800',
+    desc: 'Soluciona problemas técnicos de seguridad directamente en el puesto de trabajo.',
+    obj: 'Aplicar controles de ingeniería y administrativos para resolver fallas de seguridad.',
     rules: [
-      'Seleccioná un problema de la lista.',
-      'Seguí la secuencia de los 4 pasos obligatorios.',
-      'Elegí la opción correcta en cada etapa.',
-      'Aprendé con la retroalimentación inmediata y el resumen final.'
+      'Se detecta una anomalía en un equipo o proceso.',
+      'Selecciona las herramientas y EPP adecuados.',
+      'Aplica el protocolo de bloqueo y etiquetado (LOTO).',
+      'Restaura la operación segura en el menor tiempo posible.'
     ]
-  },
+  }
 ];
-
-const RulesModal = ({ game, onClose }: { game: any, onClose: () => void }) => {
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div 
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="glass-panel-heavy p-8 rounded-3xl border-2 border-secondary shadow-2xl max-w-xl w-full relative"
-        onClick={e => e.stopPropagation()}
-      >
-        <button onClick={onClose} className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors">
-          <X size={24} />
-        </button>
-        
-        <div className="flex items-center gap-4 mb-6">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${game.color} shadow-lg`}>
-            <span className="material-symbols-outlined text-white text-2xl">{game.icon}</span>
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em]">{game.subtitle}</p>
-            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{game.title}</h2>
-          </div>
-        </div>
-        
-        <div className="space-y-6">
-          <section>
-            <h3 className="text-secondary font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Info size={14} /> Descripción
-            </h3>
-            <p className="text-white/80 text-sm leading-relaxed">{game.desc}</p>
-          </section>
-          
-          <section>
-            <h3 className="text-secondary font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
-              <ShieldCheck size={14} /> Objetivo
-            </h3>
-            <p className="text-white/80 text-sm leading-relaxed">{game.obj}</p>
-          </section>
-          
-          <section>
-            <h3 className="text-secondary font-black text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
-              <ClipboardList size={14} /> Reglas del Juego
-            </h3>
-            <ul className="space-y-2">
-              {game.rules.map((rule: string, i: number) => (
-                <li key={i} className="flex items-start gap-3 text-white/70 text-xs">
-                  <div className="mt-1 w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></div>
-                  {rule}
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-        
-        <button 
-          onClick={onClose}
-          className="w-full mt-8 py-4 bg-secondary text-black font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
-        >
-          ENTENDIDO
-        </button>
-      </motion.div>
-    </motion.div>
-  );
-};
 
 const GameCardV2 = ({ game, onSelect, onShowRules }: any) => {
   const [isHovered, setIsHovered] = useState(false);
-  const isMissionOfTheWeek = game.id === MISSION_OF_THE_WEEK;
+  const isMissionOfTheWeek = MISSIONS_OF_THE_WEEK.includes(game.id);
 
   return (
     <motion.div 
@@ -8026,11 +8066,16 @@ const GameCardV2 = ({ game, onSelect, onShowRules }: any) => {
       animate={{ opacity: 1, y: 0 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative overflow-hidden rounded-2xl border-2 transition-all cursor-pointer h-[320px] ${isMissionOfTheWeek ? 'border-secondary shadow-[0_0_30px_rgba(255,182,144,0.3)]' : 'border-white/10'} ${game.active ? 'hover:border-secondary hover:shadow-[0_0_30px_rgba(255,182,144,0.2)]' : 'opacity-40 grayscale cursor-not-allowed border-transparent'}`}
+      className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-500 cursor-pointer h-[320px] ${
+        isMissionOfTheWeek 
+          ? 'border-secondary shadow-[0_0_50px_rgba(255,182,144,0.4)] scale-[1.03] z-10' 
+          : 'border-white/5 opacity-25 grayscale hover:opacity-100 hover:grayscale-0'
+      } ${game.active ? '' : 'opacity-40 grayscale cursor-not-allowed border-transparent'}`}
     >
       {isMissionOfTheWeek && (
-        <div className="absolute top-0 left-0 z-20 bg-secondary text-black text-[8px] font-black px-3 py-1 rounded-br-xl shadow-lg animate-pulse">
-          MISIÓN DE LA SEMANA
+        <div className="absolute top-0 left-0 z-20 bg-secondary text-black text-[9px] font-black px-4 py-1.5 rounded-br-xl shadow-[0_4px_15px_rgba(0,0,0,0.3)] flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-black shadow-[0_0_8px_rgba(0,0,0,0.5)] animate-hud-pulse"></div>
+          MISIÓN RECOMENDADA
         </div>
       )}
       {/* Background Image */}
@@ -8055,7 +8100,7 @@ const GameCardV2 = ({ game, onSelect, onShowRules }: any) => {
 
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-             <span className="material-symbols-outlined text-secondary text-3xl drop-shadow-[0_0_8px_rgba(255,182,144,0.5)]">{game.icon}</span>
+             <span className={`material-symbols-outlined text-secondary text-3xl ${isMissionOfTheWeek ? 'drop-shadow-[0_0_15px_rgba(255,182,144,0.8)]' : 'drop-shadow-[0_0_8px_rgba(255,182,144,0.5)]'}`}>{game.icon}</span>
              <h3 className="font-headline text-2xl font-black text-white leading-none tracking-tighter uppercase drop-shadow-lg">{game.title}</h3>
           </div>
           
@@ -8135,14 +8180,22 @@ const EnhancedGameMenu = ({ onSelectGame, playerData }: { onSelectGame: (id: str
 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {GAMES_ENHANCED.map((game) => (
-          <GameCardV2 
-            key={game.id}
-            game={game}
-            onSelect={() => onSelectGame(game.id)}
-            onShowRules={() => setSelectedRules(game)}
-          />
-        ))}
+        {[...GAMES_ENHANCED]
+          .sort((a, b) => {
+            const aIsMission = MISSIONS_OF_THE_WEEK.includes(a.id);
+            const bIsMission = MISSIONS_OF_THE_WEEK.includes(b.id);
+            if (aIsMission && !bIsMission) return -1;
+            if (!aIsMission && bIsMission) return 1;
+            return 0;
+          })
+          .map((game) => (
+            <GameCardV2 
+              key={game.id}
+              game={game}
+              onSelect={() => onSelectGame(game.id)}
+              onShowRules={() => setSelectedRules(game)}
+            />
+          ))}
       </div>
     );
   };
