@@ -55,17 +55,37 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
         const delimiter = lines[0].includes(';') ? ';' : ',';
         const headers = lines[0].split(delimiter).map(h => h.toLowerCase().trim().replace(/^"|"$/g, ''));
         
-        // Map headers to indices
+        // Map headers to indices with better priority and exclusivity
         const colMap = {
-          categoria: headers.findIndex(h => h.includes('cat') || h.includes('emergencia') || h.includes('protocolo')),
-          tiempo: headers.findIndex(h => h.includes('tiem') || h.includes('seg') || h.includes('limit')),
-          id: headers.findIndex(h => h.includes('id') || h.includes('orden') || h.includes('paso')),
-          paso: headers.findIndex(h => h.includes('paso') || h.includes('desc') || h.includes('accion')),
-          detalle: headers.findIndex(h => h.includes('det') || h.includes('info') || h.includes('explic')),
-          icono: headers.findIndex(h => h.includes('ico') || h.includes('img') || h.includes('visual'))
+          categoria: headers.findIndex(h => h === 'categoria' || h === 'emergencia' || h === 'protocolo' || h.includes('cat') || h.includes('emergencia')),
+          tiempo: headers.findIndex(h => h === 'tiempo' || h === 'segundos' || h.includes('tiem') || h.includes('seg')),
+          id: headers.findIndex(h => h === 'id' || h === 'orden' || h === 'nro' || h === 'num' || h === 'n°' || h === 'n'),
+          paso: headers.findIndex(h => h === 'paso' || h === 'accion' || h === 'descripcion' || h.includes('desc') || h.includes('accion') || h.includes('texto')),
+          detalle: headers.findIndex(h => h === 'detalle' || h === 'info' || h.includes('det') || h.includes('info') || h.includes('explic')),
+          icono: headers.findIndex(h => h === 'icono' || h === 'icon' || h.includes('ico') || h.includes('img') || h.includes('visual'))
         };
 
-        // Fallback to defaults if headers not found
+        // Fallbacks for ID if not found by exact match
+        if (colMap.id === -1) {
+          colMap.id = headers.findIndex(h => h.includes('id') || h.includes('orden') || h.includes('num'));
+        }
+
+        // If id and paso are the same, it's likely a mistake. Prioritize paso as text if it matches 'paso' exactly.
+        if (colMap.id !== -1 && colMap.id === colMap.paso) {
+          // If we have another potential ID column, use it
+          const alternativeId = headers.findIndex((h, i) => i !== colMap.id && (h.includes('id') || h.includes('orden') || h.includes('num')));
+          if (alternativeId !== -1) {
+            colMap.id = alternativeId;
+          } else {
+            // If not, maybe 'paso' IS the ID and we need to find another column for the text
+            const alternativePaso = headers.findIndex((h, i) => i !== colMap.id && (h.includes('desc') || h.includes('accion') || h.includes('texto')));
+            if (alternativePaso !== -1) {
+              colMap.paso = alternativePaso;
+            }
+          }
+        }
+
+        // Fallback to defaults if headers still not found
         const idx = {
           categoria: colMap.categoria !== -1 ? colMap.categoria : 0,
           tiempo: colMap.tiempo !== -1 ? colMap.tiempo : 1,
@@ -194,16 +214,16 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
 
   if (!selectedProtocol) {
     return (
-      <div className="h-screen flex items-center justify-center p-4 obsidian-table relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center p-4 obsidian-table relative overflow-y-auto">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass-panel-heavy w-full max-w-2xl p-12 rounded-2xl border border-amber-500/30 text-center hard-shadow relative z-10">
-          <AlertTriangle className="mx-auto text-amber-500 mb-8" size={80} />
-          <h2 className="text-5xl font-headline font-black mb-4 tracking-tighter uppercase leading-none">PROTOCOLOS DE <span className="text-amber-500">EMERGENCIA</span></h2>
-          <p className="text-sm opacity-70 font-body mb-10 max-w-md mx-auto italic">¿Sabrías qué hacer en los primeros segundos de una crisis? El orden salva vidas.</p>
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass-panel-heavy w-full max-w-2xl p-6 md:p-12 rounded-2xl border border-amber-500/30 text-center hard-shadow relative z-10 my-auto">
+          <AlertTriangle className="mx-auto text-amber-500 mb-6 md:mb-8 w-12 h-12 md:w-20 md:h-20" />
+          <h2 className="text-3xl md:text-5xl font-headline font-black mb-4 tracking-tighter uppercase leading-tight">PROTOCOLOS DE <span className="text-amber-500">EMERGENCIA</span></h2>
+          <p className="text-xs md:text-sm opacity-70 font-body mb-8 md:mb-10 max-w-md mx-auto italic">¿Sabrías qué hacer en los primeros segundos de una crisis? El orden salva vidas.</p>
           
-          <div className="grid gap-4">
+          <div className="grid gap-3 md:gap-4">
             {Object.keys(protocols).map(name => (
-              <button key={name} onClick={() => startProtocol(name)} className="btn-industrial-orange w-full py-5 text-black font-headline font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3">
+              <button key={name} onClick={() => startProtocol(name)} className="btn-industrial-orange w-full py-4 md:py-5 text-black font-headline font-black uppercase tracking-widest text-xs md:text-sm flex items-center justify-center gap-3">
                 {name} <Timer size={18} />
               </button>
             ))}
@@ -220,27 +240,27 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
   const availableSteps = shuffledSteps;
 
   return (
-    <div className="h-screen flex flex-col p-4 md:p-8 obsidian-table relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent pointer-events-none" />
+    <div className="min-h-screen flex flex-col p-4 md:p-8 obsidian-table relative overflow-y-auto custom-scrollbar">
+      <div className="fixed inset-0 bg-gradient-to-br from-amber-500/5 to-transparent pointer-events-none" />
       
-      <header className="flex justify-between items-center mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-amber-500 flex items-center justify-center rounded-sm hard-shadow">
-            <AlertTriangle className="text-black" size={24} />
+      <header className="flex justify-between items-center mb-4 md:mb-8 relative z-10 shrink-0">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500 flex items-center justify-center rounded-sm hard-shadow">
+            <AlertTriangle className="text-black w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">PROTOCOLO: <span className="text-amber-500">{selectedProtocol}</span></h1>
-            <div className="flex items-center gap-4 mt-1">
-              <p className="text-[10px] font-headline uppercase tracking-widest opacity-50">Ordena los pasos correctamente</p>
-              <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${timeLeft !== null && timeLeft < 20 ? 'bg-rose-500 animate-pulse' : 'bg-white/10'} transition-colors`}>
-                <Timer size={12} />
-                <span className="text-xs font-mono font-bold">{timeLeft}s</span>
+            <h1 className="text-xl md:text-3xl font-headline font-black tracking-tighter uppercase leading-none">PROTOCOLO: <span className="text-amber-500">{selectedProtocol}</span></h1>
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1">
+              <p className="text-[8px] md:text-[10px] font-headline uppercase tracking-widest opacity-50">Ordena los pasos correctamente</p>
+              <div className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-0.5 md:py-1 rounded-full ${timeLeft !== null && timeLeft < 20 ? 'bg-rose-500 animate-pulse' : 'bg-white/10'} transition-colors`}>
+                <Timer size={10} className="md:w-3 md:h-3" />
+                <span className="text-[10px] md:text-xs font-mono font-bold">{timeLeft}s</span>
               </div>
-              <div className="flex items-center gap-1 ml-2">
+              <div className="flex items-center gap-1">
                 {[...Array(3)].map((_, i) => (
                   <Heart 
                     key={i} 
-                    size={14} 
+                    size={12} 
                     className={i < lives ? "text-rose-500 fill-rose-500" : "text-white/20"} 
                   />
                 ))}
@@ -248,20 +268,20 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
             </div>
           </div>
         </div>
-        <button onClick={onExit} className="p-3 bg-white/5 border border-white/10 rounded-sm hover:bg-rose-500/20 hover:border-rose-500/50 transition-all group">
-          <LogOut className="group-hover:text-rose-500 transition-colors" size={20} />
+        <button onClick={onExit} className="p-2 md:p-3 bg-white/5 border border-white/10 rounded-sm hover:bg-rose-500/20 hover:border-rose-500/50 transition-all group">
+          <LogOut className="group-hover:text-rose-500 transition-colors w-5 h-5 md:w-6 md:h-6" />
         </button>
       </header>
 
-      <main className="flex-1 grid md:grid-cols-2 gap-8 relative z-10 max-w-6xl mx-auto w-full overflow-hidden">
+      <main className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 relative z-10 max-w-6xl mx-auto w-full">
         {/* Sequence Area */}
-        <div className="flex flex-col h-full overflow-hidden">
-          <h3 className="text-xs font-headline font-black uppercase tracking-widest opacity-50 mb-4">Tu Secuencia</h3>
-          <div className="flex-1 bg-white/5 rounded-2xl border border-white/10 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-3">
+        <div className="flex flex-col h-[300px] md:h-full overflow-hidden">
+          <h3 className="text-[10px] font-headline font-black uppercase tracking-widest opacity-50 mb-2 md:mb-4">Tu Secuencia</h3>
+          <div className="flex-1 bg-white/5 rounded-2xl border border-white/10 p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-2 md:gap-3">
             {userSteps.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center opacity-20 text-center p-8">
-                <Layers size={48} className="mb-4" />
-                <p className="text-sm font-headline uppercase tracking-widest">Selecciona los pasos en el orden correcto</p>
+              <div className="h-full flex flex-col items-center justify-center opacity-20 text-center p-4 md:p-8">
+                <Layers size={32} className="md:w-12 md:h-12 mb-2 md:mb-4" />
+                <p className="text-[10px] md:text-sm font-headline uppercase tracking-widest leading-tight">Selecciona los pasos en el orden correcto</p>
               </div>
             )}
             {userSteps.map((step, i) => {
@@ -271,16 +291,16 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
                   key={i} 
                   initial={{ x: -20, opacity: 0 }} 
                   animate={{ x: 0, opacity: 1 }} 
-                  className="flex items-center gap-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl relative overflow-hidden"
+                  className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl relative overflow-hidden shrink-0"
                 >
                   <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
-                  <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-black font-headline font-black text-xs">
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-emerald-500 flex items-center justify-center text-black font-headline font-black text-[10px] md:text-xs">
                     {i + 1}
                   </div>
-                  <Icon className="text-emerald-500" size={20} />
-                  <div>
-                    <h4 className="font-headline font-black uppercase text-xs leading-none mb-1">{step.paso}</h4>
-                    <p className="text-[10px] opacity-60 leading-tight">{step.detalle}</p>
+                  <Icon className="text-emerald-500 shrink-0 md:w-5 md:h-5" size={16} />
+                  <div className="min-w-0">
+                    <h4 className="font-headline font-black uppercase text-[10px] md:text-xs leading-none mb-1 truncate">{step.paso}</h4>
+                    <p className="text-[8px] md:text-[10px] opacity-60 leading-tight line-clamp-1 md:line-clamp-none">{step.detalle}</p>
                   </div>
                 </motion.div>
               );
@@ -289,9 +309,9 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
         </div>
 
         {/* Options Area */}
-        <div className="flex flex-col h-full overflow-hidden">
-          <h3 className="text-xs font-headline font-black uppercase tracking-widest opacity-50 mb-4">Opciones Disponibles</h3>
-          <div className="grid grid-cols-1 gap-3 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="flex flex-col h-[400px] md:h-full overflow-hidden">
+          <h3 className="text-[10px] font-headline font-black uppercase tracking-widest opacity-50 mb-2 md:mb-4">Opciones Disponibles</h3>
+          <div className="grid grid-cols-1 gap-2 md:gap-3 overflow-y-auto pr-2 custom-scrollbar">
             {availableSteps.map((step, i) => {
               const isSelected = userSteps.find(s => s.id === step.id);
               const isError = lastErrorStepId === step.id;
@@ -304,7 +324,7 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
                   onClick={() => addStep(step)}
                   animate={isError ? { x: [0, -10, 10, -10, 10, 0] } : {}}
                   transition={{ duration: 0.4 }}
-                  className={`flex items-center gap-4 p-4 rounded-xl border transition-all text-left relative overflow-hidden ${
+                  className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border transition-all text-left relative overflow-hidden shrink-0 ${
                     isSelected 
                       ? 'opacity-20 grayscale border-white/5' 
                       : isError 
@@ -315,13 +335,13 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
                   {isError && (
                     <div className="absolute inset-0 bg-rose-500/10 animate-pulse pointer-events-none" />
                   )}
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${isError ? 'bg-rose-500 text-white' : 'bg-white/5 text-white/50'}`}>
-                    <Icon size={20} />
+                  <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center transition-colors shrink-0 ${isError ? 'bg-rose-500 text-white' : 'bg-white/5 text-white/50'}`}>
+                    <Icon size={16} className="md:w-5 md:h-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-headline font-black uppercase tracking-widest">{step.paso}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] md:text-xs font-headline font-black uppercase tracking-widest truncate">{step.paso}</p>
                   </div>
-                  {isError && <XCircle size={16} className="text-rose-500" />}
+                  {isError && <XCircle size={14} className="text-rose-500 shrink-0" />}
                 </motion.button>
               );
             })}

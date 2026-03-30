@@ -7,13 +7,13 @@ export const CarreraSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void,
   const [count, setCount] = useState(2);
   const [names, setNames] = useState(['Operador 1', 'Operador 2', 'Operador 3', 'Operador 4']);
   return (
-    <div className="h-screen flex items-center justify-center p-4 obsidian-table relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 to-transparent pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center p-4 obsidian-table relative overflow-y-auto custom-scrollbar">
+      <div className="fixed inset-0 bg-gradient-to-b from-secondary/5 to-transparent pointer-events-none" />
       
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="glass-panel-heavy w-full max-w-lg p-10 rounded-2xl border border-secondary/30 hard-shadow relative z-10"
+        className="glass-panel-heavy w-full max-w-lg p-6 md:p-10 rounded-2xl border border-secondary/30 hard-shadow relative z-10 my-auto"
       >
         <button onClick={onBack} className="text-[10px] font-headline uppercase tracking-widest opacity-50 hover:opacity-100 mb-6 flex items-center gap-2 transition-opacity">
           <ArrowRight className="rotate-180" size={12} /> Volver
@@ -68,9 +68,9 @@ export const CarreraSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void,
 };
 
 export const CarreraWinner = ({ player, onRestart, onFinish }: { player: any, onRestart: () => void, onFinish?: () => void }) => (
-  <div className="h-screen flex items-center justify-center p-4 obsidian-table relative overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-b from-secondary/20 to-transparent pointer-events-none" />
-    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="glass-panel-heavy w-full max-w-lg p-10 rounded-2xl border-2 border-secondary text-center hard-shadow relative z-10">
+  <div className="min-h-screen flex items-center justify-center p-4 obsidian-table relative overflow-y-auto custom-scrollbar">
+    <div className="fixed inset-0 bg-gradient-to-b from-secondary/20 to-transparent pointer-events-none" />
+    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="glass-panel-heavy w-full max-w-lg p-6 md:p-10 rounded-2xl border-2 border-secondary text-center hard-shadow relative z-10 my-auto">
       <Trophy className="mx-auto text-secondary mb-6" size={80} />
       <h2 className="text-6xl font-headline font-black mb-2 tracking-tighter uppercase">¡CAMPEÓN!</h2>
       <p className="text-xl md:text-2xl text-secondary font-headline font-black uppercase mb-8 md:mb-10 tracking-widest">{player.name} ha llegado a la meta</p>
@@ -206,35 +206,37 @@ export const CarreraGame = ({ onExit, onGameOver, onFinish }: { onExit: () => vo
   if (gameState === 'WINNER') return <CarreraWinner player={players[currentPlayerIdx]} onRestart={() => window.location.reload()} onFinish={onFinish} />;
 
   return (
-    <div className="h-screen flex flex-col lg:flex-row p-4 md:p-8 gap-8 obsidian-table relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent pointer-events-none" />
+    <div className="min-h-screen flex flex-col lg:flex-row p-4 md:p-8 gap-6 md:gap-8 obsidian-table relative overflow-y-auto custom-scrollbar">
+      <div className="fixed inset-0 bg-gradient-to-br from-secondary/5 to-transparent pointer-events-none" />
       
-      <aside className="w-full lg:w-96 flex flex-col gap-6 relative z-10">
-        <div className="glass-panel-heavy p-6 rounded-xl border border-white/10">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-secondary flex items-center justify-center rounded-sm hard-shadow">
-              <Brain className="text-black" size={24} />
+      <aside className="w-full lg:w-96 flex flex-col gap-4 md:gap-6 relative z-10">
+        <div className="glass-panel-heavy p-4 md:p-6 rounded-xl border border-white/10">
+          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-secondary flex items-center justify-center rounded-sm hard-shadow shrink-0">
+              <Brain className="text-black w-5 h-5 md:w-6 md:h-6" />
             </div>
-            <div>
-              <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none">CARRERA <span className="text-secondary">MENTE</span></h1>
-              <p className="text-[10px] font-headline uppercase tracking-widest opacity-50">Ronda {currentRound}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate">CARRERA <span className="text-secondary">MENTE</span></h1>
+              <p className="text-[8px] md:text-[10px] font-headline uppercase tracking-widest opacity-50">Ronda {currentRound}</p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+
+          <div className="flex flex-col gap-2 md:gap-3">
             {players.map((p, i) => (
-              <div key={i} className={`p-4 rounded-sm border-l-4 transition-all ${currentPlayerIdx === i ? 'bg-secondary/10 border-secondary hard-shadow-sm' : 'bg-white/5 border-transparent opacity-50'}`}>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-headline font-black uppercase tracking-widest">{p.name}</span>
-                  <span className="text-xs font-mono font-black text-secondary">{p.score} PTS</span>
+              <div key={i} className={`p-3 md:p-4 rounded-sm border-l-4 transition-all ${currentPlayerIdx === i ? 'bg-secondary/10 border-secondary hard-shadow-sm' : 'bg-white/5 border-transparent opacity-50'}`}>
+                <div className="flex justify-between items-center mb-1.5 md:mb-2">
+                  <span className="text-[10px] md:text-xs font-headline font-black uppercase tracking-widest truncate mr-2">{p.name}</span>
+                  <span className="text-[10px] md:text-xs font-mono font-black text-secondary shrink-0">{p.score} PTS</span>
                 </div>
-                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1 md:h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <motion.div className="h-full bg-secondary" initial={{ width: 0 }} animate={{ width: `${Math.min(100, (p.score / 1000) * 100)}%` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
+
 
         <div className="mt-auto flex flex-col gap-4">
           <button onClick={onExit} className="w-full py-4 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-headline font-black uppercase tracking-widest text-xs hover:bg-rose-500 hover:text-white transition-all rounded-sm">
@@ -243,23 +245,25 @@ export const CarreraGame = ({ onExit, onGameOver, onFinish }: { onExit: () => vo
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col items-center justify-center relative z-10">
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 py-4 md:py-0">
         <AnimatePresence mode="wait">
           {playState === 'IDLE' || playState === 'SPINNING' ? (
-            <motion.div key="roulette" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="flex flex-col items-center gap-12">
+            <motion.div key="roulette" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="flex flex-col items-center gap-6 md:gap-12 w-full">
               <div className="text-center">
-                <p className="text-xs font-headline uppercase tracking-[0.3em] text-secondary mb-2">Turno de</p>
-                <h2 className="text-5xl font-headline font-black uppercase tracking-tighter">{players[currentPlayerIdx].name}</h2>
+                <p className="text-[10px] md:text-xs font-headline uppercase tracking-[0.3em] text-secondary mb-1 md:mb-2">Turno de</p>
+                <h2 className="text-3xl md:text-5xl font-headline font-black uppercase tracking-tighter truncate max-w-[90vw] mx-auto">{players[currentPlayerIdx].name}</h2>
               </div>
 
-              <div className="relative w-64 h-64 md:w-96 md:h-96">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30 text-4xl drop-shadow-lg">👇</div>
+
+              <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-96 md:h-96">
+                <div className="absolute -top-4 md:-top-6 left-1/2 -translate-x-1/2 z-30 text-2xl md:text-4xl drop-shadow-lg">👇</div>
                 <motion.svg 
                   viewBox="0 0 400 400" 
                   className="w-full h-full drop-shadow-[0_0_30px_rgba(242,125,38,0.2)]"
                   animate={{ rotate: rotation }}
                   transition={{ duration: 3, ease: "circOut" }}
                 >
+
                   {Object.values(CARRERA_CATEGORIES).map((cat: any, i) => {
                     const angle = 72;
                     const startAngle = i * angle;
@@ -299,32 +303,33 @@ export const CarreraGame = ({ onExit, onGameOver, onFinish }: { onExit: () => vo
               <button 
                 onClick={spinRoulette}
                 disabled={playState === 'SPINNING'}
-                className="btn-industrial-orange px-12 py-5 text-black font-headline font-black uppercase tracking-widest text-sm disabled:opacity-50"
+                className="btn-industrial-orange px-8 md:px-12 py-4 md:py-5 text-black font-headline font-black uppercase tracking-widest text-xs md:text-sm disabled:opacity-50 shadow-xl"
               >
                 {playState === 'SPINNING' ? 'GIRANDO...' : 'GIRAR RULETA'}
               </button>
             </motion.div>
           ) : (
-            <motion.div key="question" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="w-full max-w-2xl">
-              <div className={`p-8 rounded-2xl border-2 mb-8 relative overflow-hidden ${selectedCategory.bg} text-white hard-shadow`}>
-                <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/20 px-4 py-2 rounded-full">
-                  <Timer size={16} />
-                  <span className="font-mono font-black">{timer}s</span>
+            <motion.div key="question" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="w-full max-w-2xl px-2">
+              <div className={`p-5 md:p-8 rounded-2xl border-2 mb-4 md:mb-8 relative overflow-hidden ${selectedCategory.bg} text-white hard-shadow`}>
+                <div className="absolute top-3 md:top-4 right-3 md:right-4 flex items-center gap-1.5 md:gap-2 bg-black/20 px-3 md:px-4 py-1.5 md:py-2 rounded-full">
+                  <Timer size={14} className="md:w-4 md:h-4" />
+                  <span className="font-mono font-black text-xs md:text-base">{timer}s</span>
                 </div>
-                <div className="flex items-center gap-4 mb-6">
-                  <span className="text-4xl">{selectedCategory.icon}</span>
-                  <span className="text-xs font-headline font-black uppercase tracking-widest opacity-80">{selectedCategory.label}</span>
+                <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                  <span className="text-2xl md:text-4xl">{selectedCategory.icon}</span>
+                  <span className="text-[10px] md:text-xs font-headline font-black uppercase tracking-widest opacity-80">{selectedCategory.label}</span>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-headline font-black uppercase tracking-tight leading-tight">{currentQuestion.q}</h3>
+                <h3 className="text-lg md:text-3xl font-headline font-black uppercase tracking-tight leading-tight">{currentQuestion.q}</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 {currentQuestion.o.map((opt: string, i: number) => (
                   <button
                     key={i}
                     disabled={playState === 'FEEDBACK'}
                     onClick={() => handleAnswer(opt)}
-                    className={`p-6 rounded-xl border-2 font-headline font-black uppercase tracking-widest text-xs transition-all text-left
+                    className={`p-4 md:p-6 rounded-xl border-2 font-headline font-black uppercase tracking-widest text-[10px] md:text-xs transition-all text-left
                       ${playState === 'FEEDBACK' 
                         ? opt === currentQuestion.a 
                           ? 'bg-emerald-500 border-emerald-500 text-black' 
@@ -332,11 +337,12 @@ export const CarreraGame = ({ onExit, onGameOver, onFinish }: { onExit: () => vo
                         : 'bg-white/5 border-white/10 hover:border-secondary hover:bg-secondary/10'
                       }`}
                   >
-                    <span className="opacity-30 mr-4">{String.fromCharCode(65 + i)}</span>
+                    <span className="opacity-30 mr-3 md:mr-4">{String.fromCharCode(65 + i)}</span>
                     {opt}
                   </button>
                 ))}
               </div>
+
 
               {playState === 'FEEDBACK' && (
                 <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mt-8 p-6 bg-black/40 rounded-xl border border-white/10 text-center">

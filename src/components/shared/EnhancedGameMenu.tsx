@@ -63,38 +63,38 @@ export const EnhancedGameMenu = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 pb-12 px-6 font-sans">
+    <div className="min-h-screen bg-slate-950 pt-20 md:pt-24 pb-12 px-4 md:px-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-8 md:mb-12">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-1 h-8 bg-emerald-500 rounded-full" />
-              <h2 className="text-4xl font-black text-white tracking-tight">
+            <div className="flex items-center gap-3 mb-3 md:mb-4">
+              <div className="w-1 h-6 md:h-8 bg-emerald-500 rounded-full" />
+              <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">
                 CENTRO DE <span className="text-emerald-500">OPERACIONES</span>
               </h2>
             </div>
-            <p className="text-white/40 font-mono text-xs tracking-widest uppercase max-w-xl leading-relaxed">
+            <p className="text-white/40 font-mono text-[10px] md:text-xs tracking-widest uppercase max-w-xl leading-relaxed">
               Seleccioná un módulo de entrenamiento para comenzar la validación de competencias preventivas.
             </p>
           </div>
 
-          <div className="flex p-1.5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
+          <div className="flex p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
             <button
               onClick={() => setActiveTab('FLOOR')}
-              className={`px-8 py-3 rounded-xl text-[10px] font-bold tracking-[0.2em] transition-all flex items-center gap-3 ${
+              className={`flex-1 md:flex-none px-4 md:px-8 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-bold tracking-[0.2em] transition-all flex items-center justify-center gap-2 md:gap-3 whitespace-nowrap ${
                 activeTab === 'FLOOR' ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-white/40 hover:text-white'
               }`}
             >
-              <Layout className="w-4 h-4" />
+              <Layout className="w-3.5 h-3.5 md:w-4 md:h-4" />
               TRAINING_FLOOR
             </button>
             <button
               onClick={() => setActiveTab('LOGS')}
-              className={`px-8 py-3 rounded-xl text-[10px] font-bold tracking-[0.2em] transition-all flex items-center gap-3 ${
+              className={`flex-1 md:flex-none px-4 md:px-8 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-bold tracking-[0.2em] transition-all flex items-center justify-center gap-2 md:gap-3 whitespace-nowrap ${
                 activeTab === 'LOGS' ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-white/40 hover:text-white'
               }`}
             >
-              <Trophy className="w-4 h-4" />
+              <Trophy className="w-3.5 h-3.5 md:w-4 md:h-4" />
               SYSTEM_LOGS
             </button>
           </div>

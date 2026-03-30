@@ -83,59 +83,59 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
   }
 
   return (
-    <div className="h-screen flex flex-col p-4 md:p-8 bg-slate-950 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col p-3 md:p-8 bg-slate-950 relative overflow-y-auto custom-scrollbar">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--secondary-rgb),0.15),transparent)] pointer-events-none" />
-      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--secondary-rgb),0.15),transparent)] pointer-events-none" />
+      <div className="fixed inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
       
       {/* HUD Header */}
-      <header className="flex justify-between items-center mb-6 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-secondary flex items-center justify-center rounded-xl hard-shadow shadow-secondary/20">
-            <User className="text-black" size={28} />
+      <header className="flex justify-between items-center mb-4 md:mb-6 relative z-10 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="w-9 h-9 md:w-14 md:h-14 bg-secondary flex items-center justify-center rounded-lg md:rounded-xl hard-shadow shadow-secondary/20">
+            <User className="text-black w-5 h-5 md:w-7 md:h-7" />
           </div>
           <div>
-            <h1 className="text-4xl font-headline font-black tracking-tighter uppercase leading-none text-white">EL ESPEJO <span className="text-secondary">DEL TURNO</span></h1>
-            <p className="text-xs font-headline uppercase tracking-[0.3em] text-secondary/60 font-bold">Módulo de Integridad Preventiva</p>
+            <h1 className="text-lg md:text-4xl font-headline font-black tracking-tighter uppercase leading-none text-white">EL ESPEJO <span className="text-secondary">DEL TURNO</span></h1>
+            <p className="text-[7px] md:text-xs font-headline uppercase tracking-[0.15em] md:tracking-[0.3em] text-secondary/60 font-bold">Módulo de Integridad</p>
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-8">
-          <div className="text-right">
-            <p className="text-[10px] font-headline font-black uppercase text-white/40 tracking-widest mb-1">Nivel de Integridad</p>
-            <div className="flex items-center gap-3">
-              <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="hidden sm:block text-right">
+            <p className="text-[8px] md:text-[10px] font-headline font-black uppercase text-white/40 tracking-widest mb-0.5 md:mb-1">Integridad</p>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-16 md:w-32 h-1.5 md:h-2 bg-white/10 rounded-full overflow-hidden">
                 <motion.div 
                   className={`h-full ${integrityLevel > 50 ? 'bg-emerald-500' : integrityLevel > 20 ? 'bg-amber-500' : 'bg-rose-500'}`}
                   initial={{ width: '100%' }}
                   animate={{ width: `${integrityLevel}%` }}
                 />
               </div>
-              <span className="text-xl font-headline font-black text-white">{integrityLevel}%</span>
+              <span className="text-sm md:text-xl font-headline font-black text-white">{integrityLevel}%</span>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-headline font-black uppercase text-white/40 tracking-widest mb-1">Puntaje</p>
-            <p className="text-2xl font-headline font-black text-secondary">{score}</p>
+            <p className="text-[8px] md:text-[10px] font-headline font-black uppercase text-white/40 tracking-widest mb-0.5 md:mb-1">Puntaje</p>
+            <p className="text-lg md:text-2xl font-headline font-black text-secondary">{score}</p>
           </div>
-          <button onClick={onExit} className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-rose-500/20 hover:border-rose-500/50 transition-all group shadow-lg">
-            <LogOut className="group-hover:text-rose-500 transition-colors text-white/60" size={24} />
+          <button onClick={onExit} className="p-2 md:p-4 bg-white/5 border border-white/10 rounded-lg md:rounded-xl hover:bg-rose-500/20 hover:border-rose-500/50 transition-all group shadow-lg">
+            <LogOut className="group-hover:text-rose-500 transition-colors text-white/60 w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center relative z-10 max-w-6xl mx-auto w-full gap-8">
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 max-w-6xl mx-auto w-full gap-3 md:gap-8">
         
         {/* Progress Bar */}
-        <div className="w-full max-w-md flex gap-1 mb-4">
+        <div className="w-full max-w-md flex gap-1 mb-1 md:mb-4 px-4 shrink-0">
           {situations.map((_, i) => (
             <div 
               key={i} 
-              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i === currentIdx ? 'bg-secondary scale-y-125' : i < currentIdx ? 'bg-secondary/40' : 'bg-white/10'}`} 
+              className={`h-1 md:h-1.5 flex-1 rounded-full transition-all duration-500 ${i === currentIdx ? 'bg-secondary scale-y-125' : i < currentIdx ? 'bg-secondary/40' : 'bg-white/10'}`} 
             />
           ))}
         </div>
-        <div className="w-full perspective-2000 h-[650px] md:h-[750px] max-w-5xl">
+        <div className="w-full perspective-2000 h-[480px] sm:h-[600px] md:h-[750px] max-w-5xl px-2">
           <AnimatePresence mode="wait">
             {step === 'SUMMARY' ? (
               <motion.div
@@ -173,75 +173,75 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
               >
                 {/* Front of Card: Situation & Decision */}
                 <div 
-                  className="absolute inset-0 backface-hidden glass-panel-heavy rounded-[3rem] border-4 border-white/20 p-4 md:p-8 flex flex-col items-center justify-between text-center shadow-2xl overflow-hidden"
+                  className="absolute inset-0 backface-hidden glass-panel-heavy rounded-[2rem] md:rounded-[3rem] border-2 md:border-4 border-white/20 p-4 md:p-8 flex flex-col items-center justify-between text-center shadow-2xl overflow-hidden"
                   style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
                 >
                   <div className={`absolute inset-0 opacity-10 ${ESPEJO_CATEGORY_COLORS[current.categoria]?.split(' ')[0] || 'bg-secondary'}`} />
                   
                   {/* Top Bar: Category & Mission */}
-                  <div className="w-full flex justify-between items-center relative z-10 mb-4">
-                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-headline font-black uppercase tracking-[0.2em] ${ESPEJO_CATEGORY_COLORS[current.categoria] || 'bg-gray-500'} text-black shadow-lg`}>
+                  <div className="w-full flex justify-between items-center relative z-10 mb-2 md:mb-4">
+                    <div className={`px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[8px] md:text-[10px] font-headline font-black uppercase tracking-[0.1em] md:tracking-[0.2em] ${ESPEJO_CATEGORY_COLORS[current.categoria] || 'bg-gray-500'} text-black shadow-lg`}>
                       {current.categoria}
                     </div>
-                    <div className="flex items-center gap-2 text-white/40 font-headline font-bold text-[10px] uppercase tracking-widest">
-                      <Shield size={12} /> Misión {currentIdx + 1}/{situations.length}
+                    <div className="flex items-center gap-1 md:gap-2 text-white/40 font-headline font-bold text-[8px] md:text-[10px] uppercase tracking-widest">
+                      <Shield size={10} className="md:w-3 md:h-3" /> Misión {currentIdx + 1}/{situations.length}
                     </div>
                   </div>
 
                   {/* Main Content: The Situation (Prominent) */}
-                  <div className="flex-1 flex flex-col items-center justify-center gap-6 md:gap-8 relative z-10 w-full px-4 md:px-8">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="px-5 py-1.5 bg-secondary/20 border border-secondary/30 rounded-full">
-                        <span className="text-secondary font-headline font-black uppercase tracking-[0.4em] text-[9px]">Escenario de Integridad</span>
+                  <div className="flex-1 flex flex-col items-center justify-center gap-4 md:gap-8 relative z-10 w-full px-2 md:px-8 overflow-y-auto custom-scrollbar">
+                    <div className="flex flex-col items-center gap-2 md:gap-3">
+                      <div className="px-3 md:px-5 py-1 md:py-1.5 bg-secondary/20 border border-secondary/30 rounded-full">
+                        <span className="text-secondary font-headline font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[7px] md:text-[9px]">Escenario de Integridad</span>
                       </div>
-                      <div className="flex items-center gap-4 text-white/20">
-                        <div className="h-px w-16 bg-current" />
-                        <Zap size={32} className="text-secondary animate-pulse" />
-                        <div className="h-px w-16 bg-current" />
+                      <div className="flex items-center gap-2 md:gap-4 text-white/20">
+                        <div className="h-px w-8 md:w-16 bg-current" />
+                        <Zap size={20} className="md:w-8 md:h-8 text-secondary animate-pulse" />
+                        <div className="h-px w-8 md:w-16 bg-current" />
                       </div>
                     </div>
                     
-                    <div className="relative w-full group">
+                    <div className="relative w-full group py-2 md:py-4">
                       {/* Large Decorative Quotes */}
-                      <div className="absolute -top-16 -left-6 text-secondary/10 text-[140px] md:text-[220px] font-serif leading-none select-none pointer-events-none group-hover:text-secondary/20 transition-colors duration-700">“</div>
+                      <div className="absolute -top-6 md:-top-16 -left-1 md:-left-6 text-secondary/10 text-6xl md:text-[220px] font-serif leading-none select-none pointer-events-none group-hover:text-secondary/20 transition-colors duration-700">“</div>
                       
                       <motion.h3 
                         key={current.id}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="text-3xl md:text-6xl lg:text-7xl font-headline font-black uppercase tracking-tight leading-[1.05] text-white drop-shadow-[0_10px_40px_rgba(0,0,0,0.9)] relative z-10 px-2"
+                        className="text-lg sm:text-2xl md:text-6xl lg:text-7xl font-headline font-black uppercase tracking-tight leading-[1.1] text-white drop-shadow-[0_10px_40px_rgba(0,0,0,0.9)] relative z-10 px-2"
                       >
                         {current.situacion}
                       </motion.h3>
                       
-                      <div className="absolute -bottom-20 -right-6 text-secondary/10 text-[140px] md:text-[220px] font-serif leading-none select-none pointer-events-none rotate-180 group-hover:text-secondary/20 transition-colors duration-700">“</div>
+                      <div className="absolute -bottom-10 md:-bottom-20 -right-1 md:-right-6 text-secondary/10 text-6xl md:text-[220px] font-serif leading-none select-none pointer-events-none rotate-180 group-hover:text-secondary/20 transition-colors duration-700">“</div>
                     </div>
 
-                    <div className="mt-4 flex flex-col items-center gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
-                        <p className="text-secondary font-headline font-black uppercase tracking-[0.5em] text-xs">¿Cómo reacciona tu reflejo?</p>
-                        <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
+                    <div className="mt-2 md:mt-4 flex flex-col items-center gap-2 md:gap-3">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-secondary animate-ping" />
+                        <p className="text-secondary font-headline font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[8px] md:text-xs">¿Cómo reacciona tu reflejo?</p>
+                        <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-secondary animate-ping" />
                       </div>
-                      <div className="w-32 h-1 bg-gradient-to-r from-transparent via-secondary/50 to-transparent rounded-full" />
+                      <div className="w-20 md:w-32 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-secondary/50 to-transparent rounded-full" />
                     </div>
                   </div>
 
                   {/* Decision Grid: Proportional Buttons */}
-                  <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 relative z-10 mt-4">
+                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 relative z-10 mt-3 shrink-0">
                     <button 
                       onClick={() => handleDecision('SAFE')}
-                      className="group relative flex flex-col items-center gap-2 p-4 md:p-6 bg-emerald-500/5 border-2 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500 rounded-[1.5rem] transition-all duration-300 overflow-hidden"
+                      className="group relative flex flex-row sm:flex-col items-center gap-2 md:gap-2 p-2.5 md:p-6 bg-emerald-500/5 border-2 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500 rounded-xl md:rounded-[1.5rem] transition-all duration-300 overflow-hidden text-left sm:text-center"
                     >
-                      <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
                         <CheckCircle2 size={48} />
                       </div>
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-slate-950 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
-                        <CheckCircle2 size={20} />
+                      <div className="w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-emerald-500 flex items-center justify-center text-slate-950 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20 shrink-0">
+                        <CheckCircle2 size={14} className="md:w-5 md:h-5" />
                       </div>
-                      <div className="text-center">
-                        <span className="block text-[9px] font-headline font-black uppercase tracking-widest text-emerald-500/60 mb-0.5">Integridad</span>
-                        <span className="text-xs md:text-sm font-headline font-black uppercase tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-[6px] md:text-[9px] font-headline font-black uppercase tracking-widest text-emerald-500/60 mb-0.5">Integridad</span>
+                        <span className="text-[9px] md:text-sm font-headline font-black uppercase tracking-tight text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
                           {current.opcion_segura || "Hacer lo correcto"}
                         </span>
                       </div>
@@ -249,17 +249,17 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
 
                     <button 
                       onClick={() => handleDecision('RISKY')}
-                      className="group relative flex flex-col items-center gap-2 p-4 md:p-6 bg-rose-500/5 border-2 border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500 rounded-[1.5rem] transition-all duration-300 overflow-hidden"
+                      className="group relative flex flex-row sm:flex-col items-center gap-2 md:gap-2 p-2.5 md:p-6 bg-rose-500/5 border-2 border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500 rounded-xl md:rounded-[1.5rem] transition-all duration-300 overflow-hidden text-left sm:text-center"
                     >
-                      <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity hidden sm:block">
                         <AlertTriangle size={48} />
                       </div>
-                      <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-slate-950 group-hover:scale-110 transition-transform shadow-lg shadow-rose-500/20">
-                        <AlertTriangle size={20} />
+                      <div className="w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-rose-500 flex items-center justify-center text-slate-950 group-hover:scale-110 transition-transform shadow-lg shadow-rose-500/20 shrink-0">
+                        <AlertTriangle size={14} className="md:w-5 md:h-5" />
                       </div>
-                      <div className="text-center">
-                        <span className="block text-[9px] font-headline font-black uppercase tracking-widest text-rose-500/60 mb-0.5">Atajo</span>
-                        <span className="text-xs md:text-sm font-headline font-black uppercase tracking-tight text-white group-hover:text-rose-400 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-[6px] md:text-[9px] font-headline font-black uppercase tracking-widest text-rose-500/60 mb-0.5">Atajo</span>
+                        <span className="text-[9px] md:text-sm font-headline font-black uppercase tracking-tight text-white group-hover:text-rose-400 transition-colors line-clamp-2">
                           {current.opcion_riesgosa || "Tomar el atajo"}
                         </span>
                       </div>
@@ -269,44 +269,44 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
 
                 {/* Back of Card: Result & Reflection */}
                 <motion.div 
-                  className={`absolute inset-0 backface-hidden rounded-[3rem] border-4 ${lastDecision === 'SAFE' ? 'border-emerald-500' : 'border-rose-500'} p-6 md:p-10 flex flex-col items-center justify-between text-center shadow-2xl bg-slate-900 rotate-y-180 overflow-hidden`}
+                  className={`absolute inset-0 backface-hidden rounded-[2rem] md:rounded-[3rem] border-2 md:border-4 ${lastDecision === 'SAFE' ? 'border-emerald-500' : 'border-rose-500'} p-4 md:p-10 flex flex-col items-center justify-between text-center shadow-2xl bg-slate-900 rotate-y-180 overflow-hidden`}
                   style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                 >
                   <div className={`absolute inset-0 opacity-10 ${lastDecision === 'SAFE' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                   
-                  <div className="w-full flex justify-center relative z-10">
-                    <div className={`flex items-center gap-3 px-6 py-2 rounded-full font-headline font-black uppercase tracking-[0.2em] text-xs ${lastDecision === 'SAFE' ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'}`}>
-                      {lastDecision === 'SAFE' ? <Trophy size={16} /> : <AlertCircle size={16} />}
+                  <div className="w-full flex justify-center relative z-10 mb-2">
+                    <div className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-1.5 md:py-2 rounded-full font-headline font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-[10px] md:text-xs ${lastDecision === 'SAFE' ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'}`}>
+                      {lastDecision === 'SAFE' ? <Trophy size={14} className="md:w-4 md:h-4" /> : <AlertCircle size={14} className="md:w-4 md:h-4" />}
                       {lastDecision === 'SAFE' ? 'DECISIÓN ÍNTEGRA' : 'RIESGO DETECTADO'}
                     </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col items-center justify-center gap-4 relative z-10 py-2 w-full px-4">
-                    <div className={`w-16 h-16 md:w-20 md:h-20 rounded-[2rem] flex items-center justify-center mb-2 ${lastDecision === 'SAFE' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'} border-2 border-current shadow-lg`}>
-                      {lastDecision === 'SAFE' ? <Heart size={32} /> : <AlertTriangle size={32} />}
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 relative z-10 py-1 md:py-2 w-full px-2 md:px-4 overflow-y-auto custom-scrollbar">
+                    <div className={`w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-[2rem] flex items-center justify-center mb-1 md:mb-2 ${lastDecision === 'SAFE' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'} border-2 border-current shadow-lg shrink-0`}>
+                      {lastDecision === 'SAFE' ? <Heart size={24} className="md:w-8 md:h-8" /> : <AlertTriangle size={24} className="md:w-8 md:h-8" />}
                     </div>
                     
-                    <h4 className="text-[10px] md:text-xs font-headline font-black text-secondary uppercase tracking-[0.4em] mb-1">La Verdad del Espejo</h4>
+                    <h4 className="text-[8px] md:text-xs font-headline font-black text-secondary uppercase tracking-[0.2em] md:tracking-[0.4em] mb-0.5 md:mb-1">La Verdad del Espejo</h4>
                     
-                    <div className="relative px-6 max-w-4xl">
-                      <div className="absolute -top-6 -left-2 text-white/10 text-6xl md:text-8xl font-serif">“</div>
-                      <p className="text-xl md:text-3xl lg:text-4xl font-headline font-black uppercase leading-[1.2] text-white drop-shadow-lg">
+                    <div className="relative px-2 md:px-6 max-w-4xl">
+                      <div className="absolute -top-3 md:-top-6 -left-0.5 md:-left-2 text-white/10 text-3xl md:text-8xl font-serif">“</div>
+                      <p className="text-sm sm:text-lg md:text-3xl lg:text-4xl font-headline font-black uppercase leading-[1.2] text-white drop-shadow-lg">
                         {lastDecision === 'SAFE' ? current.reflexion : `Al elegir el atajo: ${current.pregunta_debate}`}
                       </p>
-                      <div className="absolute -bottom-10 -right-2 text-white/10 text-6xl md:text-8xl font-serif rotate-180">“</div>
+                      <div className="absolute -bottom-4 md:-bottom-10 -right-0.5 md:-right-2 text-white/10 text-3xl md:text-8xl font-serif rotate-180">“</div>
                     </div>
                   </div>
 
-                  <div className="w-full space-y-4 relative z-10">
+                  <div className="w-full space-y-2 md:space-y-4 relative z-10 mt-2 shrink-0">
                     <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                     
-                    <div className="w-full flex items-start gap-4 text-left bg-white/5 p-5 rounded-[2rem] border border-white/10">
-                      <div className={`p-3 rounded-2xl ${lastDecision === 'SAFE' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'} shrink-0`}>
-                        <Info size={20} />
+                    <div className="w-full flex items-start gap-2 md:gap-4 text-left bg-white/5 p-2.5 md:p-5 rounded-xl md:rounded-[2rem] border border-white/10">
+                      <div className={`p-1.5 md:p-3 rounded-lg md:rounded-2xl ${lastDecision === 'SAFE' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'} shrink-0`}>
+                        <Info size={14} className="md:w-5 md:h-5" />
                       </div>
                       <div>
-                        <span className="font-headline font-black uppercase text-secondary/60 text-[10px] tracking-widest block mb-1">Aprendizaje Clave</span>
-                        <p className="text-sm md:text-base font-body text-white/90 leading-snug">
+                        <span className="font-headline font-black uppercase text-secondary/60 text-[7px] md:text-[10px] tracking-widest block mb-0.5 md:mb-1">Aprendizaje Clave</span>
+                        <p className="text-[9px] md:text-base font-body text-white/90 leading-snug line-clamp-3 md:line-clamp-none">
                           {lastDecision === 'SAFE' 
                             ? "Tu integridad fortalece la cultura de seguridad de todo el equipo. ¡Seguí así!" 
                             : current.reflexion}
@@ -316,10 +316,10 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
 
                     <button 
                       onClick={nextCard} 
-                      className={`w-full py-5 font-headline font-black uppercase tracking-[0.3em] text-sm rounded-2xl transition-all flex items-center justify-center gap-4 ${lastDecision === 'SAFE' ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                      className={`w-full py-3 md:py-5 font-headline font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-sm rounded-xl md:rounded-2xl transition-all flex items-center justify-center gap-2 md:gap-4 ${lastDecision === 'SAFE' ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
                     >
                       {currentIdx === situations.length - 1 ? 'FINALIZAR MISIÓN' : 'SIGUIENTE ESCENARIO'}
-                      <ArrowRight size={20} />
+                      <ArrowRight size={16} className="md:w-5 md:h-5" />
                     </button>
                   </div>
                 </motion.div>
@@ -328,15 +328,15 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
           </AnimatePresence>
         </div>
 
-        <div className="flex items-center gap-3 text-sm font-headline font-bold uppercase tracking-[0.3em] text-white/40">
+        <div className="hidden sm:flex items-center gap-3 text-sm font-headline font-bold uppercase tracking-[0.3em] text-white/40">
           <AlertCircle size={18} className="text-secondary" /> La seguridad no es una opción, es una decisión diaria
         </div>
       </main>
 
-      <div className="absolute bottom-6 left-10 flex items-center gap-4 opacity-30">
-        <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-        <div className="text-[10px] font-mono uppercase tracking-[0.5em] text-white">
-          Mirror Integrity Module v4.0 // Decisión y Consecuencia
+      <div className="absolute bottom-2 md:bottom-6 left-4 md:left-10 flex items-center gap-2 md:gap-4 opacity-30">
+        <div className="w-1 h-1 md:w-2 md:h-2 rounded-full bg-secondary animate-pulse" />
+        <div className="text-[6px] md:text-[10px] font-mono uppercase tracking-[0.3em] md:tracking-[0.5em] text-white">
+          Mirror Integrity Module v4.0
         </div>
       </div>
     </div>
