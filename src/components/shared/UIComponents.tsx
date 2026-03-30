@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, Monitor, Smartphone } from 'lucide-react';
+import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, Monitor, Smartphone, Lock } from 'lucide-react';
 import { PlayerData, Game, DisplayMode } from '../../types';
 
 export const ScanlineOverlay = () => (
@@ -141,26 +141,64 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
     <motion.div
       layout
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={!isDimmed ? { y: -5 } : {}}
-      className={`group relative transition-all duration-500 ${isDimmed ? 'grayscale opacity-40 pointer-events-none' : ''}`}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        scale: isMission ? 1.02 : 1
+      }}
+      whileHover={!isDimmed ? { y: -5, scale: isMission ? 1.04 : 1.02 } : {}}
+      className={`group relative transition-all duration-500 ${isDimmed ? 'grayscale opacity-30 pointer-events-none' : ''}`}
     >
-      <div className={`relative h-[420px] rounded-2xl overflow-hidden bg-slate-900 border border-white/5 transition-all duration-500 ${!isDimmed ? 'group-hover:border-emerald-500/30 group-hover:shadow-2xl group-hover:shadow-emerald-500/10' : ''}`}>
+      {/* Mission Glow Effect */}
+      {isMission && (
+        <>
+          <div className="absolute -inset-1 bg-emerald-500/20 blur-2xl rounded-[2.5rem] animate-pulse z-0" />
+          <motion.div 
+            className="absolute -inset-[1px] rounded-2xl z-0"
+            animate={{ 
+              boxShadow: [
+                "0 0 0px rgba(16, 185, 129, 0)",
+                "0 0 20px rgba(16, 185, 129, 0.3)",
+                "0 0 0px rgba(16, 185, 129, 0)"
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
+
+      <div className={`relative h-[420px] rounded-2xl overflow-hidden bg-slate-900 border transition-all duration-500 z-10 ${
+        isMission 
+          ? 'border-emerald-500/50 shadow-2xl shadow-emerald-500/20' 
+          : 'border-white/5'
+      } ${!isDimmed ? 'group-hover:border-emerald-500/30 group-hover:shadow-2xl group-hover:shadow-emerald-500/10' : ''}`}>
+        
         <div className="absolute inset-0">
           <img 
             src={game.img} 
             alt={game.title}
-            className="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-500 scale-110 group-hover:scale-100"
+            className={`w-full h-full object-cover transition-opacity duration-500 scale-110 group-hover:scale-100 ${
+              isMission ? 'opacity-60' : 'opacity-40 group-hover:opacity-60'
+            }`}
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+          <div className={`absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent ${isDimmed ? 'bg-slate-950/60' : ''}`} />
         </div>
 
         {isMission && (
           <div className="absolute top-4 left-4 z-10">
-            <div className="px-3 py-1 rounded-full bg-emerald-500 text-[10px] font-bold text-slate-950 tracking-wider flex items-center gap-2 animate-pulse">
-              <Zap className="w-3 h-3 fill-current" />
-              MISIÓN SEMANAL
+            <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-[10px] font-black text-slate-950 tracking-widest flex items-center gap-2 shadow-lg shadow-emerald-500/40">
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              MISIÓN PRIORITARIA
+            </div>
+          </div>
+        )}
+
+        {isDimmed && (
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <div className="flex flex-col items-center gap-2 opacity-60">
+              <Lock className="w-8 h-8 text-white/40" />
+              <span className="text-[10px] font-mono tracking-[0.3em] text-white/40 uppercase">Módulo Secundario</span>
             </div>
           </div>
         )}
@@ -168,14 +206,16 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
         <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-widest ${game.color} text-white`}>
+              <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-widest ${game.color} text-white shadow-sm`}>
                 {game.level}
               </span>
               <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest">
                 {game.stats}
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors">
+            <h3 className={`text-xl font-bold mb-1 transition-colors ${
+              isMission ? 'text-emerald-400 animate-pulse' : 'text-white group-hover:text-emerald-400'
+            }`}>
               {game.title}
             </h3>
             <p className="text-xs text-white/50 font-mono tracking-wider uppercase">
@@ -183,7 +223,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
             </p>
           </div>
 
-          <div className="h-0 overflow-hidden group-hover:h-auto transition-all duration-500 opacity-0 group-hover:opacity-100">
+          <div className={`transition-all duration-500 ${isMission ? 'h-auto opacity-100' : 'h-0 overflow-hidden group-hover:h-auto opacity-0 group-hover:opacity-100'}`}>
             <p className="text-xs text-white/70 leading-relaxed mb-4 line-clamp-3">
               {game.desc || "Entrenamiento avanzado de seguridad y prevención de riesgos laborales."}
             </p>
@@ -191,7 +231,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
             <div className="flex gap-2">
               <button
                 onClick={() => onSelect(game.id)}
-                className="flex-1 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95"
+                className="flex-1 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/10"
               >
                 <Play className="w-4 h-4 fill-current" />
                 INICIAR
