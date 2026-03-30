@@ -266,7 +266,7 @@ export const JengaGame = ({ onExit, onGameOver, onFinish }: { onExit: () => void
           </div>
           {onFinish && (
             <button 
-              onClick={onFinish}
+              onClick={() => onFinish()}
               className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl uppercase text-[10px] tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
             >
               <Trophy size={14} /> FINALIZAR Y REGISTRAR

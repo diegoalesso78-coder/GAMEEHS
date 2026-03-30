@@ -7,6 +7,15 @@ const IconMap: { [key: string]: any } = {
   AlertTriangle, Phone, Users, DoorClosed, Zap, MapPin, XCircle, Shield, Heart, Thermometer, Clock, LogOut: LogOutIcon, Search, Wind, Layers, FileText, AlertCircle, Activity, Info, HelpCircle, CheckCircle2, Timer, Eye, Hand, Flame, Skull, HardHat, Construction, Truck, Car, Stethoscope, Briefcase, Bell, Settings, Trash2, Edit, Save, Plus, Minus, RefreshCw, Play, Pause, Square, Circle, Triangle, Hexagon, Octagon
 };
 
+const getIcon = (iconName: string) => {
+  if (!iconName) return AlertTriangle;
+  const Icon = IconMap[iconName];
+  if (Icon) return Icon;
+  
+  const entry = Object.entries(IconMap).find(([k]) => k.toLowerCase() === iconName.toLowerCase());
+  return entry ? entry[1] : AlertTriangle;
+};
+
 export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onExit: () => void, onGameOver: (score: number) => void, onFinish: () => void }) => {
   const [protocols, setProtocols] = useState<any>(PROTOCOLO_FALLBACK);
   const [gameState, setGameState] = useState<{
@@ -43,12 +52,31 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
         const lines = csv.split(/\r?\n/).filter(l => l.trim().length > 0);
         if (lines.length < 2) return;
 
-        const header = lines[0];
-        const delimiter = header.includes(';') ? ';' : ',';
+        const delimiter = lines[0].includes(';') ? ';' : ',';
+        const headers = lines[0].split(delimiter).map(h => h.toLowerCase().trim().replace(/^"|"$/g, ''));
         
+        // Map headers to indices
+        const colMap = {
+          categoria: headers.findIndex(h => h.includes('cat') || h.includes('emergencia') || h.includes('protocolo')),
+          tiempo: headers.findIndex(h => h.includes('tiem') || h.includes('seg') || h.includes('limit')),
+          id: headers.findIndex(h => h.includes('id') || h.includes('orden') || h.includes('paso')),
+          paso: headers.findIndex(h => h.includes('paso') || h.includes('desc') || h.includes('accion')),
+          detalle: headers.findIndex(h => h.includes('det') || h.includes('info') || h.includes('explic')),
+          icono: headers.findIndex(h => h.includes('ico') || h.includes('img') || h.includes('visual'))
+        };
+
+        // Fallback to defaults if headers not found
+        const idx = {
+          categoria: colMap.categoria !== -1 ? colMap.categoria : 0,
+          tiempo: colMap.tiempo !== -1 ? colMap.tiempo : 1,
+          id: colMap.id !== -1 ? colMap.id : 2,
+          paso: colMap.paso !== -1 ? colMap.paso : 3,
+          detalle: colMap.detalle !== -1 ? colMap.detalle : 4,
+          icono: colMap.icono !== -1 ? colMap.icono : 5
+        };
+
         const parsed: any = {};
         lines.slice(1).forEach(line => {
-          // Robust split that handles quotes and the detected delimiter
           let cols: string[] = [];
           if (delimiter === ',') {
             cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
@@ -56,17 +84,15 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
             cols = line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
           }
 
-          if (cols.length < 4) return;
-          
-          const categoria = cols[0];
+          const categoria = cols[idx.categoria];
           if (!categoria) return;
 
-          const tiempo = parseInt(cols[1]) || 90;
+          const tiempo = parseInt(cols[idx.tiempo]) || 90;
           const paso = {
-            id: parseInt(cols[2]),
-            paso: cols[3],
-            detalle: cols[4] || '',
-            icono: cols[5] || 'AlertTriangle'
+            id: parseInt(cols[idx.id]),
+            paso: cols[idx.paso],
+            detalle: cols[idx.detalle] || '',
+            icono: cols[idx.icono] || 'AlertTriangle'
           };
           
           if (!parsed[categoria]) {
@@ -239,7 +265,7 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
               </div>
             )}
             {userSteps.map((step, i) => {
-              const Icon = IconMap[step.icono] || AlertTriangle;
+              const Icon = getIcon(step.icono);
               return (
                 <motion.div 
                   key={i} 
@@ -269,7 +295,7 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
             {availableSteps.map((step, i) => {
               const isSelected = userSteps.find(s => s.id === step.id);
               const isError = lastErrorStepId === step.id;
-              const Icon = IconMap[step.icono] || AlertTriangle;
+              const Icon = getIcon(step.icono);
               
               return (
                 <motion.button
@@ -364,7 +390,7 @@ export const ProtocoloEmergenciaGame = ({ onExit, onGameOver, onFinish }: { onEx
               </p>
               <div className="flex flex-col gap-3">
                 <button onClick={() => startProtocol(selectedProtocol)} className="btn-industrial-orange w-full py-4 text-black font-headline font-black uppercase tracking-widest text-xs">REINTENTAR</button>
-                <button onClick={onFinish} className="w-full py-4 bg-emerald-500 text-slate-950 rounded-xl font-headline font-black uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">FINALIZAR Y REGISTRAR</button>
+                <button onClick={() => onFinish()} className="w-full py-4 bg-emerald-500 text-slate-950 rounded-xl font-headline font-black uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">FINALIZAR Y REGISTRAR</button>
                 <button onClick={() => setGameState({
                   selectedProtocol: null,
                   timeLeft: null,

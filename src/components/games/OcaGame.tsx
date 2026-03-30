@@ -67,7 +67,7 @@ export const OcaSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void, onB
   );
 };
 
-export const OcaWinner = ({ player, onRestart, onFinish }: { player: any, onRestart: () => void, onFinish?: () => void }) => {
+export const OcaWinner = ({ player, onRestart, onFinish }: { player: any, onRestart: () => void, onFinish?: (score?: number) => void }) => {
   return (
     <div className="h-screen flex items-center justify-center p-4 obsidian-table relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-secondary/20 to-transparent pointer-events-none" />
@@ -88,7 +88,7 @@ export const OcaWinner = ({ player, onRestart, onFinish }: { player: any, onRest
         <div className="flex flex-col gap-3">
           {onFinish && (
             <button 
-              onClick={onFinish}
+              onClick={() => onFinish()}
               className="btn-industrial-orange w-full py-5 text-black font-headline font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2"
             >
               <Trophy size={18} /> FINALIZAR Y REGISTRAR
@@ -106,7 +106,7 @@ export const OcaWinner = ({ player, onRestart, onFinish }: { player: any, onRest
   );
 };
 
-export const OcaGame = ({ onExit, onGameOver, onFinish }: { onExit: () => void, onGameOver: (score: number) => void, onFinish?: () => void }) => {
+export const OcaGame = ({ onExit, onGameOver, onFinish }: { onExit: () => void, onGameOver: (score: number) => void, onFinish?: (score?: number) => void }) => {
   const [gameState, setGameState] = useState<'SETUP' | 'PLAYING' | 'WINNER'>('SETUP');
   const [players, setPlayers] = useState<any[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
@@ -308,8 +308,13 @@ export const OcaGame = ({ onExit, onGameOver, onFinish }: { onExit: () => void, 
         <div className="flex justify-between items-center lg:flex-col lg:items-stretch gap-2">
           <button 
             onClick={() => {
-              onGameOver(Math.floor((players[currentPlayer].pos / 63) * 100));
-              onExit();
+              const score = Math.floor((players[currentPlayer].pos / 63) * 100);
+              onGameOver(score);
+              if (onFinish) {
+                onFinish(score);
+              } else {
+                onExit();
+              }
             }}
             className="flex-1 lg:flex-none px-4 md:px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black rounded-xl uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all"
           >

@@ -151,7 +151,7 @@ export const EspejoDelTurnoGame = ({ onExit, onGameOver, onFinish }: { onExit: (
                 
                 <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl">
                   <button 
-                    onClick={onFinish}
+                    onClick={() => onFinish()}
                     className="flex-1 py-6 bg-emerald-500 text-slate-950 rounded-2xl font-headline font-black uppercase tracking-widest text-lg hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20 hover:scale-105"
                   >
                     FINALIZAR Y REGISTRAR

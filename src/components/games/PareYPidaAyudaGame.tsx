@@ -384,7 +384,7 @@ export const PareYPidaAyudaGame = ({ onExit, onGameOver, onFinish }: { onExit: (
                   <RefreshCw size={18} /> INTENTAR OTRA HISTORIA
                 </button>
                 <button 
-                  onClick={onFinish} 
+                  onClick={() => onFinish()} 
                   className="px-12 py-5 bg-emerald-500 text-slate-950 rounded-sm font-headline font-black uppercase tracking-widest text-sm hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
                 >
                   FINALIZAR Y REGISTRAR

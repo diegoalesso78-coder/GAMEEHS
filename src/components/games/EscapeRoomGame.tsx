@@ -84,7 +84,7 @@ const EscapeRoomEnd = ({ score, onRestart, onFinish }: { score: number, onRestar
       <div className="flex flex-col gap-4">
         {onFinish && (
           <button 
-            onClick={onFinish}
+            onClick={() => onFinish()}
             className="btn-industrial-orange w-full py-6 text-black font-headline font-black uppercase tracking-widest text-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(247,190,29,0.3)]"
           >
             <Trophy size={24} /> FINALIZAR Y REGISTRAR

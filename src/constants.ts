@@ -64,6 +64,7 @@ export const ESPEJO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX
 export const PARE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1987480223&single=true&output=csv';
 export const PROTOCOLO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2015417175&output=csv';
 export const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwZuRbqYuD1zrXZuLX0SDGYV6cDe2wbKLDVIXVgLJ5EjkIW3SU9ZITg-_jC5fRoYRBsSQ/exec';
+export const LOGS_READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=463017101&single=true&output=csv';
 
 export const JENGA_FALLBACK = [
   { numero: 1, pregunta: "¿Cuál es el EPP básico para planta?", respuesta: "Casco, lentes, zapatos de seguridad y protección auditiva.", nivel: "Básico", categoria: "EPP", explicacion: "El EPP básico protege las partes más vulnerables del cuerpo en un entorno industrial estándar." },

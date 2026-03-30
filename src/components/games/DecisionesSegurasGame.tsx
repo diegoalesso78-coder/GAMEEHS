@@ -115,7 +115,7 @@ export const DecisionesSegurasGame = ({ onExit, onGameOver, onFinish }: { onExit
           <div className="flex flex-col gap-3">
             {onFinish && (
               <button 
-                onClick={onFinish}
+                onClick={() => onFinish()}
                 className="btn-industrial-orange w-full py-5 text-black font-headline font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2"
               >
                 <Trophy size={18} /> FINALIZAR Y REGISTRAR

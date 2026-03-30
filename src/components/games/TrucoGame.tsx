@@ -523,7 +523,7 @@ export const TrucoGame = ({ onExit, onGameOver, onFinish }: { onExit: () => void
         <div className="flex flex-col gap-4 w-full max-w-xs">
           {onFinish && (
             <button
-              onClick={onFinish}
+              onClick={() => onFinish()}
               className="px-8 py-4 bg-[#FFD700] text-black font-black rounded-full hover:bg-white transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.3)] uppercase tracking-widest text-sm"
             >
               <Trophy size={20} /> FINALIZAR Y REGISTRAR

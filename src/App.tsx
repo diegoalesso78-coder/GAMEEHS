@@ -20,6 +20,7 @@ import { ResolveEnElPuestoGame } from './components/games/ResolveEnElPuestoGame'
 import { CazadorDeRiesgosGame } from './components/games/CazadorDeRiesgosGame';
 import IndustrialMemoryGame from './components/games/IndustrialMemoryGame';
 import { View, PlayerData, DisplayMode } from './types';
+import { LOGS_SHEETS_URL } from './constants';
 
 // Error Boundary Component
 interface ErrorBoundaryProps {
@@ -108,27 +109,46 @@ export default function App() {
   const recordGameResult = async (gameId: string, score: number) => {
     if (!playerData) return;
 
+    // Map game IDs to readable names
+    const gameNames: Record<string, string> = {
+      'carrera': 'Carrera de Autoelevadores',
+      'cazador': 'Cazador de Riesgos',
+      'decisiones': 'Decisiones Seguras',
+      'escape': 'Escape Room',
+      'espejo': 'Espejo del Turno',
+      'jenga': 'Jenga de Seguridad',
+      'match': 'Match de Seguridad',
+      'oca': 'La Oca Logística',
+      'pare': 'Pare y Pida Ayuda',
+      'protocolo': 'Protocolo de Emergencia',
+      'resolve': 'Resolve en el Puesto',
+      'truco': 'Truco de Seguridad',
+      'wordle': 'Wordle de Seguridad',
+      'memoria': 'Memoria Industrial',
+      'memory': 'Memoria Industrial'
+    };
+
     const result = {
       nombre: playerData.nombre,
-      fecha: new Date().toLocaleString(),
+      fecha: new Date().toLocaleString('es-AR'),
       sitio: playerData.sitio,
       sector: playerData.sector,
       udn: playerData.udn,
       edad: playerData.edad,
       numeroPartida: Date.now(),
-      juego: gameId,
+      juego: gameNames[gameId] || gameId,
       puntaje: score
     };
 
     console.log('Recording game result:', result);
     
     try {
-      const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwZuRbqYuD1zrXZuLX0SDGYV6cDe2wbKLDVIXVgLJ5EjkIW3SU9ZITg-_jC5fRoYRBsSQ/exec';
+      // Use text/plain to avoid preflight and ensure no-cors works
       await fetch(LOGS_SHEETS_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
         body: JSON.stringify(result),
       });
@@ -166,7 +186,8 @@ export default function App() {
         'protocolo': 'GAME_PROTOCOLO',
         'espejo': 'GAME_ESPEJO',
         'resolve': 'GAME_RESOLVE',
-        'cazador': 'GAME_CAZADOR'
+        'cazador': 'GAME_CAZADOR',
+        'memoria': 'GAME_MEMORY'
       };
       const nextView = viewMap[id];
       if (nextView) setView(nextView);
@@ -187,8 +208,8 @@ export default function App() {
   };
 
   const handleFinish = (score?: number) => {
-    const finalScore = score !== undefined ? score : sessionScore;
-    recordGameResult(view, finalScore);
+    const finalScore = typeof score === 'number' ? score : sessionScore;
+    recordGameResult(view.replace('GAME_', '').toLowerCase(), finalScore);
     setView('MENU');
     setSessionScore(0);
   };

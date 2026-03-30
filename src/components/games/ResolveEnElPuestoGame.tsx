@@ -136,7 +136,7 @@ export const ResolveEnElPuestoGame = ({ onExit, onGameOver, onFinish }: { onExit
 
           <div className="flex flex-col gap-4">
             <button 
-              onClick={onFinish} 
+              onClick={() => onFinish()} 
               className="w-full py-6 bg-emerald-500 text-slate-950 rounded-xl font-headline font-black uppercase tracking-widest text-lg hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20 hover:scale-105"
             >
               FINALIZAR Y REGISTRAR

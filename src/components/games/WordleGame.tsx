@@ -381,7 +381,7 @@ export const WordleGame = ({ onExit, onGameOver, onFinish }: { onExit: () => voi
               <div className="flex flex-col gap-3">
                 {onFinish && (
                   <button 
-                    onClick={onFinish}
+                    onClick={() => onFinish()}
                     className="w-full py-5 bg-emerald-500 text-charcoal font-black rounded-xl uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                   >
                     <Trophy size={16} /> FINALIZAR Y REGISTRAR

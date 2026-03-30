@@ -147,7 +147,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
         scale: isMission ? 1.02 : 1
       }}
       whileHover={!isDimmed ? { y: -5, scale: isMission ? 1.04 : 1.02 } : {}}
-      className={`group relative transition-all duration-500 ${isDimmed ? 'grayscale opacity-30 pointer-events-none' : ''}`}
+      className={`group relative transition-all duration-500 ${isDimmed ? 'grayscale opacity-30' : ''}`}
     >
       {/* Mission Glow Effect */}
       {isMission && (
@@ -223,19 +223,20 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
             </p>
           </div>
 
-          <div className={`transition-all duration-500 ${isMission ? 'h-auto opacity-100' : 'h-0 overflow-hidden group-hover:h-auto opacity-0 group-hover:opacity-100'}`}>
+          <div className={`transition-all duration-500 ${isMission ? 'h-auto opacity-100' : 'h-auto md:h-0 overflow-hidden md:group-hover:h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}>
             <p className="text-xs text-white/70 leading-relaxed mb-4 line-clamp-3">
               {game.desc || "Entrenamiento avanzado de seguridad y prevención de riesgos laborales."}
             </p>
             
             <div className="flex gap-2">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => onSelect(game.id)}
                 className="flex-1 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/10"
               >
                 <Play className="w-4 h-4 fill-current" />
                 INICIAR
-              </button>
+              </motion.button>
               <button
                 onClick={() => onShowRules(game)}
                 className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all"

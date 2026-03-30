@@ -559,7 +559,7 @@ export const CazadorDeRiesgosGame = ({ onExit, onGameOver, onFinish }: { onExit:
                 <div className="flex flex-col gap-3">
                   {onFinish && (
                     <button 
-                      onClick={onFinish}
+                      onClick={() => onFinish()}
                       className="w-full py-5 bg-emerald-600 text-black font-black rounded-xl uppercase tracking-widest hover:bg-emerald-500 active:scale-95 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
                     >
                       <ShieldCheck size={20} /> FINALIZAR Y REGISTRAR

@@ -311,7 +311,7 @@ const IndustrialMemoryGame: React.FC<IndustrialMemoryGameProps> = ({ onExit, onG
 
             {onFinish && (
               <button 
-                onClick={onFinish}
+                onClick={() => onFinish()}
                 className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold rounded-xl transition-all border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1 mb-3 flex items-center justify-center gap-2"
               >
                 <Trophy size={18} /> FINALIZAR Y REGISTRAR
