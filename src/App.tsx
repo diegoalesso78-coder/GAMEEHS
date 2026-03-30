@@ -85,7 +85,10 @@ export default function App() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const CONFIG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2102419216&single=true&output=csv';
+        // Add a timestamp as a cache buster to force Google to provide the latest data
+        const cacheBuster = `&t=${Date.now()}`;
+        const CONFIG_SHEET_URL = `https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2102419216&single=true&output=csv${cacheBuster}`;
+        
         const response = await fetch(CONFIG_SHEET_URL);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
@@ -98,17 +101,51 @@ export default function App() {
           return row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, ''));
         });
         
-        // Find mission_id row (case insensitive search)
-        const missionRow = rows.find(row => 
-          row[0] && row[0].toLowerCase().trim() === 'mission_id'
-        );
+        console.log('Raw Config Data Received:', rows);
+
+        // Super flexible search: Look for "mission_id" anywhere in the CSV
+        let identifiedId: string | null = null;
         
-        if (missionRow && missionRow[1]) {
-          const id = missionRow[1].toLowerCase().trim();
-          console.log('Active Mission ID identified:', id);
-          setMissionId(id);
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          for (let j = 0; j < row.length; j++) {
+            const cell = row[j].toLowerCase();
+            
+            if (cell.includes('mission_id')) {
+              // Found the key! Now let's look for the value
+              // 1. Check cell to the right
+              if (row[j + 1] && row[j + 1].trim()) {
+                identifiedId = row[j + 1].toLowerCase().trim();
+              } 
+              // 2. Check cell below (common if it's a single column list)
+              else if (rows[i + 1] && rows[i + 1][j] && rows[i + 1][j].trim()) {
+                identifiedId = rows[i + 1][j].toLowerCase().trim();
+              }
+              
+              if (identifiedId) break;
+            }
+          }
+          if (identifiedId) break;
+        }
+        
+        if (identifiedId) {
+          // Clean the ID: Take only the first word and remove non-alphanumeric
+          // This handles "escape" or "mision_06" or "truco o mision_01"
+          const cleanId = identifiedId.split(/[\s_]/)[0].replace(/[^a-z0-9]/g, '');
+          
+          // Special case: if the user put "mision_06", the split above gives "mision".
+          // If the result is just "mision", we take the next part to get the number.
+          let finalId = cleanId;
+          if (cleanId === 'mision' || cleanId === 'mission') {
+            const parts = identifiedId.split(/[\s_]/);
+            if (parts[1]) finalId = parts[1].replace(/[^a-z0-9]/g, '');
+          }
+
+          console.log('Final Mission ID to highlight:', finalId);
+          setMissionId(finalId);
         } else {
-          console.warn('mission_id key not found in config sheet');
+          setMissionId(null);
+          console.warn('No active mission_id found in config');
         }
       } catch (error) {
         console.error('Error fetching mission config:', error);

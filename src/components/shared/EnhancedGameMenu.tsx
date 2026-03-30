@@ -115,31 +115,46 @@ export const EnhancedGameMenu = ({
               exit={{ opacity: 0, y: -20 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
-              {GAMES_ENHANCED.filter(g => g.active).map((game) => {
-                const isMission = missionId && (
-                  game.id.toLowerCase() === missionId.toLowerCase() || 
-                  game.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '').includes(missionId.toLowerCase().replace(/[^a-z0-9]/g, ''))
-                );
+              {(() => {
+                const activeGames = GAMES_ENHANCED.filter(g => g.active);
+                const normalizedMissionId = missionId ? missionId.toLowerCase().replace(/[^a-z0-9]/g, '') : null;
                 
-                // Only consider it an active mission if it actually matches one of the games
-                const anyGameMatches = GAMES_ENHANCED.some(g => 
-                  missionId && (
-                    g.id.toLowerCase() === missionId.toLowerCase() || 
-                    g.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '').includes(missionId.toLowerCase().replace(/[^a-z0-9]/g, ''))
-                  )
-                );
+                const anyGameMatches = normalizedMissionId && activeGames.some(g => {
+                  const normalizedGameId = g.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  const normalizedSubtitle = g.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  // Strict matching: exact ID or exact subtitle match
+                  return normalizedGameId === normalizedMissionId || 
+                         normalizedSubtitle === normalizedMissionId ||
+                         normalizedSubtitle === `mision${normalizedMissionId}`;
+                });
 
-                return (
-                  <GameCardV2
-                    key={game.id}
-                    game={game}
-                    isMission={!!isMission}
-                    hasActiveMission={!!(missionId && anyGameMatches)}
-                    onSelect={onSelectGame}
-                    onShowRules={setSelectedGameInfo}
-                  />
-                );
-              })}
+                if (missionId) {
+                  console.log('Mission ID:', missionId, 'Normalized:', normalizedMissionId, 'Any match found:', !!anyGameMatches);
+                }
+
+                return activeGames.map((game) => {
+                  const normalizedGameId = game.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  const normalizedSubtitle = game.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  
+                  // Strict matching for the specific card
+                  const isMission = normalizedMissionId && (
+                    normalizedGameId === normalizedMissionId || 
+                    normalizedSubtitle === normalizedMissionId ||
+                    normalizedSubtitle === `mision${normalizedMissionId}`
+                  );
+                  
+                  return (
+                    <GameCardV2
+                      key={game.id}
+                      game={game}
+                      isMission={!!isMission}
+                      hasActiveMission={!!anyGameMatches}
+                      onSelect={onSelectGame}
+                      onShowRules={setSelectedGameInfo}
+                    />
+                  );
+                });
+              })()}
             </motion.div>
           ) : (
             <motion.div
