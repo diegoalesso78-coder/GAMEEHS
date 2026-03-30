@@ -28,8 +28,8 @@ export const StartScreen = ({ onStart }: { onStart: (data: PlayerData) => void }
         const sitiosText = await sitiosRes.text();
         const areasText = await areasRes.text();
         
-        setSitios(sitiosText.split('\n').slice(1).map(s => s.trim()).filter(Boolean));
-        setAreas(areasText.split('\n').slice(1).map(a => a.trim()).filter(Boolean));
+        setSitios(Array.from(new Set(sitiosText.split(/\r?\n/).slice(1).map(s => s.trim()).filter(Boolean))));
+        setAreas(Array.from(new Set(areasText.split(/\r?\n/).slice(1).map(a => a.trim()).filter(Boolean))));
       } catch (error) {
         console.error('Error fetching data:', error);
         setSitios(['Planta A', 'Planta B', 'Centro Logístico']);

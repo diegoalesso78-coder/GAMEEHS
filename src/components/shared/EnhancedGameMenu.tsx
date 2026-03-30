@@ -28,6 +28,12 @@ export const EnhancedGameMenu = ({
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (missionId) {
+      console.log('EnhancedGameMenu received missionId:', missionId);
+    }
+  }, [missionId]);
+
   const fetchLogs = async () => {
     setIsLogsLoading(true);
     try {

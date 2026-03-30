@@ -87,13 +87,28 @@ export default function App() {
       try {
         const CONFIG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2102419216&single=true&output=csv';
         const response = await fetch(CONFIG_SHEET_URL);
-        const csv = await response.text();
-        const rows = csv.split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
-        // Find mission_id row
-        const missionRow = rows.find(row => row[0] === 'mission_id');
+        const csv = await response.text();
+        console.log('Config CSV fetched successfully');
+        
+        // Robust CSV parsing handling different line endings and separators
+        const rows = csv.split(/\r?\n/).filter(row => row.trim()).map(row => {
+          const separator = row.includes(';') ? ';' : ',';
+          return row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, ''));
+        });
+        
+        // Find mission_id row (case insensitive search)
+        const missionRow = rows.find(row => 
+          row[0] && row[0].toLowerCase().trim() === 'mission_id'
+        );
+        
         if (missionRow && missionRow[1]) {
-          setMissionId(missionRow[1].toLowerCase());
+          const id = missionRow[1].toLowerCase().trim();
+          console.log('Active Mission ID identified:', id);
+          setMissionId(id);
+        } else {
+          console.warn('mission_id key not found in config sheet');
         }
       } catch (error) {
         console.error('Error fetching mission config:', error);
