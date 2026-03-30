@@ -156,6 +156,7 @@
         } = lucideReact;
 
         const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=392450905&single=true&output=csv';
+        const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwZuRbqYuD1zrXZuLX0SDGYV6cDe2wbKLDVIXVgLJ5EjkIW3SU9ZITg-_jC5fRoYRBsSQ/exec';
 
         const FALLBACK_DATA = [
             { palabra: 'CASCO', definicion: 'Elemento de protección personal para la cabeza.', categoria: 'EPP', dificultad: 'Fácil', referencia: 'ISO 3873' },
@@ -299,6 +300,31 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [onKeyPress]);
 
+            const recordGameResult = async (score) => {
+                const result = {
+                    nombre: 'Usuario Standalone',
+                    fecha: new Date().toLocaleString(),
+                    sitio: 'Standalone',
+                    sector: 'Standalone',
+                    udn: 'Standalone',
+                    edad: '0',
+                    numeroPartida: Date.now(),
+                    juego: 'GAME_WORDLE_HTML',
+                    puntaje: score
+                };
+
+                try {
+                    await fetch(LOGS_SHEETS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(result),
+                    });
+                } catch (error) {
+                    console.error('Error recording game result:', error);
+                }
+            };
+
             const updateStats = (won, attempts) => {
                 setStats(prev => {
                     const newStats = {
@@ -312,6 +338,7 @@
                     localStorage.setItem('prevenwordle_stats', JSON.stringify(newStats));
                     return newStats;
                 });
+                recordGameResult(won ? 100 : 0);
             };
 
             const getLetterStatus = (letter, pos, guess) => {
@@ -419,10 +446,40 @@
                                 animate={{ opacity: 1 }}
                                 className="flex-1 flex flex-col items-center justify-between p-4 md:p-8"
                             >
+                                {/* Hint Card */}
+                                <div className="w-full max-w-lg mb-6">
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="glass-hud p-4 rounded-2xl border border-accent/20 bg-accent/5 relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-accent" />
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-accent/10 rounded-lg">
+                                                <HelpCircle className="w-5 h-5 text-accent" />
+                                            </div>
+                                            <div className="flex-1 text-left">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-accent/60 mb-1">Pista / Definición</p>
+                                                <p className="text-sm text-white/90 font-medium leading-relaxed italic">
+                                                    "{wordData.definicion}"
+                                                </p>
+                                                <div className="mt-2 flex items-center gap-3">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 bg-accent/10 text-accent rounded-full border border-accent/20">
+                                                        {wordData.categoria}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 bg-white/5 text-white/40 rounded-full border border-white/10">
+                                                        {wordData.dificultad}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+
                                 {/* Grid */}
                                 <div className="flex-1 flex items-center justify-center w-full">
-                                    <div className="grid gap-2" style={{ gridTemplateRows: 'repeat(6, 1fr)' }}>
-                                        {[...Array(6)].map((_, rowIndex) => {
+                                    <div className="grid gap-2">
+                                        {[...Array(Math.min(6, guesses.length + (gameState === 'PLAYING' ? 1 : 0)))].map((_, rowIndex) => {
                                             const guess = guesses[rowIndex] || (rowIndex === guesses.length ? currentGuess : '');
                                             const isCurrent = rowIndex === guesses.length;
                                             const isSubmitted = rowIndex < guesses.length;

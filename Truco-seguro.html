@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUCO SEGURO — El Desafío de la Conducta</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide-react@0.344.0/dist/umd/lucide-react.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #1C0A00;
+        }
+        .font-space {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        @keyframes pulse-gold {
+            0%, 100% { border-color: #FFD700; box-shadow: 0 0 10px #FFD700; }
+            50% { border-color: #FFF; box-shadow: 0 0 25px #FFD700; }
+        }
+        .animate-pulse-gold {
+            animation: pulse-gold 1.5s infinite;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .wood-bg {
+            background-color: #1C0A00;
+            background-image: linear-gradient(rgba(28, 10, 0, 0.8), rgba(28, 10, 0, 0.8)), url("https://www.transparenttextures.com/patterns/wood-pattern.png");
+        }
+        .chalk-text {
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.2);
+        }
+        .felt-shadow {
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo } = React;
+
+        // --- Data ---
+        const TRUCO_FALLBACK = [
+            { id: '1_espadas', n: 1, s: 'espadas', p: 14, l: 'Paro y Pido Ayuda', d: 'Detengo la tarea ante cualquier riesgo' },
+            { id: '1_bastos', n: 1, s: 'bastos', p: 13, l: 'Reporto lo que Veo', d: 'Reporto condiciones inseguras siempre' },
+            { id: '7_espadas', n: 7, s: 'espadas', p: 12, l: 'Equipamiento Seguro', d: 'Verifico mi EPP antes de cada tarea' },
+            { id: '7_oros', n: 7, s: 'oros', p: 11, l: 'Equipamiento Seguro', d: 'Uso el EPP correcto para cada riesgo' },
+            { id: '3_espadas', n: 3, s: 'espadas', p: 10, l: 'Cumplo el Estándar', d: 'Completo la AST antes de arrancar' },
+            { id: '3_bastos', n: 3, s: 'bastos', p: 10, l: 'Cumplo el Estándar', d: 'Completo la AST antes de arrancar' },
+            { id: '3_oros', n: 3, s: 'oros', p: 10, l: 'Cumplo el Estándar', d: 'Completo la AST antes de arrancar' },
+            { id: '3_copas', n: 3, s: 'copas', p: 10, l: 'Cumplo el Estándar', d: 'Completo la AST antes de arrancar' },
+            { id: '2_espadas', n: 2, s: 'espadas', p: 9, l: 'Uso Correcto de EPP', d: 'Mi EPP en condición apta siempre' },
+            { id: '2_bastos', n: 2, s: 'bastos', p: 9, l: 'Uso Correcto de EPP', d: 'Mi EPP en condición apta siempre' },
+            { id: '2_oros', n: 2, s: 'oros', p: 9, l: 'Uso Correcto de EPP', d: 'Mi EPP en condición apta siempre' },
+            { id: '2_copas', n: 2, s: 'copas', p: 9, l: 'Uso Correcto de EPP', d: 'Mi EPP en condición apta siempre' },
+            { id: '1_copas', n: 1, s: 'copas', p: 8, l: 'Gemba y Auditorías', d: 'Recorro y observo el sector' },
+            { id: '1_oros', n: 1, s: 'oros', p: 8, l: 'Gemba y Auditorías', d: 'Identifico condiciones antes de actuar' },
+            { id: '12_espadas', n: 12, s: 'espadas', p: 7, l: 'Estándares a Medias', d: 'Atención: cumplimiento parcial del estándar' },
+            { id: '12_bastos', n: 12, s: 'bastos', p: 7, l: 'Estándares a Medias', d: 'Atención: cumplimiento parcial del estándar' },
+            { id: '12_oros', n: 12, s: 'oros', p: 7, l: 'Estándares a Medias', d: 'Atención: cumplimiento parcial del estándar' },
+            { id: '12_copas', n: 12, s: 'copas', p: 7, l: 'Estándares a Medias', d: 'Atención: cumplimiento parcial del estándar' },
+            { id: '11_espadas', n: 11, s: 'espadas', p: 6, l: 'Estándares a Medias', d: 'Atención: procedimiento incompleto' },
+            { id: '11_bastos', n: 11, s: 'bastos', p: 6, l: 'Estándares a Medias', d: 'Atención: procedimiento incompleto' },
+            { id: '11_oros', n: 11, s: 'oros', p: 6, l: 'Estándares a Medias', d: 'Atención: procedimiento incompleto' },
+            { id: '11_copas', n: 11, s: 'copas', p: 6, l: 'Estándares a Medias', d: 'Atención: procedimiento incompleto' },
+            { id: '10_espadas', n: 10, s: 'espadas', p: 5, l: 'Estándares a Medias', d: 'Atención: control aplicado a medias' },
+            { id: '10_bastos', n: 10, s: 'bastos', p: 5, l: 'Estándares a Medias', d: 'Atención: control aplicado a medias' },
+            { id: '10_oros', n: 10, s: 'oros', p: 5, l: 'Estándares a Medias', d: 'Atención: control aplicado a medias' },
+            { id: '10_copas', n: 10, s: 'copas', p: 5, l: 'Estándares a Medias', d: 'Atención: control aplicado a medias' },
+            { id: '7_copas', n: 7, s: 'copas', p: 4, l: 'Estándares a Medias', d: 'Atención: barrera preventiva débil' },
+            { id: '7_bastos', n: 7, s: 'bastos', p: 4, l: 'Estándares a Medias', d: 'Atención: CATA aplicado parcialmente' },
+            { id: '6_espadas', n: 6, s: 'espadas', p: 3, l: 'Acto Inseguro', d: 'Conducta que expone al riesgo' },
+            { id: '6_bastos', n: 6, s: 'bastos', p: 3, l: 'Acto Inseguro', d: 'Conducta que expone al riesgo' },
+            { id: '6_oros', n: 6, s: 'oros', p: 3, l: 'Acto Inseguro', d: 'Conducta que expone al riesgo' },
+            { id: '6_copas', n: 6, s: 'copas', p: 3, l: 'Acto Inseguro', d: 'Conducta que expone al riesgo' },
+            { id: '5_espadas', n: 5, s: 'espadas', p: 2, l: 'Acto Inseguro', d: 'Decisión que ignora el peligro' },
+            { id: '5_bastos', n: 5, s: 'bastos', p: 2, l: 'Acto Inseguro', d: 'Decisión que ignora el peligro' },
+            { id: '5_oros', n: 5, s: 'oros', p: 2, l: 'Acto Inseguro', d: 'Decisión que ignora el peligro' },
+            { id: '5_copas', n: 5, s: 'copas', p: 2, l: 'Acto Inseguro', d: 'Decisión que ignora el peligro' },
+            { id: '4_espadas', n: 4, s: 'espadas', p: 1, l: 'Acto Inseguro', d: 'Omisión que genera accidente' },
+            { id: '4_bastos', n: 4, s: 'bastos', p: 1, l: 'Acto Inseguro', d: 'Omisión que genera accidente' },
+            { id: '4_oros', n: 4, s: 'oros', p: 1, l: 'Acto Inseguro', d: 'Omisión que genera accidente' },
+            { id: '4_copas', n: 4, s: 'copas', p: 1, l: 'Acto Inseguro', d: 'Omisión que genera accidente' },
+        ];
+
+        const SUIT_COLORS = {
+            espadas: '#000000',
+            bastos: '#5D4037',
+            oros: '#FFD700',
+            copas: '#D32F2F',
+        };
+
+        const POWER_COLORS = {
+            14: '#D32F2F',
+            13: '#F57C00',
+            12: '#2E7D32',
+            11: '#1976D2',
+            10: '#FFA000',
+            9: '#455A64',
+            8: '#757575',
+        };
+
+        const getPowerColor = (p) => {
+            if (p >= 14) return POWER_COLORS[14];
+            if (p >= 12) return POWER_COLORS[12];
+            if (p >= 10) return POWER_COLORS[10];
+            if (p >= 8) return POWER_COLORS[8];
+            return '#333333';
+        };
+
+        // --- Components ---
+        const SuitIcon = ({ suit, className = "w-full h-full" }) => {
+            const s = suit.toLowerCase();
+            switch (s) {
+                case 'espadas':
+                    return (
+                        <svg viewBox="0 0 100 100" className={className} fill="currentColor">
+                            {/* Blade */}
+                            <path d="M48 5 L52 5 L54 75 L46 75 Z" />
+                            {/* Guard */}
+                            <path d="M35 72 L65 72 L65 77 L35 77 Z" />
+                            {/* Handle */}
+                            <path d="M47 77 L53 77 L53 92 L47 92 Z" />
+                            {/* Pommel */}
+                            <circle cx="50" cy="94" r="4" />
+                        </svg>
+                    );
+                case 'bastos':
+                    return (
+                        <svg viewBox="0 0 100 100" className={className} fill="currentColor">
+                            <path d="M40 10C35 10 30 15 30 25C30 45 40 80 50 90C60 80 70 45 70 25C70 15 65 10 60 10H40Z" />
+                            <circle cx="50" cy="25" r="5" fill="white" opacity="0.3" />
+                        </svg>
+                    );
+                case 'oros':
+                    return (
+                        <svg viewBox="0 0 100 100" className={className} fill="currentColor">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="none" />
+                            <circle cx="50" cy="50" r="25" fill="currentColor" />
+                            <path d="M50 10L55 30H45L50 10Z" />
+                            <path d="M50 90L45 70H55L50 90Z" />
+                            <path d="M10 50L30 45V55L10 50Z" />
+                            <path d="M90 50L70 55V45L90 50Z" />
+                        </svg>
+                    );
+                case 'copas':
+                    return (
+                        <svg viewBox="0 0 100 100" className={className} fill="currentColor">
+                            <path d="M25 10H75V40C75 55 65 65 50 65C35 65 25 55 25 40V10Z" />
+                            <path d="M45 65H55V85H45V65Z" />
+                            <path d="M30 85H70V95H30V85Z" />
+                        </svg>
+                    );
+                default:
+                    return null;
+            }
+        };
+
+        const Card = ({ card, isBot = false, isPlayed = false, onClick, isWinning = false, isLosing = false }) => {
+            const suitKey = card.s.toLowerCase();
+            if (isBot && !isPlayed) {
+                return (
+                    <div className="w-32 h-48 bg-[#1B5E20] rounded-lg border-2 border-[#FFD700] shadow-2xl relative overflow-hidden flex items-center justify-center">
+                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #FFD700 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+                        <div className="text-[#FFD700] font-black text-2xl border-4 border-[#FFD700] rounded-full w-12 h-12 flex items-center justify-center">RS</div>
+                    </div>
+                );
+            }
+
+            return (
+                <div
+                    onClick={onClick}
+                    className={`w-32 h-48 bg-[#f5f0e8] rounded-lg border-[1px] p-1 relative cursor-pointer select-none overflow-hidden transition-all duration-300 ${isWinning ? 'animate-pulse-gold border-4' : 'border-black'} ${!isPlayed && !isBot ? 'hover:-translate-y-3 hover:scale-105' : ''} card-shadow`}
+                    style={{
+                        backgroundImage: 'url("https://www.transparenttextures.com/patterns/paper-fibers.png")',
+                    }}
+                >
+                    <div className="absolute inset-1 border-[1px] border-black/20 rounded-md pointer-events-none" />
+                    <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
+                        <span className="text-sm font-bold text-black">{card.n}</span>
+                        <div className="w-4 h-4" style={{ color: SUIT_COLORS[suitKey] }}>
+                            <SuitIcon suit={card.s} />
+                        </div>
+                    </div>
+                    <div className="absolute bottom-1 right-1 flex flex-col items-center leading-none rotate-180">
+                        <span className="text-sm font-bold text-black">{card.n}</span>
+                        <div className="w-4 h-4" style={{ color: SUIT_COLORS[suitKey] }}>
+                            <SuitIcon suit={card.s} />
+                        </div>
+                    </div>
+                    <div className="h-full flex flex-col items-center justify-center text-center px-1 py-4">
+                        <div className="w-16 h-16 mb-2" style={{ color: SUIT_COLORS[suitKey] }}>
+                            <SuitIcon suit={card.s} />
+                        </div>
+                        <div className="text-[10px] font-black uppercase tracking-wide leading-tight mb-1" style={{ color: getPowerColor(card.p) }}>
+                            {card.l}
+                        </div>
+                        <div className="text-[8px] leading-tight text-[#333333] line-clamp-2">
+                            {card.d}
+                        </div>
+                    </div>
+                    {isLosing && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
+                </div>
+            );
+        };
+
+        const ChalkStroke = ({ count, color = "#F5F5F5" }) => {
+            const groups = Math.floor(count / 5);
+            const remainder = count % 5;
+            return (
+                <div className="flex flex-wrap gap-2" style={{ color }}>
+                    {Array.from({ length: groups }).map((_, i) => (
+                        <div key={i} className="relative w-6 h-8">
+                            <div className="absolute top-0 left-1 w-1 h-full bg-current rotate-[-5deg]" />
+                            <div className="absolute top-0 left-2.5 w-1 h-full bg-current rotate-[2deg]" />
+                            <div className="absolute top-0 left-4 w-1 h-full bg-current rotate-[-2deg]" />
+                            <div className="absolute top-0 left-5.5 w-1 h-full bg-current rotate-[5deg]" />
+                            <div className="absolute top-1/2 left-0 w-full h-1 bg-current rotate-[-20deg] -translate-y-1/2" />
+                        </div>
+                    ))}
+                    {remainder > 0 && (
+                        <div className="flex gap-1">
+                            {Array.from({ length: remainder }).map((_, i) => (
+                                <div key={i} className="w-1 h-8 bg-current" style={{ transform: `rotate(${Math.random() * 10 - 5}deg)` }} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        const App = () => {
+            const [gameState, setGameState] = useState('start');
+            const [playerHand, setPlayerHand] = useState([]);
+            const [botHand, setBotHand] = useState([]);
+            const [table, setTable] = useState({ player: null, bot: null });
+            const [playerScore, setPlayerScore] = useState(0);
+            const [botScore, setBotScore] = useState(0);
+            const [handsPlayed, setHandsPlayed] = useState(0);
+            const [currentHandRounds, setCurrentHandRounds] = useState([]);
+            const [turn, setTurn] = useState('player');
+            const [message, setMessage] = useState("");
+            const [subMessage, setSubMessage] = useState("");
+            const [trucoState, setTrucoState] = useState('none');
+            const [isBotThinking, setIsBotThinking] = useState(false);
+            const [winningCardId, setWinningCardId] = useState(null);
+            const [losingCardId, setLosingCardId] = useState(null);
+
+            const startNewHand = useCallback(() => {
+                if (handsPlayed >= 4) {
+                    setGameState('result');
+                    return;
+                }
+                const shuffled = [...TRUCO_FALLBACK].sort(() => Math.random() - 0.5);
+                setPlayerHand(shuffled.slice(0, 3));
+                setBotHand(shuffled.slice(3, 6));
+                setTable({ player: null, bot: null });
+                setCurrentHandRounds([]);
+                setTrucoState('none');
+                setTurn(handsPlayed % 2 === 0 ? 'player' : 'bot');
+                setMessage(`MANO ${handsPlayed + 1} DE 4`);
+                setSubMessage("¡A jugar con seguridad!");
+                if (handsPlayed % 2 !== 0) {
+                    setTimeout(() => botPlayLogic(shuffled.slice(3, 6), shuffled.slice(0, 3), null, []), 1500);
+                }
+            }, [handsPlayed]);
+
+            const startGame = () => {
+                setPlayerScore(0);
+                setBotScore(0);
+                setHandsPlayed(0);
+                setGameState('playing');
+                startNewHand();
+            };
+
+            const resolveRound = (pCard, bCard) => {
+                let winner;
+                if (pCard.p > bCard.p) {
+                    winner = 'player';
+                    setWinningCardId(pCard.id);
+                    setLosingCardId(bCard.id);
+                } else if (bCard.p > pCard.p) {
+                    winner = 'bot';
+                    setWinningCardId(bCard.id);
+                    setLosingCardId(pCard.id);
+                } else {
+                    winner = 'tie';
+                }
+                const newRounds = [...currentHandRounds, winner];
+                setCurrentHandRounds(newRounds);
+                const pWins = newRounds.filter(r => r === 'player').length;
+                const bWins = newRounds.filter(r => r === 'bot').length;
+                const ties = newRounds.filter(r => r === 'tie').length;
+                let handWinner = null;
+                if (pWins === 2) handWinner = 'player';
+                else if (bWins === 2) handWinner = 'bot';
+                else if (newRounds.length === 2 && ties === 1 && newRounds[0] !== 'tie') handWinner = newRounds[0];
+                else if (newRounds.length === 3) {
+                    if (pWins > bWins) handWinner = 'player';
+                    else if (bWins > pWins) handWinner = 'bot';
+                    else if (ties === 3) handWinner = handsPlayed % 2 === 0 ? 'player' : 'bot';
+                    else if (ties === 2) handWinner = newRounds.find(r => r !== 'tie');
+                    else if (newRounds[0] === 'tie') handWinner = newRounds[1] === 'player' ? 'player' : 'bot';
+                    else handWinner = newRounds[0];
+                }
+                setTimeout(() => {
+                    setWinningCardId(null);
+                    setLosingCardId(null);
+                    setTable({ player: null, bot: null });
+                    if (handWinner) {
+                        const pts = trucoState === 'accepted' ? 2 : 1;
+                        if (handWinner === 'player') setPlayerScore(s => s + pts);
+                        else setBotScore(s => s + pts);
+                        setHandsPlayed(h => h + 1);
+                        setMessage(handWinner === 'player' ? "¡GANASTE LA MANO!" : "EL RIESGO GANÓ LA MANO");
+                        setSubMessage(handWinner === 'player' ? "Seguridad reforzada." : "Cuidado con las conductas.");
+                        setTimeout(() => startNewHand(), 2000);
+                    } else {
+                        const nextTurn = winner === 'tie' ? (handsPlayed % 2 === 0 ? 'player' : 'bot') : winner;
+                        setTurn(nextTurn);
+                        if (nextTurn === 'bot') {
+                            setTimeout(() => botPlayLogic(botHand, playerHand, null, newRounds), 1000);
+                        }
+                    }
+                }, 2000);
+            };
+
+            const botPlayLogic = (currentBotHand, currentPlayerHand, pPlayedCard, rounds) => {
+                setIsBotThinking(true);
+                setTimeout(() => {
+                    let chosenCard;
+                    if (pPlayedCard) {
+                        const winners = currentBotHand.filter(c => c.p > pPlayedCard.p).sort((a, b) => a.p - b.p);
+                        chosenCard = winners.length > 0 ? winners[0] : [...currentBotHand].sort((a, b) => a.p - b.p)[0];
+                    } else {
+                        chosenCard = currentBotHand[Math.floor(Math.random() * currentBotHand.length)];
+                    }
+                    const newBotHand = currentBotHand.filter(c => c.id !== chosenCard.id);
+                    setBotHand(newBotHand);
+                    setTable(prev => ({ ...prev, bot: chosenCard }));
+                    setIsBotThinking(false);
+                    if (pPlayedCard) resolveRound(pPlayedCard, chosenCard);
+                    else setTurn('player');
+                }, 2500);
+            };
+
+            const playPlayerCard = (card) => {
+                if (turn !== 'player' || isBotThinking || table.player) return;
+                const newHand = playerHand.filter(c => c.id !== card.id);
+                setPlayerHand(newHand);
+                setTable(prev => ({ ...prev, player: card }));
+                if (table.bot) resolveRound(card, table.bot);
+                else {
+                    setTurn('bot');
+                    botPlayLogic(botHand, newHand, card, currentHandRounds);
+                }
+            };
+
+            const handleTruco = () => {
+                if (turn !== 'player' || trucoState !== 'none' || isBotThinking) return;
+                setMessage("¡INTERVENIR!");
+                setSubMessage("Desafiando al Riesgo...");
+                setTimeout(() => {
+                    const botBestPower = Math.max(...botHand.map(c => c.p));
+                    const accepts = botBestPower >= 8 || Math.random() > 0.5;
+                    if (accepts) {
+                        setTrucoState('accepted');
+                        setMessage("EL RIESGO ACEPTA");
+                        setSubMessage("La mano vale 2 puntos.");
+                    } else {
+                        setPlayerScore(s => s + 1);
+                        setHandsPlayed(h => h + 1);
+                        setMessage("EL RIESGO SE RETIRA");
+                        setSubMessage("Ganás 1 punto por la intervención.");
+                        setTimeout(() => startNewHand(), 2000);
+                    }
+                }, 1500);
+            };
+
+            const handleFold = () => {
+                if (turn !== 'player' || isBotThinking) return;
+                const pts = trucoState === 'accepted' ? 2 : 1;
+                setBotScore(s => s + pts);
+                setHandsPlayed(h => h + 1);
+                setMessage("TE RETIRASTE");
+                setSubMessage(`El Riesgo suma ${pts} puntos.`);
+                setTimeout(() => startNewHand(), 2000);
+            };
+
+            return (
+                <div className="fixed inset-0 wood-bg overflow-hidden flex flex-col">
+                    <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_20%,rgba(255,220,100,0.08)_0%,transparent_60%)]" />
+                    
+                    {gameState === 'start' && (
+                        <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                            <h1 className="text-5xl md:text-7xl font-black text-[#FFD700] mb-2 tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] font-space">TRUCO SEGURO</h1>
+                            <p className="text-xl text-white/80 mb-8 font-bold italic">El Desafío de la Conducta</p>
+                            <div className="bg-black/40 backdrop-blur-md p-6 rounded-2xl border border-white/10 max-w-md mb-8">
+                                <h3 className="text-[#FFD700] font-bold mb-4 uppercase tracking-widest">Reglas de Operación</h3>
+                                <ul className="text-left text-sm text-white/70 space-y-2">
+                                    <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#FFD700] mt-1.5 flex-shrink-0" /><span>Partida rápida a 4 manos contra "El Riesgo".</span></li>
+                                    <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#FFD700] mt-1.5 flex-shrink-0" /><span>Usá tus cartas de Seguridad para neutralizar peligros.</span></li>
+                                    <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#FFD700] mt-1.5 flex-shrink-0" /><span>Intervení para duplicar puntos si tenés buenas cartas.</span></li>
+                                </ul>
+                            </div>
+                            <button onClick={startGame} className="group relative px-12 py-4 bg-[#FFD700] text-black font-black text-xl rounded-full overflow-hidden transition-all hover:scale-110 active:scale-95 shadow-[0_0_30px_rgba(255,215,0,0.3)]">
+                                <span className="relative z-10 flex items-center gap-2"><LucideReact.Play fill="currentColor" /> JUGAR</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {gameState === 'result' && (
+                        <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                            <div className="mb-6">
+                                {playerScore > botScore ? <div className="w-32 h-32 bg-[#FFD700] rounded-full flex items-center justify-center text-black shadow-[0_0_50px_rgba(255,215,0,0.5)]"><LucideReact.Shield size={64} /></div> : playerScore === botScore ? <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center text-white"><LucideReact.BarChart2 size={64} /></div> : <div className="w-32 h-32 bg-red-600 rounded-full flex items-center justify-center text-white shadow-[0_0_50px_rgba(220,38,38,0.5)]"><LucideReact.AlertTriangle size={64} /></div>}
+                            </div>
+                            <h2 className={`text-4xl md:text-6xl font-black mb-2 tracking-tighter uppercase ${playerScore > botScore ? 'text-emerald-400' : playerScore === botScore ? 'text-white' : 'text-red-500'}`}>{playerScore > botScore ? '¡RIESGO CONTROLADO!' : playerScore === botScore ? 'PARTIDA PAREJA' : 'EL RIESGO GANÓ'}</h2>
+                            <p className="text-white/60 mb-8 max-w-md">{playerScore > botScore ? `Excelente gestión. La seguridad triunfó en las 4 manos.` : playerScore === botScore ? "Un empate técnico. La prevención debe ser constante." : "Reforzá tus barreras preventivas. El riesgo encontró un camino."}</p>
+                            <div className="grid grid-cols-2 gap-8 mb-12 w-full max-w-xs">
+                                <div className="text-center"><p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Tu Score</p><p className="text-5xl font-black text-emerald-400">{playerScore}</p></div>
+                                <div className="text-center"><p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Riesgo</p><p className="text-5xl font-black text-red-500">{botScore}</p></div>
+                            </div>
+                            <div className="flex gap-4">
+                                <button onClick={startGame} className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-[#FFD700] transition-colors flex items-center gap-2"><LucideReact.RotateCcw size={18} /> NUEVA PARTIDA</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'playing' && (
+                        <>
+                            <div className="p-4 pt-12 flex justify-between items-start relative z-10">
+                                <div className="bg-[#2C1810] border-4 border-[#8B4513] p-3 rounded-lg shadow-2xl min-w-[140px]">
+                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">VOS — Seguridad</p>
+                                    <div className="text-[#F5F5F5] min-h-[40px]"><ChalkStroke count={playerScore} /></div>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <p className="text-[#FFD700] font-black text-sm mb-2 tracking-widest drop-shadow-md">MANO {handsPlayed + 1} DE 4</p>
+                                    <div className="flex gap-2">
+                                        {[0, 1, 2, 3].map(i => <div key={i} className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${i < handsPlayed ? 'bg-[#FFD700] border-[#FFD700]' : i === handsPlayed ? 'bg-white/20 border-white/40 animate-pulse' : 'bg-transparent border-white/10'}`} />)}
+                                    </div>
+                                </div>
+                                <div className="bg-[#2C1810] border-4 border-[#8B4513] p-3 rounded-lg shadow-2xl min-w-[140px] text-right">
+                                    <p className="text-[10px] font-bold text-red-500/40 uppercase tracking-widest mb-1">EL RIESGO</p>
+                                    <div className="text-[#DC143C] min-h-[40px] flex justify-end"><ChalkStroke count={botScore} color="#DC143C" /></div>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 relative flex items-center justify-center px-4">
+                                <div className="absolute w-[90%] h-[70%] max-w-4xl bg-[#0D3B1E] rounded-[40px] border-[3px] border-[#FFD700]/30 felt-shadow" />
+                                <div className="relative z-10 flex gap-8 md:gap-16 items-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        {table.bot && <Card card={table.bot} isBot={true} isPlayed={true} isWinning={winningCardId === table.bot.id} isLosing={losingCardId === table.bot.id} />}
+                                        <div className="h-4 text-[8px] font-bold text-red-500 uppercase tracking-widest opacity-50">Riesgo</div>
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        {table.player && <Card card={table.player} isPlayed={true} isWinning={winningCardId === table.player.id} isLosing={losingCardId === table.player.id} />}
+                                        <div className="h-4 text-[8px] font-bold text-emerald-500 uppercase tracking-widest opacity-50">Vos</div>
+                                    </div>
+                                </div>
+                                {message && (
+                                    <div className="absolute top-[8%] left-1/2 -translate-x-1/2 z-50 bg-black/80 backdrop-blur-md border border-white/10 p-6 rounded-2xl text-center min-w-[280px] shadow-2xl pointer-events-none">
+                                        <h3 className="text-[#FFD700] font-black text-xl mb-1 tracking-tight">{message}</h3>
+                                        <p className="text-white/60 text-xs uppercase tracking-widest">{subMessage}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-[#1C0A00] border-t-2 border-white/5 p-6 relative z-20">
+                                <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8">
+                                    <div className="flex justify-center -space-x-8">
+                                        {playerHand.map((card, i) => (
+                                            <div key={card.id} className="relative transition-transform" style={{ zIndex: i, transform: `rotate(${(i - 1) * 8}deg) translateY(${Math.abs(i - 1) * 8}px)` }}>
+                                                <Card card={card} onClick={() => playPlayerCard(card)} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex-1 flex gap-4 w-full">
+                                        <button onClick={handleTruco} disabled={turn !== 'player' || trucoState !== 'none' || isBotThinking} className="flex-1 h-16 bg-gradient-to-b from-[#F97316] to-[#EA580C] border-b-4 border-[#9A3412] rounded-xl text-white font-black uppercase tracking-widest shadow-lg active:translate-y-1 active:border-b-0 transition-all disabled:opacity-30 disabled:grayscale">INTERVENIR ⚡</button>
+                                        <button onClick={handleFold} disabled={turn !== 'player' || isBotThinking} className="flex-1 h-16 bg-gradient-to-b from-[#DC2626] to-[#991B1B] border-b-4 border-[#7F1D1D] rounded-xl text-white font-black uppercase tracking-widest shadow-lg active:translate-y-1 active:border-b-0 transition-all disabled:opacity-30 disabled:grayscale">DETENER 🛑</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
