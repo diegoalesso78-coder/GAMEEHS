@@ -136,16 +136,17 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
   onShowRules 
 }) => {
   const isDimmed = hasActiveMission && !isMission;
+  const isOff = !game.active;
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ 
-        opacity: isDimmed ? 0.3 : 1, 
+        opacity: isOff ? 0.5 : (isDimmed ? 0.3 : 1), 
         y: 0,
         scale: isMission ? [1, 1.03, 1] : 1,
-        filter: isDimmed ? 'grayscale(100%)' : 'grayscale(0%)'
+        filter: (isDimmed || isOff) ? 'grayscale(100%)' : 'grayscale(0%)'
       }}
       transition={{
         scale: isMission ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 },
@@ -153,7 +154,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
         y: { duration: 0.5 },
         filter: { duration: 0.5 }
       }}
-      whileHover={!isDimmed ? { y: -5, scale: isMission ? 1.05 : 1.02 } : {}}
+      whileHover={(!isDimmed && !isOff) ? { y: -5, scale: isMission ? 1.05 : 1.02 } : {}}
       className="group relative transition-all duration-500"
     >
       {/* Mission Glow Effect */}
@@ -180,18 +181,18 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
         isMission 
           ? 'border-emerald-500 shadow-2xl shadow-emerald-500/40' 
           : 'border-white/5'
-      } ${!isDimmed ? 'group-hover:border-emerald-500/30 group-hover:shadow-2xl group-hover:shadow-emerald-500/10' : ''}`}>
+      } ${(!isDimmed && !isOff) ? 'group-hover:border-emerald-500/30 group-hover:shadow-2xl group-hover:shadow-emerald-500/10' : ''}`}>
         
         <div className="absolute inset-0">
           <img 
             src={game.img} 
             alt={game.title}
-            className={`w-full h-full object-cover transition-opacity duration-500 scale-110 group-hover:scale-100 ${
+            className={`w-full h-full object-cover transition-opacity duration-500 scale-110 ${!isOff ? 'group-hover:scale-100' : ''} ${
               isMission ? 'opacity-60' : 'opacity-40 group-hover:opacity-60'
             }`}
             referrerPolicy="no-referrer"
           />
-          <div className={`absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent ${isDimmed ? 'bg-slate-950/60' : ''}`} />
+          <div className={`absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent ${(isDimmed || isOff) ? 'bg-slate-950/60' : ''}`} />
         </div>
 
         {isMission && (
@@ -203,11 +204,22 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
           </div>
         )}
 
-        {isDimmed && (
+        {isOff && (
+          <div className="absolute top-4 right-4 z-10">
+            <div className="px-3 py-1 rounded-full bg-slate-800/80 border border-white/10 text-[8px] font-mono text-white/40 tracking-[0.2em] flex items-center gap-2 backdrop-blur-md">
+              <Lock className="w-3 h-3" />
+              OFFLINE
+            </div>
+          </div>
+        )}
+
+        {(isDimmed || isOff) && (
           <div className="absolute inset-0 flex items-center justify-center z-20">
             <div className="flex flex-col items-center gap-2 opacity-60">
               <Lock className="w-8 h-8 text-white/40" />
-              <span className="text-[10px] font-mono tracking-[0.3em] text-white/40 uppercase">Módulo Secundario</span>
+              <span className="text-[10px] font-mono tracking-[0.3em] text-white/40 uppercase">
+                {isOff ? 'Módulo Apagado' : 'Módulo Secundario'}
+              </span>
             </div>
           </div>
         )}
@@ -223,7 +235,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
               </span>
             </div>
             <h3 className={`text-xl font-bold mb-1 transition-colors ${
-              isMission ? 'text-emerald-400 animate-pulse' : 'text-white group-hover:text-emerald-400'
+              isMission ? 'text-emerald-400 animate-pulse' : (isOff ? 'text-white/40' : 'text-white group-hover:text-emerald-400')
             }`}>
               {game.title}
             </h3>
@@ -239,12 +251,17 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
             
             <div className="flex gap-2">
               <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onSelect(game.id)}
-                className="flex-1 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/10"
+                whileTap={!isOff ? { scale: 0.95 } : {}}
+                onClick={() => !isOff && onSelect(game.id)}
+                disabled={isOff}
+                className={`flex-1 h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg ${
+                  isOff 
+                    ? 'bg-slate-800 text-white/20 cursor-not-allowed border border-white/5' 
+                    : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/10 active:scale-95'
+                }`}
               >
-                <Play className="w-4 h-4 fill-current" />
-                INICIAR
+                {isOff ? <Lock className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+                {isOff ? 'BLOQUEADO' : 'INICIAR'}
               </motion.button>
               <button
                 onClick={() => onShowRules(game)}

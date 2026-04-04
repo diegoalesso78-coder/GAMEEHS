@@ -21,6 +21,7 @@ export const EnhancedGameMenu = ({
   const [selectedGameInfo, setSelectedGameInfo] = useState<Game | null>(null);
   const [logs, setLogs] = useState<any[]>([]);
   const [isLogsLoading, setIsLogsLoading] = useState(false);
+  const [logSearch, setLogSearch] = useState('');
 
   useEffect(() => {
     if (activeTab === 'LOGS') {
@@ -50,14 +51,22 @@ export const EnhancedGameMenu = ({
       if (rows.length > 1) {
         const headers = rows[0].map(h => h.toLowerCase().trim());
         const data = rows.slice(1).map(row => {
-          const obj: any = {};
+          const raw: any = {};
           headers.forEach((header, i) => {
             if (row[i] !== undefined) {
-              obj[header] = row[i];
+              raw[header] = row[i];
             }
           });
-          return obj;
-        }).filter(item => item.nombre || item.operator || item.operador);
+          
+          // Normalización robusta de campos para asegurar coincidencia con la UI
+          return {
+            date: raw.fecha || raw.timestamp || raw.date || raw['fecha y hora'] || '-',
+            operator: raw.nombre || raw.operador || raw.operator || raw.usuario || raw['nombre del operador'] || '-',
+            game: (raw.juego || raw.game || raw.módulo || raw.modulo || raw.actividad || '-').replace('GAME_', ''),
+            score: raw.puntaje || raw.score || raw.puntos || raw.resultado || '0',
+            sector: raw.sector || raw.área || raw.area || raw.sitio || raw.ubicación || raw.ubicacion || '-'
+          };
+        }).filter(item => item.operator !== '-' || item.game !== '-');
         
         setLogs(data.reverse());
       }
@@ -101,7 +110,7 @@ export const EnhancedGameMenu = ({
               }`}
             >
               <Trophy className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              SYSTEM_LOGS
+              HISTORIAL_OPS
             </button>
           </div>
         </div>
@@ -116,28 +125,28 @@ export const EnhancedGameMenu = ({
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
               {(() => {
-                const activeGames = GAMES_ENHANCED.filter(g => g.active);
+                // Sort games: active first, then inactive
+                const sortedGames = [...GAMES_ENHANCED].sort((a, b) => {
+                  if (a.active === b.active) return 0;
+                  return a.active ? -1 : 1;
+                });
+
                 const normalizedMissionIds = missionIds.map(id => id.toLowerCase().replace(/[^a-z0-9]/g, ''));
                 
-                const anyGameMatches = normalizedMissionIds.length > 0 && activeGames.some(g => {
+                const anyGameMatches = normalizedMissionIds.length > 0 && sortedGames.some(g => {
+                  if (!g.active) return false; // Missions only apply to active games
                   const normalizedGameId = g.id.toLowerCase().replace(/[^a-z0-9]/g, '');
                   const normalizedSubtitle = g.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
-                  // Strict matching: exact ID or exact subtitle match
                   return normalizedMissionIds.includes(normalizedGameId) || 
                          normalizedMissionIds.includes(normalizedSubtitle) ||
                          normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`);
                 });
 
-                if (missionIds.length > 0) {
-                  console.log('Mission IDs:', missionIds, 'Normalized:', normalizedMissionIds, 'Any match found:', !!anyGameMatches);
-                }
-
-                return activeGames.map((game) => {
+                return sortedGames.map((game) => {
                   const normalizedGameId = game.id.toLowerCase().replace(/[^a-z0-9]/g, '');
                   const normalizedSubtitle = game.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
                   
-                  // Strict matching for the specific card
-                  const isMission = normalizedMissionIds.length > 0 && (
+                  const isMission = game.active && normalizedMissionIds.length > 0 && (
                     normalizedMissionIds.includes(normalizedGameId) || 
                     normalizedMissionIds.includes(normalizedSubtitle) ||
                     normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`)
@@ -162,56 +171,83 @@ export const EnhancedGameMenu = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-slate-900/50 border border-white/10 rounded-3xl p-6 md:p-12"
+              className="bg-slate-900/50 border border-white/10 rounded-3xl p-6 md:p-12 shadow-2xl shadow-black/50"
             >
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-emerald-500" />
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/5">
+                    <Activity className="w-7 h-7 text-emerald-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-bold text-white uppercase tracking-widest">Registros de Sistema</h3>
-                    <p className="text-white/40 font-mono text-[10px] tracking-widest uppercase">Historial de validaciones preventivas</p>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">REGISTROS DE ACTIVIDAD</h3>
+                    <p className="text-white/40 font-mono text-[10px] tracking-widest uppercase">Monitoreo en tiempo real de validaciones preventivas</p>
                   </div>
                 </div>
                 <button 
                   onClick={fetchLogs}
                   disabled={isLogsLoading}
-                  className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-[10px] font-mono uppercase tracking-wider disabled:opacity-50"
+                  className="px-6 py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-slate-950 transition-all text-[10px] font-bold uppercase tracking-[0.2em] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isLogsLoading ? 'Sincronizando...' : 'Actualizar'}
+                  {isLogsLoading ? (
+                    <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Zap className="w-3.5 h-3.5" />
+                  )}
+                  {isLogsLoading ? 'SINCRONIZANDO...' : 'ACTUALIZAR DATOS'}
                 </button>
               </div>
 
+              <div className="mb-8">
+                <div className="relative max-w-md">
+                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                    <Activity className="w-4 h-4 text-white/20" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="BUSCAR POR OPERADOR, MÓDULO O SECTOR..."
+                    value={logSearch}
+                    onChange={(e) => setLogSearch(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-[10px] font-mono text-white placeholder:text-white/20 focus:outline-none focus:border-emerald-500/50 transition-all uppercase tracking-widest"
+                  />
+                </div>
+              </div>
+
               {isLogsLoading && logs.length === 0 ? (
-                <div className="py-20 text-center">
-                  <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-white/40 font-mono text-xs uppercase tracking-widest">Accediendo a la base de datos...</p>
+                <div className="py-32 text-center">
+                  <div className="w-16 h-16 border-4 border-emerald-500/10 border-t-emerald-500 rounded-full animate-spin mx-auto mb-6" />
+                  <p className="text-white/40 font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Accediendo a la base de datos central...</p>
                 </div>
               ) : logs.length > 0 ? (
-                <div className="space-y-10">
+                <div className="space-y-12">
                   {/* Stats Dashboard */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Top Sectors */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Layout className="w-4 h-4 text-emerald-500" />
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                          <Layout className="w-4 h-4 text-emerald-500" />
+                        </div>
                         <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Sectores</h4>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {(() => {
                           const counts: Record<string, number> = {};
                           logs.forEach(log => {
-                            const s = (log.sector || log.area || 'Desconocido').toUpperCase();
+                            const s = (log.sector || 'Desconocido').toUpperCase();
                             counts[s] = (counts[s] || 0) + 1;
                           });
                           return Object.entries(counts)
                             .sort((a, b) => b[1] - a[1])
                             .slice(0, 3)
                             .map(([name, count], i) => (
-                              <div key={i} className="flex items-center justify-between">
-                                <span className="text-xs text-white/60 truncate max-w-[120px]">{name}</span>
-                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count} OPS</span>
+                              <div key={i} className="flex items-center justify-between group/item">
+                                <span className="text-xs text-white/60 truncate max-w-[140px] group-hover/item:text-white transition-colors">{name}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-1 w-12 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500" style={{ width: `${(count / logs.length) * 100}%` }} />
+                                  </div>
+                                  <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
+                                </div>
                               </div>
                             ));
                         })()}
@@ -219,25 +255,27 @@ export const EnhancedGameMenu = ({
                     </div>
 
                     {/* Top Players */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Trophy className="w-4 h-4 text-emerald-500" />
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                          <Trophy className="w-4 h-4 text-emerald-500" />
+                        </div>
                         <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 5 Operadores</h4>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {(() => {
                           const counts: Record<string, number> = {};
                           logs.forEach(log => {
-                            const p = log.nombre || log.operator || log.operador || 'Anónimo';
+                            const p = log.operator || 'Anónimo';
                             counts[p] = (counts[p] || 0) + 1;
                           });
                           return Object.entries(counts)
                             .sort((a, b) => b[1] - a[1])
                             .slice(0, 5)
                             .map(([name, count], i) => (
-                              <div key={i} className="flex items-center justify-between">
-                                <span className="text-xs text-white/60 truncate max-w-[120px]">{name}</span>
-                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
+                              <div key={i} className="flex items-center justify-between group/item">
+                                <span className="text-xs text-white/60 truncate max-w-[140px] group-hover/item:text-white transition-colors">{name}</span>
+                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count} OPS</span>
                               </div>
                             ));
                         })()}
@@ -245,24 +283,26 @@ export const EnhancedGameMenu = ({
                     </div>
 
                     {/* Top Games */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Zap className="w-4 h-4 text-emerald-500" />
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                          <Zap className="w-4 h-4 text-emerald-500" />
+                        </div>
                         <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Módulos</h4>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {(() => {
                           const counts: Record<string, number> = {};
                           logs.forEach(log => {
-                            const g = (log.juego || log.game || 'Desconocido').replace('GAME_', '').toUpperCase();
+                            const g = (log.game || 'Desconocido').toUpperCase();
                             counts[g] = (counts[g] || 0) + 1;
                           });
                           return Object.entries(counts)
                             .sort((a, b) => b[1] - a[1])
                             .slice(0, 3)
                             .map(([name, count], i) => (
-                              <div key={i} className="flex items-center justify-between">
-                                <span className="text-xs text-white/60 truncate max-w-[120px]">{name}</span>
+                              <div key={i} className="flex items-center justify-between group/item">
+                                <span className="text-xs text-white/60 truncate max-w-[140px] group-hover/item:text-white transition-colors">{name}</span>
                                 <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
                               </div>
                             ));
@@ -271,52 +311,57 @@ export const EnhancedGameMenu = ({
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-white/5">
-                        <th className="pb-4 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-4">Fecha</th>
-                        <th className="pb-4 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-4">Operador</th>
-                        <th className="pb-4 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-4">Juego</th>
-                        <th className="pb-4 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-4">Puntaje</th>
-                        <th className="pb-4 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-4">Sector</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {logs.map((log, i) => {
-                        const operator = log.nombre || log.operator || log.operador || log.usuario || '-';
-                        const date = log.fecha || log.date || log.timestamp || '-';
-                        const game = log.juego || log.game || log.modulo || '-';
-                        const score = log.puntaje || log.score || log.puntos || '0';
-                        const sector = log.sector || log.area || log.sitio || '-';
-
-                        return (
-                          <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
-                            <td className="py-4 px-4 text-xs text-white/60 font-mono">{date}</td>
-                            <td className="py-4 px-4 text-xs text-white font-bold">{operator}</td>
-                            <td className="py-4 px-4 text-xs text-white/60 uppercase tracking-wider">{game.replace('GAME_', '')}</td>
-                            <td className="py-4 px-4">
-                              <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-bold font-mono">
-                                {score}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-xs text-white/40 uppercase">{sector}</td>
+                  <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02]">
+                    <div className="overflow-x-auto custom-scrollbar">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-white/5">
+                            <th className="py-5 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-6">Fecha y Hora</th>
+                            <th className="py-5 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-6">Operador</th>
+                            <th className="py-5 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-6">Módulo</th>
+                            <th className="py-5 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-6">Puntaje</th>
+                            <th className="py-5 text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-6">Sector / Área</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {logs
+                            .filter(log => 
+                              log.operator.toLowerCase().includes(logSearch.toLowerCase()) ||
+                              log.game.toLowerCase().includes(logSearch.toLowerCase()) ||
+                              log.sector.toLowerCase().includes(logSearch.toLowerCase())
+                            )
+                            .map((log, i) => (
+                              <tr key={i} className="group hover:bg-white/[0.03] transition-colors">
+                                <td className="py-4 px-6 text-xs text-white/60 font-mono whitespace-nowrap">{log.date}</td>
+                                <td className="py-4 px-6 text-xs text-white font-bold whitespace-nowrap">{log.operator}</td>
+                                <td className="py-4 px-6 text-xs text-white/60 uppercase tracking-wider whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                                    {log.game}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <span className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-black font-mono border border-emerald-500/20">
+                                    {log.score}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-6 text-xs text-white/40 uppercase whitespace-nowrap">{log.sector}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ) : (
-                <div className="py-20 text-center">
-                  <Activity className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                  <p className="text-white/40 font-mono text-xs uppercase tracking-widest">No se encontraron registros</p>
+              ) : (
+                <div className="py-32 text-center">
+                  <Activity className="w-16 h-16 text-white/5 mx-auto mb-6" />
+                  <p className="text-white/40 font-mono text-xs uppercase tracking-[0.3em]">No se detectaron registros en el sistema</p>
                 </div>
               )}
             </motion.div>
           )}
-      </AnimatePresence>
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>
