@@ -111,7 +111,6 @@ export default function App() {
         console.log('Raw Config Data Received:', rows);
 
         // Super flexible search: Look for "mission_id" anywhere in the CSV
-        // Now collecting multiple IDs (up to 5) from multiple columns and rows
         const foundIds: string[] = [];
         
         for (let i = 0; i < rows.length; i++) {
@@ -120,24 +119,36 @@ export default function App() {
             const cell = row[j].toLowerCase();
             
             if (cell.includes('mission_id')) {
-              // Found a key! Now let's look for the value(s)
+              // Found a key!
               
-              // 1. Check ALL cells to the right in the same row (like in your screenshot!)
+              // 1. Check cells to the right
               for (let k = j + 1; k < row.length; k++) {
                 if (row[k] && row[k].trim()) {
-                  foundIds.push(row[k].toLowerCase().trim());
+                  const parts = row[k].split(/[,;]/);
+                  parts.forEach(p => {
+                    const clean = p.trim().toLowerCase();
+                    if (clean && clean !== 'mission_id') foundIds.push(clean);
+                  });
                 }
               }
               
-              // 2. Check cells below in the same column (for vertical lists)
+              // 2. Check rows below (collecting from multiple columns to handle tables)
               let nextRowIdx = i + 1;
-              while (rows[nextRowIdx] && rows[nextRowIdx][j] && rows[nextRowIdx][j].trim()) {
-                // If the next row starts with another key, stop vertical search
-                if (rows[nextRowIdx][j].toLowerCase().includes('mission_id')) break;
+              while (rows[nextRowIdx]) {
+                const nextRow = rows[nextRowIdx];
+                // Stop if we hit another key
+                if (nextRow[j] && nextRow[j].toLowerCase().includes('_id') && !nextRow[j].toLowerCase().includes('mission_id')) break;
                 
-                foundIds.push(rows[nextRowIdx][j].toLowerCase().trim());
+                // Collect from the same column and the next two columns (to catch IDs in Col B/C)
+                for (let colOffset = 0; colOffset <= 2; colOffset++) {
+                  const val = nextRow[j + colOffset];
+                  if (val && val.trim()) {
+                    const clean = val.trim().toLowerCase();
+                    if (clean && clean !== 'mission_id') foundIds.push(clean);
+                  }
+                }
                 nextRowIdx++;
-                if (nextRowIdx > i + 5) break; // Limit search
+                if (nextRowIdx > i + 20) break;
               }
             }
           }
@@ -145,21 +156,12 @@ export default function App() {
         
         if (foundIds.length > 0) {
           // Process and clean all found IDs
-          const processedIds = foundIds.map(rawId => {
-            // Clean the ID: Take only the first word and remove non-alphanumeric
-            const cleanId = rawId.split(/[\s_]/)[0].replace(/[^a-z0-9]/g, '');
-            
-            let finalId = cleanId;
-            if (cleanId === 'mision' || cleanId === 'mission') {
-              const parts = rawId.split(/[\s_]/);
-              if (parts[1]) finalId = parts[1].replace(/[^a-z0-9]/g, '');
-            }
-            return finalId;
-          }).filter(id => id && id.length > 0);
-
-          // Unique IDs only, limit to 5
-          const uniqueIds = Array.from(new Set(processedIds)).slice(0, 5);
-          console.log('Final Mission IDs to highlight:', uniqueIds);
+          const processedIds = foundIds
+            .map(rawId => rawId.replace(/[^a-z0-9]/g, ''))
+            .filter(id => id.length > 0);
+          
+          const uniqueIds = Array.from(new Set(processedIds));
+          console.log('Final Mission IDs identified:', uniqueIds);
           setMissionIds(uniqueIds);
         } else {
           setMissionIds([]);

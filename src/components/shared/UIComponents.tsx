@@ -143,7 +143,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ 
-        opacity: isOff ? 0.5 : (isDimmed ? 0.3 : 1), 
+        opacity: isOff ? 0.4 : (isDimmed ? 0.25 : 1), 
         y: 0,
         scale: isMission ? [1, 1.03, 1] : 1,
         filter: (isDimmed || isOff) ? 'grayscale(100%)' : 'grayscale(0%)'

@@ -58,13 +58,49 @@ export const EnhancedGameMenu = ({
             }
           });
           
-          // Normalización robusta de campos para asegurar coincidencia con la UI
+          // Extraemos los valores base de forma flexible
+          let date = raw.fecha || raw.timestamp || raw.date || raw['fecha y hora'] || '-';
+          let operator = raw.nombre || raw.operador || raw.operator || raw.usuario || raw['nombre del operador'] || '-';
+          let game = raw.juego || raw.game || raw.módulo || raw.modulo || raw.actividad || '-';
+          let score = raw.puntaje || raw.score || raw.puntos || raw.resultado || '0';
+          // Mapeo robusto de sector: Buscamos en claves específicas y descartamos datos de sitio (como LUQUE)
+          let sector = '-';
+          const possibleSectorKeys = ['sector', 'área', 'area', 'sección', 'seccion', 'sector / área', 'sector / area'];
+          
+          for (const key of possibleSectorKeys) {
+            const val = raw[key];
+            if (val && val !== '-' && val.trim() !== '') {
+              const lowerVal = val.toLowerCase();
+              // Si el valor parece ser un sitio/localidad, lo ignoramos y seguimos buscando
+              if (!lowerVal.includes('luque') && !lowerVal.includes('sitio') && lowerVal !== 'planta a' && lowerVal !== 'planta b') {
+                sector = val;
+                break;
+              }
+            }
+          }
+
+          // Limpieza de prefijos comunes
+          game = game.replace('GAME_', '');
+
+          // HEURÍSTICA DE CORRECCIÓN (Basada en la imagen del usuario)
+          // Problema detectado: En algunas filas, el ID/Timestamp aparece en 'Módulo' 
+          // y el Nombre del Juego aparece en 'Puntaje'.
+          
+          const scoreHasLetters = /[a-zA-Z]{3,}/.test(score); // Tiene al menos 3 letras (ej: "Truco")
+          const gameIsNumericId = /^\d{10,}$/.test(game.trim()); // Es un ID numérico largo (timestamp)
+
+          if (scoreHasLetters && gameIsNumericId) {
+            // Intercambio detectado: El nombre del juego está en la columna de puntaje
+            game = score;
+            score = '0'; // El ID no nos sirve como puntaje visual
+          }
+
           return {
-            date: raw.fecha || raw.timestamp || raw.date || raw['fecha y hora'] || '-',
-            operator: raw.nombre || raw.operador || raw.operator || raw.usuario || raw['nombre del operador'] || '-',
-            game: (raw.juego || raw.game || raw.módulo || raw.modulo || raw.actividad || '-').replace('GAME_', ''),
-            score: raw.puntaje || raw.score || raw.puntos || raw.resultado || '0',
-            sector: raw.sector || raw.área || raw.area || raw.sitio || raw.ubicación || raw.ubicacion || '-'
+            date,
+            operator,
+            game,
+            score,
+            sector
           };
         }).filter(item => item.operator !== '-' || item.game !== '-');
         
@@ -125,16 +161,34 @@ export const EnhancedGameMenu = ({
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
               {(() => {
-                // Sort games: active first, then inactive
-                const sortedGames = [...GAMES_ENHANCED].sort((a, b) => {
-                  if (a.active === b.active) return 0;
-                  return a.active ? -1 : 1;
-                });
-
                 const normalizedMissionIds = missionIds.map(id => id.toLowerCase().replace(/[^a-z0-9]/g, ''));
                 
+                // Sort games: 1. Missions, 2. Active, 3. Inactive
+                const sortedGames = [...GAMES_ENHANCED].sort((a, b) => {
+                  const isAMission = a.active && normalizedMissionIds.length > 0 && (
+                    normalizedMissionIds.includes(a.id.toLowerCase().replace(/[^a-z0-9]/g, '')) || 
+                    normalizedMissionIds.includes(a.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '')) ||
+                    normalizedMissionIds.some(mid => a.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '') === `mision${mid}`)
+                  );
+                  const isBMission = b.active && normalizedMissionIds.length > 0 && (
+                    normalizedMissionIds.includes(b.id.toLowerCase().replace(/[^a-z0-9]/g, '')) || 
+                    normalizedMissionIds.includes(b.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '')) ||
+                    normalizedMissionIds.some(mid => b.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '') === `mision${mid}`)
+                  );
+
+                  // Missions first
+                  if (isAMission && !isBMission) return -1;
+                  if (!isAMission && isBMission) return 1;
+
+                  // Active next
+                  if (a.active && !b.active) return -1;
+                  if (!a.active && b.active) return 1;
+
+                  return 0;
+                });
+
                 const anyGameMatches = normalizedMissionIds.length > 0 && sortedGames.some(g => {
-                  if (!g.active) return false; // Missions only apply to active games
+                  if (!g.active) return false;
                   const normalizedGameId = g.id.toLowerCase().replace(/[^a-z0-9]/g, '');
                   const normalizedSubtitle = g.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
                   return normalizedMissionIds.includes(normalizedGameId) || 
