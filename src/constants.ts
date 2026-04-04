@@ -63,8 +63,9 @@ export const DECISIONES_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2
 export const ESPEJO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1346735467&single=true&output=csv';
 export const PARE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1987480223&single=true&output=csv';
 export const PROTOCOLO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2015417175&output=csv';
-export const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwZuRbqYuD1zrXZuLX0SDGYV6cDe2wbKLDVIXVgLJ5EjkIW3SU9ZITg-_jC5fRoYRBsSQ/exec';
+export const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw9PuaIDOyw6X3za0xGKzkK9CggUw_hs817ms18ZtpsPbBH16oF5ZGNg2mfHkuTgHqgzw/exec';
 export const LOGS_READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=463017101&single=true&output=csv';
+export const FEEDBACK_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=38170247&single=true&output=csv';
 
 export const JENGA_FALLBACK = [
   { numero: 1, pregunta: "¿Cuál es el EPP básico para planta?", respuesta: "Casco, lentes, zapatos de seguridad y protección auditiva.", nivel: "Básico", categoria: "EPP", explicacion: "El EPP básico protege las partes más vulnerables del cuerpo en un entorno industrial estándar." },
@@ -621,6 +622,82 @@ export const GAMES_ENHANCED: Game[] = [
       'Arrastrá los pasos para ordenarlos correctamente.',
       'Verificá antes de que se agote el tiempo.',
       'Los aciertos y el tiempo restante suman puntos.'
+    ]
+  },
+  { 
+    id: 'sopa', 
+    title: 'SOPA DE LETRAS', 
+    subtitle: 'MISIÓN_15', 
+    icon: 'search', 
+    active: true, 
+    color: 'bg-emerald-600', 
+    level: 'PRINCIPIANTE', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
+    desc: 'Encontrá las palabras clave de seguridad ocultas en la grilla antes de que el tiempo expire.',
+    obj: 'Identificar conceptos fundamentales de prevención de forma rápida.',
+    rules: [
+      'Buscá las palabras listadas en la sopa de letras.',
+      'Hacé clic y arrastrá para seleccionar la palabra.',
+      'Las palabras pueden estar en horizontal o vertical.',
+      'Completá la lista para finalizar la misión.'
+    ]
+  },
+  { 
+    id: 'trivia', 
+    title: 'TRIVIA PREVENTIVA', 
+    subtitle: 'MISIÓN_16', 
+    icon: 'help_circle', 
+    active: true, 
+    color: 'bg-blue-600', 
+    level: 'INTERMEDIO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
+    desc: 'Desafío de preguntas y respuestas sobre normativas, EPP y procedimientos críticos.',
+    obj: 'Validar el conocimiento teórico sobre seguridad industrial.',
+    rules: [
+      'Respondé las preguntas de opción múltiple.',
+      'Tenés un tiempo limitado por cada pregunta.',
+      'Sumá puntos por respuestas correctas consecutivas.',
+      'Al final verás tu nivel de conocimiento alcanzado.'
+    ]
+  },
+  { 
+    id: 'epp', 
+    title: 'SIMULADOR DE EPP', 
+    subtitle: 'MISIÓN_17', 
+    icon: 'hard_hat', 
+    active: true, 
+    color: 'bg-orange-600', 
+    level: 'INTERMEDIO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&q=80&w=800',
+    desc: 'Equipá al operador con los elementos de protección correctos según el riesgo planteado.',
+    obj: 'Asegurar la selección adecuada de barreras de protección personal.',
+    rules: [
+      'Leé el escenario de riesgo presentado.',
+      'Seleccioná los EPP necesarios de la lista.',
+      'No olvides ningún elemento crítico para ese riesgo.',
+      'Validá tu selección para avanzar al siguiente nivel.'
+    ]
+  },
+  { 
+    id: 'stop', 
+    title: 'STOP AL PELIGRO', 
+    subtitle: 'MISIÓN_19', 
+    icon: 'stop-circle', 
+    active: true, 
+    color: 'bg-red-600', 
+    level: 'AVANZADO', 
+    stats: '0 STOP / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800',
+    desc: 'El Tutti Frutti de la Seguridad. Nombrá elementos EHS más rápido que tus compañeros.',
+    obj: 'Reforzar el vocabulario técnico de seguridad bajo presión de tiempo.',
+    rules: [
+      'Se sorteará una letra al azar.',
+      'Completá las 5 categorías con palabras que empiecen con esa letra.',
+      'Gritá STOP (presioná el botón) antes de que se acabe el tiempo.',
+      'Respuestas válidas suman 100 puntos. ¡Bonus por rapidez!'
     ]
   }
 ];

@@ -10,12 +10,12 @@ export const EnhancedGameMenu = ({
   playerData, 
   onSelectGame, 
   onLogout,
-  missionId
+  missionIds
 }: { 
   playerData: PlayerData, 
   onSelectGame: (id: string) => void,
   onLogout: () => void,
-  missionId: string | null
+  missionIds: string[]
 }) => {
   const [activeTab, setActiveTab] = useState<'FLOOR' | 'LOGS'>('FLOOR');
   const [selectedGameInfo, setSelectedGameInfo] = useState<Game | null>(null);
@@ -29,10 +29,10 @@ export const EnhancedGameMenu = ({
   }, [activeTab]);
 
   useEffect(() => {
-    if (missionId) {
-      console.log('EnhancedGameMenu received missionId:', missionId);
+    if (missionIds.length > 0) {
+      console.log('EnhancedGameMenu received missionIds:', missionIds);
     }
-  }, [missionId]);
+  }, [missionIds]);
 
   const fetchLogs = async () => {
     setIsLogsLoading(true);
@@ -117,19 +117,19 @@ export const EnhancedGameMenu = ({
             >
               {(() => {
                 const activeGames = GAMES_ENHANCED.filter(g => g.active);
-                const normalizedMissionId = missionId ? missionId.toLowerCase().replace(/[^a-z0-9]/g, '') : null;
+                const normalizedMissionIds = missionIds.map(id => id.toLowerCase().replace(/[^a-z0-9]/g, ''));
                 
-                const anyGameMatches = normalizedMissionId && activeGames.some(g => {
+                const anyGameMatches = normalizedMissionIds.length > 0 && activeGames.some(g => {
                   const normalizedGameId = g.id.toLowerCase().replace(/[^a-z0-9]/g, '');
                   const normalizedSubtitle = g.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
                   // Strict matching: exact ID or exact subtitle match
-                  return normalizedGameId === normalizedMissionId || 
-                         normalizedSubtitle === normalizedMissionId ||
-                         normalizedSubtitle === `mision${normalizedMissionId}`;
+                  return normalizedMissionIds.includes(normalizedGameId) || 
+                         normalizedMissionIds.includes(normalizedSubtitle) ||
+                         normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`);
                 });
 
-                if (missionId) {
-                  console.log('Mission ID:', missionId, 'Normalized:', normalizedMissionId, 'Any match found:', !!anyGameMatches);
+                if (missionIds.length > 0) {
+                  console.log('Mission IDs:', missionIds, 'Normalized:', normalizedMissionIds, 'Any match found:', !!anyGameMatches);
                 }
 
                 return activeGames.map((game) => {
@@ -137,10 +137,10 @@ export const EnhancedGameMenu = ({
                   const normalizedSubtitle = game.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
                   
                   // Strict matching for the specific card
-                  const isMission = normalizedMissionId && (
-                    normalizedGameId === normalizedMissionId || 
-                    normalizedSubtitle === normalizedMissionId ||
-                    normalizedSubtitle === `mision${normalizedMissionId}`
+                  const isMission = normalizedMissionIds.length > 0 && (
+                    normalizedMissionIds.includes(normalizedGameId) || 
+                    normalizedMissionIds.includes(normalizedSubtitle) ||
+                    normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`)
                   );
                   
                   return (
@@ -189,7 +189,89 @@ export const EnhancedGameMenu = ({
                   <p className="text-white/40 font-mono text-xs uppercase tracking-widest">Accediendo a la base de datos...</p>
                 </div>
               ) : logs.length > 0 ? (
-                <div className="overflow-x-auto">
+                <div className="space-y-10">
+                  {/* Stats Dashboard */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Top Sectors */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Layout className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Sectores</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {(() => {
+                          const counts: Record<string, number> = {};
+                          logs.forEach(log => {
+                            const s = (log.sector || log.area || 'Desconocido').toUpperCase();
+                            counts[s] = (counts[s] || 0) + 1;
+                          });
+                          return Object.entries(counts)
+                            .sort((a, b) => b[1] - a[1])
+                            .slice(0, 3)
+                            .map(([name, count], i) => (
+                              <div key={i} className="flex items-center justify-between">
+                                <span className="text-xs text-white/60 truncate max-w-[120px]">{name}</span>
+                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count} OPS</span>
+                              </div>
+                            ));
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Top Players */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Trophy className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 5 Operadores</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {(() => {
+                          const counts: Record<string, number> = {};
+                          logs.forEach(log => {
+                            const p = log.nombre || log.operator || log.operador || 'Anónimo';
+                            counts[p] = (counts[p] || 0) + 1;
+                          });
+                          return Object.entries(counts)
+                            .sort((a, b) => b[1] - a[1])
+                            .slice(0, 5)
+                            .map(([name, count], i) => (
+                              <div key={i} className="flex items-center justify-between">
+                                <span className="text-xs text-white/60 truncate max-w-[120px]">{name}</span>
+                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
+                              </div>
+                            ));
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Top Games */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Zap className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Módulos</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {(() => {
+                          const counts: Record<string, number> = {};
+                          logs.forEach(log => {
+                            const g = (log.juego || log.game || 'Desconocido').replace('GAME_', '').toUpperCase();
+                            counts[g] = (counts[g] || 0) + 1;
+                          });
+                          return Object.entries(counts)
+                            .sort((a, b) => b[1] - a[1])
+                            .slice(0, 3)
+                            .map(([name, count], i) => (
+                              <div key={i} className="flex items-center justify-between">
+                                <span className="text-xs text-white/60 truncate max-w-[120px]">{name}</span>
+                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
+                              </div>
+                            ));
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-white/5">
@@ -225,7 +307,8 @@ export const EnhancedGameMenu = ({
                     </tbody>
                   </table>
                 </div>
-              ) : (
+              </div>
+            ) : (
                 <div className="py-20 text-center">
                   <Activity className="w-12 h-12 text-white/10 mx-auto mb-4" />
                   <p className="text-white/40 font-mono text-xs uppercase tracking-widest">No se encontraron registros</p>
@@ -233,7 +316,7 @@ export const EnhancedGameMenu = ({
               )}
             </motion.div>
           )}
-        </AnimatePresence>
+      </AnimatePresence>
       </div>
 
       <AnimatePresence>

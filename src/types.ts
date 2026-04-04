@@ -18,6 +18,10 @@ export type View =
   | 'GAME_PROTOCOLO' 
   | 'GAME_ESPEJO' 
   | 'GAME_RESOLVE'
+  | 'GAME_SOPA'
+  | 'GAME_TRIVIA'
+  | 'GAME_EPP'
+  | 'GAME_STOP'
   | 'GAME_MISSIONS';
 
 export type DisplayMode = 'MOBILE' | 'DESKTOP';

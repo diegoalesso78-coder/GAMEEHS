@@ -18,7 +18,12 @@ import { PareYPidaAyudaGame } from './components/games/PareYPidaAyudaGame';
 import { ProtocoloEmergenciaGame } from './components/games/ProtocoloEmergenciaGame';
 import { ResolveEnElPuestoGame } from './components/games/ResolveEnElPuestoGame';
 import { CazadorDeRiesgosGame } from './components/games/CazadorDeRiesgosGame';
+import { TriviaGame } from './components/games/TriviaGame';
+import { EPPSimulatorGame } from './components/games/EPPSimulatorGame';
+import { SopaLetrasGame } from './components/games/SopaLetrasGame';
+import { StopPeligroGame } from './components/games/StopPeligroGame';
 import IndustrialMemoryGame from './components/games/IndustrialMemoryGame';
+import { FeedbackCard, FeedbackData } from './components/FeedbackCard';
 import { View, PlayerData, DisplayMode } from './types';
 import { LOGS_SHEETS_URL } from './constants';
 
@@ -80,7 +85,9 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [displayMode, setDisplayMode] = useState<DisplayMode>('MOBILE');
   const [sessionScore, setSessionScore] = useState(0);
-  const [missionId, setMissionId] = useState<string | null>(null);
+  const [missionIds, setMissionIds] = useState<string[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [pendingFinishData, setPendingFinishData] = useState<{ gameId: string, score: number } | null>(null);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -104,7 +111,8 @@ export default function App() {
         console.log('Raw Config Data Received:', rows);
 
         // Super flexible search: Look for "mission_id" anywhere in the CSV
-        let identifiedId: string | null = null;
+        // Now collecting multiple IDs (up to 5) from multiple columns and rows
+        const foundIds: string[] = [];
         
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
@@ -112,40 +120,50 @@ export default function App() {
             const cell = row[j].toLowerCase();
             
             if (cell.includes('mission_id')) {
-              // Found the key! Now let's look for the value
-              // 1. Check cell to the right
-              if (row[j + 1] && row[j + 1].trim()) {
-                identifiedId = row[j + 1].toLowerCase().trim();
-              } 
-              // 2. Check cell below (common if it's a single column list)
-              else if (rows[i + 1] && rows[i + 1][j] && rows[i + 1][j].trim()) {
-                identifiedId = rows[i + 1][j].toLowerCase().trim();
+              // Found a key! Now let's look for the value(s)
+              
+              // 1. Check ALL cells to the right in the same row (like in your screenshot!)
+              for (let k = j + 1; k < row.length; k++) {
+                if (row[k] && row[k].trim()) {
+                  foundIds.push(row[k].toLowerCase().trim());
+                }
               }
               
-              if (identifiedId) break;
+              // 2. Check cells below in the same column (for vertical lists)
+              let nextRowIdx = i + 1;
+              while (rows[nextRowIdx] && rows[nextRowIdx][j] && rows[nextRowIdx][j].trim()) {
+                // If the next row starts with another key, stop vertical search
+                if (rows[nextRowIdx][j].toLowerCase().includes('mission_id')) break;
+                
+                foundIds.push(rows[nextRowIdx][j].toLowerCase().trim());
+                nextRowIdx++;
+                if (nextRowIdx > i + 5) break; // Limit search
+              }
             }
           }
-          if (identifiedId) break;
         }
         
-        if (identifiedId) {
-          // Clean the ID: Take only the first word and remove non-alphanumeric
-          // This handles "escape" or "mision_06" or "truco o mision_01"
-          const cleanId = identifiedId.split(/[\s_]/)[0].replace(/[^a-z0-9]/g, '');
-          
-          // Special case: if the user put "mision_06", the split above gives "mision".
-          // If the result is just "mision", we take the next part to get the number.
-          let finalId = cleanId;
-          if (cleanId === 'mision' || cleanId === 'mission') {
-            const parts = identifiedId.split(/[\s_]/);
-            if (parts[1]) finalId = parts[1].replace(/[^a-z0-9]/g, '');
-          }
+        if (foundIds.length > 0) {
+          // Process and clean all found IDs
+          const processedIds = foundIds.map(rawId => {
+            // Clean the ID: Take only the first word and remove non-alphanumeric
+            const cleanId = rawId.split(/[\s_]/)[0].replace(/[^a-z0-9]/g, '');
+            
+            let finalId = cleanId;
+            if (cleanId === 'mision' || cleanId === 'mission') {
+              const parts = rawId.split(/[\s_]/);
+              if (parts[1]) finalId = parts[1].replace(/[^a-z0-9]/g, '');
+            }
+            return finalId;
+          }).filter(id => id && id.length > 0);
 
-          console.log('Final Mission ID to highlight:', finalId);
-          setMissionId(finalId);
+          // Unique IDs only, limit to 5
+          const uniqueIds = Array.from(new Set(processedIds)).slice(0, 5);
+          console.log('Final Mission IDs to highlight:', uniqueIds);
+          setMissionIds(uniqueIds);
         } else {
-          setMissionId(null);
-          console.warn('No active mission_id found in config');
+          setMissionIds([]);
+          console.warn('No active mission_ids found in config');
         }
       } catch (error) {
         console.error('Error fetching mission config:', error);
@@ -177,7 +195,11 @@ export default function App() {
       'truco': 'Truco de Seguridad',
       'wordle': 'Wordle de Seguridad',
       'memoria': 'Memoria Industrial',
-      'memory': 'Memoria Industrial'
+      'memory': 'Memoria Industrial',
+      'stop': 'Stop al Peligro',
+      'trivia': 'Trivia de Seguridad',
+      'epp': 'Simulador EPP',
+      'sopa': 'Sopa de Letras'
     };
 
     const result = {
@@ -195,18 +217,42 @@ export default function App() {
     console.log('Recording game result:', result);
     
     try {
-      // Use text/plain to avoid preflight and ensure no-cors works
       await fetch(LOGS_SHEETS_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(result),
       });
-      console.log('Game result sent to Google Sheets');
     } catch (error) {
       console.error('Error recording game result:', error);
+    }
+  };
+
+  const recordFeedback = async (data: FeedbackData) => {
+    if (!playerData) return;
+
+    const feedbackPayload = {
+      timestamp: data.timestamp,
+      juego: data.juego,
+      tipo_comentario: data.tipo_comentario,
+      comentario: data.comentario,
+      udn: data.udn,
+      area: data.area,
+      usuario: playerData.nombre // Extra info for tracking
+    };
+
+    console.log('Recording feedback:', feedbackPayload);
+
+    try {
+      // Using the same pattern as game results
+      await fetch(LOGS_SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ ...feedbackPayload, type: 'FEEDBACK' }),
+      });
+    } catch (error) {
+      console.error('Error recording feedback:', error);
     }
   };
 
@@ -239,7 +285,11 @@ export default function App() {
         'espejo': 'GAME_ESPEJO',
         'resolve': 'GAME_RESOLVE',
         'cazador': 'GAME_CAZADOR',
-        'memoria': 'GAME_MEMORY'
+        'memoria': 'GAME_MEMORY',
+        'sopa': 'GAME_SOPA',
+        'trivia': 'GAME_TRIVIA',
+        'epp': 'GAME_EPP',
+        'stop': 'GAME_STOP'
       };
       const nextView = viewMap[id];
       if (nextView) setView(nextView);
@@ -261,9 +311,21 @@ export default function App() {
 
   const handleFinish = (score?: number) => {
     const finalScore = typeof score === 'number' ? score : sessionScore;
-    recordGameResult(view.replace('GAME_', '').toLowerCase(), finalScore);
+    const gameId = view.replace('GAME_', '').toLowerCase();
+    
+    // Store data to record after feedback
+    setPendingFinishData({ gameId, score: finalScore });
+    setShowFeedback(true);
+  };
+
+  const finalizeSession = () => {
+    if (pendingFinishData) {
+      recordGameResult(pendingFinishData.gameId, pendingFinishData.score);
+    }
     setView('MENU');
     setSessionScore(0);
+    setPendingFinishData(null);
+    setShowFeedback(false);
   };
 
   const renderView = () => {
@@ -271,7 +333,7 @@ export default function App() {
     
     switch (view) {
       case 'START': return <StartScreen onStart={handleStart} />;
-      case 'MENU': return <EnhancedGameMenu onSelectGame={handleSelectGame} playerData={playerData!} onLogout={() => setView('START')} missionId={missionId} />;
+      case 'MENU': return <EnhancedGameMenu onSelectGame={handleSelectGame} playerData={playerData!} onLogout={() => setView('START')} missionIds={missionIds} />;
       case 'GAME_TRUCO': return <TrucoGame {...commonProps} />;
       case 'GAME_OCA': return <OcaGame {...commonProps} />;
       case 'GAME_CARRERA': return <CarreraGame {...commonProps} />;
@@ -285,6 +347,10 @@ export default function App() {
       case 'GAME_ESPEJO': return <EspejoDelTurnoGame {...commonProps} />;
       case 'GAME_RESOLVE': return <ResolveEnElPuestoGame {...commonProps} />;
       case 'GAME_CAZADOR': return <CazadorDeRiesgosGame {...commonProps} />;
+      case 'GAME_SOPA': return <SopaLetrasGame {...commonProps} />;
+      case 'GAME_TRIVIA': return <TriviaGame {...commonProps} />;
+      case 'GAME_EPP': return <EPPSimulatorGame {...commonProps} />;
+      case 'GAME_STOP': return <StopPeligroGame {...commonProps} />;
       case 'GAME_MEMORY':
       case 'GAME_MEMORY_V2':
       case 'GAME_MEMORY_V3':
@@ -334,6 +400,16 @@ export default function App() {
             </motion.div>
           </AnimatePresence>
         </main>
+
+        {showFeedback && (
+          <FeedbackCard 
+            gameName={view.replace('GAME_', '').replace('_', ' ')}
+            onClose={finalizeSession}
+            onSubmit={recordFeedback}
+            initialUdn={playerData?.udn}
+            initialArea={playerData?.sector}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );
