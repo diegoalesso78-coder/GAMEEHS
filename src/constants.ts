@@ -761,4 +761,15 @@ export const TRUCO_FALLBACK = [
   { id: '4_copas', n: 4, s: 'copas', p: 1, l: 'Acto Inseguro', d: 'Omisión que genera accidente' },
 ];
 
+export const AVATARS = [
+  { id: 'operator', icon: 'User', label: 'Operador', color: 'bg-blue-500' },
+  { id: 'safety', icon: 'Shield', label: 'Seguridad', color: 'bg-emerald-500' },
+  { id: 'maintenance', icon: 'Wrench', label: 'Mantenimiento', color: 'bg-amber-500' },
+  { id: 'logistics', icon: 'Truck', label: 'Logística', color: 'bg-purple-500' },
+  { id: 'quality', icon: 'Activity', label: 'Calidad', color: 'bg-rose-500' },
+  { id: 'energy', icon: 'Zap', label: 'Energía', color: 'bg-yellow-500' },
+  { id: 'champion', icon: 'Trophy', label: 'Campeón', color: 'bg-indigo-500' },
+  { id: 'fire', icon: 'Flame', label: 'Brigadista', color: 'bg-orange-500' },
+];
+
 export const DECK_BASE = TRUCO_FALLBACK;

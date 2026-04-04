@@ -26,6 +26,31 @@ export type View =
 
 export type DisplayMode = 'MOBILE' | 'DESKTOP';
 
+export interface Badge {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  color: string;
+}
+
+export interface Avatar {
+  id: string;
+  icon: string;
+  label: string;
+  color: string;
+}
+
+export interface FeedbackData {
+  timestamp: string;
+  juego: string;
+  tipo_comentario: 'JUEGO' | 'EHS' | 'MEJORA_PUESTO' | 'RIESGO' | 'SUGERENCIA' | 'FELICITACION';
+  comentario: string;
+  udn: string;
+  area: string;
+  categoria?: string;
+}
+
 export interface PlayerData {
   nombre: string;
   sitio: string;
@@ -33,6 +58,9 @@ export interface PlayerData {
   udn: string;
   edad: string;
   score: number;
+  streak?: number;
+  badges?: Badge[];
+  avatar?: string;
 }
 
 export interface Achievement {

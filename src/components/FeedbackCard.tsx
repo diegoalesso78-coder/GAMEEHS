@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, Shield, Lightbulb, Send, X, CheckCircle2, Factory, MapPin } from 'lucide-react';
+import { MessageSquare, Shield, Lightbulb, Send, X, CheckCircle2, Factory, MapPin, AlertTriangle, Star, HelpCircle } from 'lucide-react';
+import { FeedbackData } from '../types';
 
 interface FeedbackCardProps {
   gameName: string;
@@ -9,15 +10,6 @@ interface FeedbackCardProps {
   onSubmit: (data: FeedbackData) => void;
   initialUdn?: string;
   initialArea?: string;
-}
-
-export interface FeedbackData {
-  timestamp: string;
-  juego: string;
-  tipo_comentario: 'JUEGO' | 'EHS' | 'MEJORA_PUESTO';
-  comentario: string;
-  udn: string;
-  area: string;
 }
 
 const UDN_OPTIONS = ['MABE CORDOBA', 'MABE MEXICO', 'MABE BRASIL'];
@@ -120,7 +112,10 @@ export const FeedbackCard: React.FC<FeedbackCardProps> = ({
                   {[
                     { id: 'JUEGO', label: 'El Juego', icon: MessageSquare, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                     { id: 'EHS', label: 'Equipo EHS', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                    { id: 'MEJORA_PUESTO', label: 'Mejora Planta', icon: Lightbulb, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+                    { id: 'MEJORA_PUESTO', label: 'Mejora Planta', icon: Lightbulb, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { id: 'RIESGO', label: 'Riesgo', icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-500/10' },
+                    { id: 'SUGERENCIA', label: 'Sugerencia', icon: HelpCircle, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+                    { id: 'FELICITACION', label: 'Felicitación', icon: Star, color: 'text-pink-500', bg: 'bg-pink-500/10' }
                   ].map((opt) => (
                     <button
                       key={opt.id}

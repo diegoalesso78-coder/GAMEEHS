@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, User, MapPin, Briefcase, ChevronRight, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
-import { SITIOS_SHEET_URL, AREAS_SHEET_URL } from '../lib/constants';
+import { ShieldAlert, User, MapPin, Briefcase, ChevronRight, CheckCircle2, AlertTriangle, Loader2, Wrench, Truck, Activity, Zap, Trophy, Flame, Star } from 'lucide-react';
+import { SITIOS_SHEET_URL, AREAS_SHEET_URL, AVATARS } from '../constants';
 import { IndustrialCard } from './IndustrialCard';
 import { PersistenceService } from '../services/PersistenceService';
 
@@ -17,7 +17,8 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
     site: '',
     sector: '',
     udn: '',
-    age: ''
+    age: '',
+    avatar: 'operator'
   });
   const [sites, setSites] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
@@ -69,8 +70,22 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   const handleNext = () => {
     if (step === 1 && formData.name.trim().length < 3) return;
     if (step === 2 && (!formData.site || !formData.sector)) return;
-    if (step < 3) setStep(step + 1);
+    if (step < 4) setStep(step + 1);
     else onStart(formData);
+  };
+
+  const renderAvatarIcon = (iconName: string, size = 20) => {
+    switch (iconName) {
+      case 'User': return <User size={size} />;
+      case 'Shield': return <Shield size={size} />;
+      case 'Wrench': return <Wrench size={size} />;
+      case 'Truck': return <Truck size={size} />;
+      case 'Activity': return <Activity size={size} />;
+      case 'Zap': return <Zap size={size} />;
+      case 'Trophy': return <Trophy size={size} />;
+      case 'Flame': return <Flame size={size} />;
+      default: return <User size={size} />;
+    }
   };
 
   return (
@@ -107,7 +122,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
             <motion.div 
               className="h-full bg-secondary shadow-[0_0_10px_rgba(255,255,255,0.5)]"
               initial={{ width: '0%' }}
-              animate={{ width: `${(step / 3) * 100}%` }}
+              animate={{ width: `${(step / 4) * 100}%` }}
               transition={{ duration: 0.5 }}
             />
           </div>
@@ -199,17 +214,67 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="space-y-4">
+                  <label className="flex items-center gap-2 text-secondary font-black text-xs uppercase tracking-widest">
+                    <Star size={14} /> Selecciona tu Avatar
+                  </label>
+                  <div className="grid grid-cols-4 gap-4">
+                    {AVATARS.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        onClick={() => setFormData({ ...formData, avatar: avatar.id })}
+                        className={`group relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
+                          formData.avatar === avatar.id 
+                            ? 'border-secondary bg-secondary/10' 
+                            : 'border-white/5 bg-white/5 hover:border-white/10'
+                        }`}
+                      >
+                        <div className={`w-12 h-12 rounded-xl ${avatar.color} flex items-center justify-center shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
+                          <div className="text-white">
+                            {renderAvatarIcon(avatar.icon, 24)}
+                          </div>
+                        </div>
+                        <span className="text-[8px] font-black text-white/40 uppercase tracking-tighter group-hover:text-white transition-colors">
+                          {avatar.label}
+                        </span>
+                        {formData.avatar === avatar.id && (
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-black shadow-lg">
+                            <CheckCircle2 size={14} />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
                 className="space-y-8"
               >
                 <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6 space-y-4">
                   <h3 className="text-secondary font-black text-xs uppercase tracking-widest flex items-center gap-2">
                     <CheckCircle2 size={16} /> Resumen de Enrolamiento
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Operador</div>
-                      <div className="text-sm font-black text-white uppercase">{formData.name}</div>
+                  <div className="flex items-center gap-6 mb-4 pb-4 border-b border-white/5">
+                    <div className={`w-16 h-16 rounded-2xl ${AVATARS.find(a => a.id === formData.avatar)?.color || 'bg-blue-500'} flex items-center justify-center shadow-xl`}>
+                      <div className="text-white">
+                        {renderAvatarIcon(AVATARS.find(a => a.id === formData.avatar)?.icon || 'User', 32)}
+                      </div>
                     </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Operador Seleccionado</div>
+                      <div className="text-xl font-black text-white uppercase tracking-tight">{formData.name}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Ubicación</div>
                       <div className="text-sm font-black text-white uppercase">{formData.site}</div>
@@ -253,7 +318,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
                 <Loader2 className="animate-spin" size={20} />
               ) : (
                 <>
-                  {step === 3 ? 'INICIAR ENTRENAMIENTO' : 'SIGUIENTE PASO'}
+                  {step === 4 ? 'INICIAR ENTRENAMIENTO' : 'SIGUIENTE PASO'}
                   <ChevronRight size={18} />
                 </>
               )}

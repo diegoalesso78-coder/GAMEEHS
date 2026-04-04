@@ -35,7 +35,7 @@ export const PersistenceService = {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
   },
 
-  saveUserProfile(profile: { name: string; site: string; sector: string; udn: string }) {
+  saveUserProfile(profile: any) {
     const stats = this.getUserStats();
     stats.userProfile = profile;
     this.saveUserStats(stats);

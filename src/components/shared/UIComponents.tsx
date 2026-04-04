@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, Monitor, Smartphone, Lock } from 'lucide-react';
+import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, Monitor, Smartphone, Lock, Flame } from 'lucide-react';
 import { PlayerData, Game, DisplayMode } from '../../types';
 
 export const ScanlineOverlay = () => (
@@ -104,6 +104,15 @@ export const GlobalHeader = ({
               <span className="text-white/40 uppercase">Score</span>
               <span className="text-emerald-400 font-bold">{playerData.score.toLocaleString()}</span>
             </div>
+            {playerData.streak && playerData.streak > 0 && (
+              <div className="flex flex-col items-center">
+                <span className="text-white/40 uppercase">Racha</span>
+                <div className="flex items-center gap-1 text-orange-500 font-black animate-bounce">
+                  <Flame className="w-3.5 h-3.5 fill-current" />
+                  <span>{playerData.streak}</span>
+                </div>
+              </div>
+            )}
           </div>
           
           {onBackToMenu && (

@@ -23,9 +23,11 @@ import { EPPSimulatorGame } from './components/games/EPPSimulatorGame';
 import { SopaLetrasGame } from './components/games/SopaLetrasGame';
 import { StopPeligroGame } from './components/games/StopPeligroGame';
 import IndustrialMemoryGame from './components/games/IndustrialMemoryGame';
-import { FeedbackCard, FeedbackData } from './components/FeedbackCard';
-import { View, PlayerData, DisplayMode } from './types';
-import { LOGS_SHEETS_URL } from './constants';
+import { FeedbackCard } from './components/FeedbackCard';
+import { Trophy, X } from 'lucide-react';
+import { View, PlayerData, DisplayMode, Badge, FeedbackData } from './types';
+import { LOGS_SHEETS_URL, LOGS_READ_URL, CONFIG_SHEET_URL } from './constants';
+import { PersistenceService } from './services/PersistenceService';
 
 // Error Boundary Component
 interface ErrorBoundaryProps {
@@ -85,6 +87,7 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [displayMode, setDisplayMode] = useState<DisplayMode>('MOBILE');
   const [sessionScore, setSessionScore] = useState(0);
+  const [sessionGamesCompleted, setSessionGamesCompleted] = useState<string[]>([]);
   const [missionIds, setMissionIds] = useState<string[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [pendingFinishData, setPendingFinishData] = useState<{ gameId: string, score: number } | null>(null);
@@ -206,7 +209,7 @@ export default function App() {
 
     const result = {
       nombre: playerData.nombre,
-      fecha: new Date().toLocaleString('es-AR'),
+      fecha: new Date().toLocaleString('es-AR').replace(',', ''),
       sitio: playerData.sitio,
       sector: playerData.sector,
       udn: playerData.udn,
@@ -234,13 +237,10 @@ export default function App() {
     if (!playerData) return;
 
     const feedbackPayload = {
-      timestamp: data.timestamp,
-      juego: data.juego,
-      tipo_comentario: data.tipo_comentario,
-      comentario: data.comentario,
-      udn: data.udn,
-      area: data.area,
-      usuario: playerData.nombre // Extra info for tracking
+      ...data,
+      usuario: playerData.nombre,
+      sector: playerData.sector,
+      sitio: playerData.sitio
     };
 
     console.log('Recording feedback:', feedbackPayload);
@@ -258,11 +258,85 @@ export default function App() {
     }
   };
 
-  const handleStart = (data: PlayerData) => {
+  const handleStart = async (data: PlayerData) => {
     setLoadingMessage("VINCULANDO OPERADOR...");
     setIsLoading(true);
+    setSessionGamesCompleted([]); // Reset session progress
+    
+    // Streak Logic
+    const today = new Date().toLocaleDateString('es-AR');
+    const streakKey = `streak_${data.nombre.replace(/\s+/g, '_')}`;
+    const lastPlayKey = `lastPlay_${data.nombre.replace(/\s+/g, '_')}`;
+    
+    const lastPlayDate = localStorage.getItem(lastPlayKey);
+    let currentStreak = parseInt(localStorage.getItem(streakKey) || '0');
+    
+    if (lastPlayDate) {
+      const lastDate = new Date(lastPlayDate.split('/').reverse().join('-'));
+      const todayDate = new Date();
+      const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        if (lastPlayDate !== today) {
+          currentStreak += 1;
+        }
+      } else if (diffDays > 1) {
+        currentStreak = 1;
+      }
+    } else {
+      currentStreak = 1;
+    }
+    
+    localStorage.setItem(streakKey, currentStreak.toString());
+    localStorage.setItem(lastPlayKey, today);
+
+    // Badge Calculation Logic
+    let badges: Badge[] = [];
+    try {
+      const logsRes = await fetch(`${LOGS_READ_URL}&t=${Date.now()}`);
+      const logsText = await logsRes.text();
+      const rows = logsText.split(/\r?\n/).filter(row => row.trim()).map(row => {
+        const separator = row.includes(';') ? ';' : ',';
+        return row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, ''));
+      });
+
+      if (rows.length > 1) {
+        const headers = rows[0].map(h => h.toLowerCase());
+        const nameIdx = headers.findIndex(h => h.includes('nombre') || h.includes('operador'));
+        const gameIdx = headers.findIndex(h => h.includes('juego') || h.includes('módulo'));
+        
+        const userLogs = rows.slice(1).filter(row => row[nameIdx]?.toUpperCase() === data.nombre.toUpperCase());
+        const totalGames = userLogs.length;
+        const gameCounts: Record<string, number> = {};
+        userLogs.forEach(row => {
+          const g = row[gameIdx];
+          if (g) gameCounts[g] = (gameCounts[g] || 0) + 1;
+        });
+
+        if (totalGames >= 1) badges.push({ id: 'novato', title: 'NOVATO', icon: 'Shield', description: 'Primera misión completada', color: 'bg-slate-500' });
+        if (totalGames >= 10) badges.push({ id: 'veterano', title: 'VETERANO', icon: 'Trophy', description: '10 misiones completadas', color: 'bg-blue-500' });
+        if (totalGames >= 50) badges.push({ id: 'maestro', title: 'MAESTRO', icon: 'Zap', description: '50 misiones completadas', color: 'bg-amber-500' });
+        if (currentStreak >= 3) badges.push({ id: 'racha', title: 'RACHA FUEGO', icon: 'Flame', description: '3 días seguidos entrenando', color: 'bg-orange-500' });
+        
+        Object.entries(gameCounts).forEach(([game, count]) => {
+          if (count >= 5) {
+            badges.push({ 
+              id: `spec_${game}`, 
+              title: `ESPECIALISTA ${game.toUpperCase()}`, 
+              icon: 'Star', 
+              description: `Maestría en ${game}`, 
+              color: 'bg-emerald-500' 
+            });
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Error calculating badges:", e);
+    }
+    
     setTimeout(() => {
-      setPlayerData(data);
+      setPlayerData({ ...data, streak: currentStreak, badges });
       setView('MENU');
       setIsLoading(false);
     }, 2000);
@@ -299,16 +373,30 @@ export default function App() {
     }, 1500);
   };
 
+  const [showBadgeNotification, setShowBadgeNotification] = useState<Badge | null>(null);
+
+  const checkNewBadges = (updatedPlayerData: PlayerData) => {
+    // This is a simplified check. In a real app, we'd compare with previous badges.
+    // For now, we'll just show the latest one if it's new in this session.
+  };
+
   const handleGameOver = (score: number) => {
     setSessionScore(prev => prev + score);
+    
+    // Track session progress
+    const currentGameId = view.replace('GAME_', '').toLowerCase();
+    if (!sessionGamesCompleted.includes(currentGameId)) {
+      setSessionGamesCompleted(prev => [...prev, currentGameId]);
+    }
+
     setPlayerData((prev: PlayerData | null) => {
       if (!prev) return null;
+      const newScore = (prev.score || 0) + score;
       return {
         ...prev,
-        score: (prev.score || 0) + score
+        score: newScore
       };
     });
-    // recordGameResult(view, score); // Removed to record only on Finish
   };
 
   const handleFinish = (score?: number) => {
@@ -323,6 +411,9 @@ export default function App() {
   const finalizeSession = () => {
     if (pendingFinishData) {
       recordGameResult(pendingFinishData.gameId, pendingFinishData.score);
+      
+      // Optional: Check for new badges here if we wanted to be super precise
+      // For now, the start-up calculation is the most reliable way to sync with the Sheet
     }
     setView('MENU');
     setSessionScore(0);
@@ -335,7 +426,17 @@ export default function App() {
     
     switch (view) {
       case 'START': return <StartScreen onStart={handleStart} />;
-      case 'MENU': return <EnhancedGameMenu onSelectGame={handleSelectGame} playerData={playerData!} onLogout={() => setView('START')} missionIds={missionIds} />;
+      case 'MENU': return (
+        <EnhancedGameMenu 
+          onSelectGame={handleSelectGame} 
+          playerData={playerData!} 
+          onLogout={() => setView('START')} 
+          missionIds={missionIds} 
+          sessionGamesCompleted={sessionGamesCompleted}
+          onViewMissions={() => setView('GAME_MISSIONS')}
+          userStats={PersistenceService.getUserStats()}
+        />
+      );
       case 'GAME_TRUCO': return <TrucoGame {...commonProps} />;
       case 'GAME_OCA': return <OcaGame {...commonProps} />;
       case 'GAME_CARRERA': return <CarreraGame {...commonProps} />;
@@ -411,6 +512,29 @@ export default function App() {
             initialUdn={playerData?.udn}
             initialArea={playerData?.sector}
           />
+        )}
+        {showBadgeNotification && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-emerald-500 text-slate-950 px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border-2 border-white/20"
+          >
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <Trophy className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">¡Insignia Desbloqueada!</p>
+              <h4 className="text-lg font-black leading-tight">{showBadgeNotification.title}</h4>
+              <p className="text-xs font-bold opacity-80">{showBadgeNotification.description}</p>
+            </div>
+            <button 
+              onClick={() => setShowBadgeNotification(null)}
+              className="ml-4 p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </motion.div>
         )}
       </div>
     </ErrorBoundary>

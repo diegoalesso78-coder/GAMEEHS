@@ -1,21 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, X, CheckCircle2 } from 'lucide-react';
-import { PlayerData, Game } from '../../types';
-import { GAMES_ENHANCED, CONFIG_SHEET_URL, LOGS_READ_URL } from '../../constants';
+import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, X, CheckCircle2, Flame, Star } from 'lucide-react';
+import { PlayerData, Game, UserStats } from '../../types';
+import { GAMES_ENHANCED, CONFIG_SHEET_URL, LOGS_READ_URL, AVATARS } from '../../constants';
 import { GameCardV2 } from './UIComponents';
 
 export const EnhancedGameMenu = ({ 
   playerData, 
   onSelectGame, 
   onLogout,
-  missionIds
+  missionIds,
+  sessionGamesCompleted,
+  userStats,
+  onViewMissions
 }: { 
   playerData: PlayerData, 
   onSelectGame: (id: string) => void,
   onLogout: () => void,
-  missionIds: string[]
+  missionIds: string[],
+  sessionGamesCompleted: string[],
+  userStats: UserStats,
+  onViewMissions: () => void
 }) => {
   const [activeTab, setActiveTab] = useState<'FLOOR' | 'LOGS'>('FLOOR');
   const [selectedGameInfo, setSelectedGameInfo] = useState<Game | null>(null);
@@ -35,6 +41,20 @@ export const EnhancedGameMenu = ({
     }
   }, [missionIds]);
 
+  const renderAvatarIcon = (iconName: string, size = 20) => {
+    switch (iconName) {
+      case 'User': return <User size={size} />;
+      case 'Shield': return <Shield size={size} />;
+      case 'Wrench': return <Wrench size={size} />;
+      case 'Truck': return <Truck size={size} />;
+      case 'Activity': return <Activity size={size} />;
+      case 'Zap': return <Zap size={size} />;
+      case 'Trophy': return <Trophy size={size} />;
+      case 'Flame': return <Flame size={size} />;
+      default: return <User size={size} />;
+    }
+  };
+
   const fetchLogs = async () => {
     setIsLogsLoading(true);
     try {
@@ -42,10 +62,26 @@ export const EnhancedGameMenu = ({
       const csv = await response.text();
       
       // More robust CSV parsing
-      const rows = csv.split(/\r?\n/).filter(row => row.trim()).map(row => {
-        // Handle both comma and semicolon separators
-        const separator = row.includes(';') ? ';' : ',';
-        return row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, ''));
+      const rows = csv.split(/\r?\n/).filter(row => row.trim()).map(line => {
+        // Determinamos el separador (preferimos punto y coma si existe, común en regiones hispanas)
+        const separator = line.includes(';') ? ';' : ',';
+        const result: string[] = [];
+        let cur = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === separator && !inQuotes) {
+            result.push(cur.trim());
+            cur = '';
+          } else {
+            cur += char;
+          }
+        }
+        result.push(cur.trim());
+        return result.map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"'));
       });
       
       if (rows.length > 1) {
@@ -62,17 +98,23 @@ export const EnhancedGameMenu = ({
           let date = raw.fecha || raw.timestamp || raw.date || raw['fecha y hora'] || '-';
           let operator = raw.nombre || raw.operador || raw.operator || raw.usuario || raw['nombre del operador'] || '-';
           let game = raw.juego || raw.game || raw.módulo || raw.modulo || raw.actividad || '-';
-          let score = raw.puntaje || raw.score || raw.puntos || raw.resultado || '0';
+          let score = raw.puntaje || raw.score || raw.puntos || raw.resultado || raw['puntos totales'] || '0';
+          let sitio = raw.sitio || raw.site || raw.localidad || '-';
+          let udn = raw.udn || raw.unidad || '-';
+          
           // Mapeo robusto de sector: Buscamos en claves específicas y descartamos datos de sitio (como LUQUE)
           let sector = '-';
-          const possibleSectorKeys = ['sector', 'área', 'area', 'sección', 'seccion', 'sector / área', 'sector / area'];
+          const possibleSectorKeys = ['sector', 'área', 'area', 'sección', 'seccion', 'sector / área', 'sector / area', 'ubicación', 'ubicacion'];
           
           for (const key of possibleSectorKeys) {
             const val = raw[key];
             if (val && val !== '-' && val.trim() !== '') {
               const lowerVal = val.toLowerCase();
-              // Si el valor parece ser un sitio/localidad, lo ignoramos y seguimos buscando
-              if (!lowerVal.includes('luque') && !lowerVal.includes('sitio') && lowerVal !== 'planta a' && lowerVal !== 'planta b') {
+              // Si el valor parece ser un sitio/localidad o un timestamp, lo ignoramos y seguimos buscando
+              const isSite = lowerVal.includes('luque') || lowerVal.includes('sitio') || lowerVal === 'planta a' || lowerVal === 'planta b';
+              const isTime = /^\d{1,2}:\d{2}:\d{2}/.test(val);
+              
+              if (!isSite && !isTime) {
                 sector = val;
                 break;
               }
@@ -100,7 +142,9 @@ export const EnhancedGameMenu = ({
             operator,
             game,
             score,
-            sector
+            sector,
+            sitio,
+            udn
           };
         }).filter(item => item.operator !== '-' || item.game !== '-');
         
@@ -127,6 +171,60 @@ export const EnhancedGameMenu = ({
             <p className="text-white/40 font-mono text-[10px] md:text-xs tracking-widest uppercase max-w-xl leading-relaxed">
               Seleccioná un módulo de entrenamiento para comenzar la validación de competencias preventivas.
             </p>
+          </div>
+
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-3 rounded-2xl backdrop-blur-xl">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">Operador</span>
+                <span className="text-sm font-black text-white">{playerData.nombre}</span>
+              </div>
+              <div className="w-px h-8 bg-white/10" />
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">Racha</span>
+                <div className="flex items-center gap-1 text-orange-500 font-black">
+                  <Flame className="w-4 h-4 fill-current" />
+                  <span className="text-lg">{playerData.streak || 0}</span>
+                </div>
+              </div>
+              {playerData.badges && playerData.badges.length > 0 && (
+                <>
+                  <div className="w-px h-8 bg-white/10" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">Insignias</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      {playerData.badges.slice(0, 3).map((badge, i) => (
+                        <div 
+                          key={i} 
+                          title={`${badge.title}: ${badge.description}`}
+                          className={`w-6 h-6 rounded-lg ${badge.color} flex items-center justify-center shadow-lg shadow-black/20 group/badge relative`}
+                        >
+                          {badge.icon === 'Shield' && <Shield className="w-3 h-3 text-white" />}
+                          {badge.icon === 'Trophy' && <Trophy className="w-3 h-3 text-white" />}
+                          {badge.icon === 'Zap' && <Zap className="w-3 h-3 text-white" />}
+                          {badge.icon === 'Flame' && <Flame className="w-3 h-3 text-white" />}
+                          {badge.icon === 'Star' && <Star className="w-3 h-3 text-white" />}
+                          
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 border border-white/10 rounded text-[8px] text-white whitespace-nowrap opacity-0 group-hover/badge:opacity-100 transition-opacity pointer-events-none z-50">
+                            {badge.title}
+                          </div>
+                        </div>
+                      ))}
+                      {playerData.badges.length > 3 && (
+                        <span className="text-[10px] text-white/40 font-bold ml-1">+{playerData.badges.length - 3}</span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <button 
+              onClick={onLogout}
+              className="text-[9px] font-black text-white/20 hover:text-red-500 transition-colors tracking-[0.3em] uppercase flex items-center gap-2"
+            >
+              <LogOut className="w-3 h-3" />
+              Cerrar Sesión
+            </button>
           </div>
 
           <div className="flex p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
@@ -196,27 +294,52 @@ export const EnhancedGameMenu = ({
                          normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`);
                 });
 
-                return sortedGames.map((game) => {
-                  const normalizedGameId = game.id.toLowerCase().replace(/[^a-z0-9]/g, '');
-                  const normalizedSubtitle = game.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
-                  
-                  const isMission = game.active && normalizedMissionIds.length > 0 && (
-                    normalizedMissionIds.includes(normalizedGameId) || 
-                    normalizedMissionIds.includes(normalizedSubtitle) ||
-                    normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`)
-                  );
-                  
-                  return (
-                    <GameCardV2
-                      key={game.id}
-                      game={game}
-                      isMission={!!isMission}
-                      hasActiveMission={!!anyGameMatches}
-                      onSelect={onSelectGame}
-                      onShowRules={setSelectedGameInfo}
-                    />
-                  );
-                });
+                return (
+                  <>
+                    {anyGameMatches && (
+                      <div className="col-span-full mb-4">
+                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                              <Star className="w-5 h-5 text-amber-500 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-black text-amber-500 uppercase tracking-widest">Prioridad Admin Detectada</h4>
+                              <p className="text-[10px] text-white/40 font-mono uppercase">Completa estas misiones para obtener recompensas especiales</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={onViewMissions}
+                            className="px-4 py-2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-amber-400 transition-colors"
+                          >
+                            Ver Misiones
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {sortedGames.map((game) => {
+                      const normalizedGameId = game.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+                      const normalizedSubtitle = game.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+                      
+                      const isMission = game.active && normalizedMissionIds.length > 0 && (
+                        normalizedMissionIds.includes(normalizedGameId) || 
+                        normalizedMissionIds.includes(normalizedSubtitle) ||
+                        normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`)
+                      );
+                      
+                      return (
+                        <GameCardV2
+                          key={game.id}
+                          game={game}
+                          isMission={!!isMission}
+                          hasActiveMission={!!anyGameMatches}
+                          onSelect={onSelectGame}
+                          onShowRules={setSelectedGameInfo}
+                        />
+                      );
+                    })}
+                  </>
+                );
               })()}
             </motion.div>
           ) : (
@@ -274,7 +397,32 @@ export const EnhancedGameMenu = ({
               ) : logs.length > 0 ? (
                 <div className="space-y-12">
                   {/* Stats Dashboard */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Daily & Historical Plays */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                          <Activity className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Actividad General</h4>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-white/40 uppercase font-mono tracking-tighter">Hoy</p>
+                          <p className="text-2xl font-black text-emerald-500">
+                            {(() => {
+                              const today = new Date().toLocaleDateString('es-AR');
+                              return logs.filter(log => log.date.includes(today)).length;
+                            })()}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-white/40 uppercase font-mono tracking-tighter">Histórico</p>
+                          <p className="text-2xl font-black text-white">{logs.length}</p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Top Sectors */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
                       <div className="flex items-center gap-3 mb-6">
@@ -283,24 +431,27 @@ export const EnhancedGameMenu = ({
                         </div>
                         <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Sectores</h4>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {(() => {
                           const counts: Record<string, number> = {};
                           logs.forEach(log => {
                             const s = (log.sector || 'Desconocido').toUpperCase();
-                            counts[s] = (counts[s] || 0) + 1;
+                            if (s !== '-' && s !== 'DESCONOCIDO') counts[s] = (counts[s] || 0) + 1;
                           });
                           return Object.entries(counts)
                             .sort((a, b) => b[1] - a[1])
                             .slice(0, 3)
                             .map(([name, count], i) => (
-                              <div key={i} className="flex items-center justify-between group/item">
-                                <span className="text-xs text-white/60 truncate max-w-[140px] group-hover/item:text-white transition-colors">{name}</span>
+                              <div key={i} className="flex items-center justify-between group/item relative">
                                 <div className="flex items-center gap-2">
-                                  <div className="h-1 w-12 bg-white/5 rounded-full overflow-hidden">
-                                    <div className="h-full bg-emerald-500" style={{ width: `${(count / logs.length) * 100}%` }} />
+                                  {i === 0 && <Trophy className="w-3 h-3 text-yellow-500 animate-pulse" />}
+                                  <span className={`text-[10px] truncate max-w-[100px] transition-colors ${i === 0 ? 'text-emerald-400 font-bold' : 'text-white/60 group-hover/item:text-white'}`}>{name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-1 w-8 bg-white/5 rounded-full overflow-hidden">
+                                    <div className={`h-full ${i === 0 ? 'bg-emerald-400' : 'bg-emerald-500/40'}`} style={{ width: `${(count / logs.length) * 100}%` }} />
                                   </div>
-                                  <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
+                                  <span className={`text-[10px] font-mono font-bold ${i === 0 ? 'text-emerald-400' : 'text-emerald-500'}`}>{count}</span>
                                 </div>
                               </div>
                             ));
@@ -314,22 +465,25 @@ export const EnhancedGameMenu = ({
                         <div className="p-2 rounded-lg bg-emerald-500/10">
                           <Trophy className="w-4 h-4 text-emerald-500" />
                         </div>
-                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 5 Operadores</h4>
+                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Jugadores</h4>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {(() => {
                           const counts: Record<string, number> = {};
                           logs.forEach(log => {
                             const p = log.operator || 'Anónimo';
-                            counts[p] = (counts[p] || 0) + 1;
+                            if (p !== '-' && p !== 'ANÓNIMO') counts[p] = (counts[p] || 0) + 1;
                           });
                           return Object.entries(counts)
                             .sort((a, b) => b[1] - a[1])
-                            .slice(0, 5)
+                            .slice(0, 3)
                             .map(([name, count], i) => (
                               <div key={i} className="flex items-center justify-between group/item">
-                                <span className="text-xs text-white/60 truncate max-w-[140px] group-hover/item:text-white transition-colors">{name}</span>
-                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count} OPS</span>
+                                <div className="flex items-center gap-2">
+                                  {i === 0 && <Shield className="w-3 h-3 text-emerald-500" />}
+                                  <span className={`text-[10px] truncate max-w-[100px] transition-colors ${i === 0 ? 'text-emerald-400 font-bold' : 'text-white/60 group-hover/item:text-white'}`}>{name}</span>
+                                </div>
+                                <span className={`text-[10px] font-mono font-bold ${i === 0 ? 'text-emerald-400' : 'text-emerald-500'}`}>{count} OPS</span>
                               </div>
                             ));
                         })()}
@@ -344,20 +498,23 @@ export const EnhancedGameMenu = ({
                         </div>
                         <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Top 3 Módulos</h4>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {(() => {
                           const counts: Record<string, number> = {};
                           logs.forEach(log => {
                             const g = (log.game || 'Desconocido').toUpperCase();
-                            counts[g] = (counts[g] || 0) + 1;
+                            if (g !== '-' && g !== 'DESCONOCIDO') counts[g] = (counts[g] || 0) + 1;
                           });
                           return Object.entries(counts)
                             .sort((a, b) => b[1] - a[1])
                             .slice(0, 3)
                             .map(([name, count], i) => (
                               <div key={i} className="flex items-center justify-between group/item">
-                                <span className="text-xs text-white/60 truncate max-w-[140px] group-hover/item:text-white transition-colors">{name}</span>
-                                <span className="text-[10px] font-mono text-emerald-500 font-bold">{count}</span>
+                                <div className="flex items-center gap-2">
+                                  {i === 0 && <Zap className="w-3 h-3 text-yellow-500" />}
+                                  <span className={`text-[10px] truncate max-w-[100px] transition-colors ${i === 0 ? 'text-emerald-400 font-bold' : 'text-white/60 group-hover/item:text-white'}`}>{name}</span>
+                                </div>
+                                <span className={`text-[10px] font-mono font-bold ${i === 0 ? 'text-emerald-400' : 'text-emerald-500'}`}>{count}</span>
                               </div>
                             ));
                         })()}
@@ -399,7 +556,12 @@ export const EnhancedGameMenu = ({
                                     {log.score}
                                   </span>
                                 </td>
-                                <td className="py-4 px-6 text-xs text-white/40 uppercase whitespace-nowrap">{log.sector}</td>
+                                <td className="py-4 px-6 text-xs text-white/40 uppercase whitespace-nowrap">
+                                  <div className="flex flex-col">
+                                    <span className="text-white/60">{log.sector}</span>
+                                    <span className="text-[8px] opacity-50">{log.sitio}</span>
+                                  </div>
+                                </td>
                               </tr>
                             ))}
                         </tbody>
