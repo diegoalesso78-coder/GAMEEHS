@@ -46,8 +46,8 @@ export interface FeedbackData {
   juego: string;
   tipo_comentario: 'JUEGO' | 'EHS' | 'MEJORA_PUESTO' | 'RIESGO' | 'SUGERENCIA' | 'FELICITACION';
   comentario: string;
-  udn: string;
-  area: string;
+  udn?: string;
+  area?: string;
   categoria?: string;
 }
 
@@ -98,4 +98,5 @@ export interface Game {
   desc?: string;
   obj?: string;
   rules?: string[];
+  recommendedSectors?: string[];
 }

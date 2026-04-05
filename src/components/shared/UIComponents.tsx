@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, Monitor, Smartphone, Lock, Flame } from 'lucide-react';
+import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, Monitor, Smartphone, Lock, Flame, Star } from 'lucide-react';
 import { PlayerData, Game, DisplayMode } from '../../types';
 
 export const ScanlineOverlay = () => (
@@ -132,6 +132,7 @@ export const GlobalHeader = ({
 interface GameCardV2Props {
   game: Game;
   isMission: boolean;
+  isRecommended?: boolean;
   hasActiveMission: boolean;
   onSelect: (id: string) => void;
   onShowRules: (game: Game) => void;
@@ -140,6 +141,7 @@ interface GameCardV2Props {
 export const GameCardV2: React.FC<GameCardV2Props> = ({ 
   game, 
   isMission, 
+  isRecommended,
   hasActiveMission,
   onSelect, 
   onShowRules 
@@ -154,30 +156,30 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
       animate={{ 
         opacity: isOff ? 0.4 : (isDimmed ? 0.25 : 1), 
         y: 0,
-        scale: isMission ? [1, 1.03, 1] : 1,
+        scale: (isMission || isRecommended) ? [1, 1.03, 1] : 1,
         filter: (isDimmed || isOff) ? 'grayscale(100%)' : 'grayscale(0%)'
       }}
       transition={{
-        scale: isMission ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 },
+        scale: (isMission || isRecommended) ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 },
         opacity: { duration: 0.5 },
         y: { duration: 0.5 },
         filter: { duration: 0.5 }
       }}
-      whileHover={(!isDimmed && !isOff) ? { y: -5, scale: isMission ? 1.05 : 1.02 } : {}}
+      whileHover={(!isDimmed && !isOff) ? { y: -5, scale: (isMission || isRecommended) ? 1.05 : 1.02 } : {}}
       className="group relative transition-all duration-500"
     >
-      {/* Mission Glow Effect */}
-      {isMission && (
+      {/* Mission/Recommended Glow Effect */}
+      {(isMission || isRecommended) && (
         <>
-          <div className="absolute -inset-2 bg-emerald-500/20 blur-3xl rounded-[2.5rem] animate-pulse z-0" />
+          <div className={`absolute -inset-2 ${isMission ? 'bg-emerald-500/20' : 'bg-blue-500/20'} blur-3xl rounded-[2.5rem] animate-pulse z-0`} />
           <motion.div 
-            className="absolute -inset-[2px] rounded-2xl z-0 border-2 border-emerald-500/50"
+            className={`absolute -inset-[2px] rounded-2xl z-0 border-2 ${isMission ? 'border-emerald-500/50' : 'border-blue-500/50'}`}
             animate={{ 
               opacity: [0.3, 0.6, 0.3],
               scale: [1, 1.01, 1],
               boxShadow: [
                 "0 0 0px rgba(16, 185, 129, 0)",
-                "0 0 30px rgba(16, 185, 129, 0.5)",
+                isMission ? "0 0 30px rgba(16, 185, 129, 0.5)" : "0 0 30px rgba(59, 130, 246, 0.5)",
                 "0 0 0px rgba(16, 185, 129, 0)"
               ]
             }}
@@ -189,7 +191,9 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
       <div className={`relative h-[420px] rounded-2xl overflow-hidden bg-slate-900 border transition-all duration-500 z-10 ${
         isMission 
           ? 'border-emerald-500 shadow-2xl shadow-emerald-500/40' 
-          : 'border-white/5'
+          : isRecommended
+            ? 'border-blue-500 shadow-2xl shadow-blue-500/40'
+            : 'border-white/5'
       } ${(!isDimmed && !isOff) ? 'group-hover:border-emerald-500/30 group-hover:shadow-2xl group-hover:shadow-emerald-500/10' : ''}`}>
         
         <div className="absolute inset-0">
@@ -197,7 +201,7 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
             src={game.img} 
             alt={game.title}
             className={`w-full h-full object-cover transition-opacity duration-500 scale-110 ${!isOff ? 'group-hover:scale-100' : ''} ${
-              isMission ? 'opacity-60' : 'opacity-40 group-hover:opacity-60'
+              (isMission || isRecommended) ? 'opacity-60' : 'opacity-40 group-hover:opacity-60'
             }`}
             referrerPolicy="no-referrer"
           />
@@ -209,6 +213,15 @@ export const GameCardV2: React.FC<GameCardV2Props> = ({
             <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-[10px] font-black text-slate-950 tracking-widest flex items-center gap-2 shadow-lg shadow-emerald-500/40 animate-pulse">
               <Zap className="w-3.5 h-3.5 fill-current" />
               MISIÓN PRIORITARIA
+            </div>
+          </div>
+        )}
+
+        {!isMission && isRecommended && (
+          <div className="absolute top-4 left-4 z-10">
+            <div className="px-4 py-1.5 rounded-full bg-blue-500 text-[10px] font-black text-white tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/40 animate-pulse">
+              <Star className="w-3.5 h-3.5 fill-current" />
+              RECOMENDADO PARA VOS
             </div>
           </div>
         )}

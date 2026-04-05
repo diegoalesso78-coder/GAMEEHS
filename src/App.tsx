@@ -291,6 +291,9 @@ export default function App() {
     localStorage.setItem(streakKey, currentStreak.toString());
     localStorage.setItem(lastPlayKey, today);
 
+    // Save profile for persistence
+    PersistenceService.saveUserProfile(data);
+
     // Badge Calculation Logic
     let badges: Badge[] = [];
     try {
@@ -509,8 +512,6 @@ export default function App() {
             gameName={view.replace('GAME_', '').replace('_', ' ')}
             onClose={finalizeSession}
             onSubmit={recordFeedback}
-            initialUdn={playerData?.udn}
-            initialArea={playerData?.sector}
           />
         )}
         {showBadgeNotification && (

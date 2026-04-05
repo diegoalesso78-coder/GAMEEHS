@@ -574,14 +574,14 @@ export const GAMES: Game[] = [
   { id: 'cazador', title: 'CAZADOR DE RIESGOS', subtitle: 'MISIÓN_02', icon: 'visibility', active: false, color: 'bg-rose-500', level: 'PRINCIPIANTE', stats: '8 VIC / 5 RGO', img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800' },
   { id: 'match', title: 'UNE EL RIESGO', subtitle: 'MISIÓN_03', icon: 'link', active: true, color: 'bg-orange-500', level: 'INTERMEDIO', stats: '15 VIC / 3 RGO', img: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&q=80&w=800' },
   { id: 'oca', title: 'LA OCA', subtitle: 'MISIÓN_04', icon: 'grid_view', active: true, color: 'bg-blue-500', level: 'INTERMEDIO', stats: '22 VIC / 8 RGO', img: 'https://images.unsplash.com/photo-1551818255-e6e10975bc17?auto=format&fit=crop&q=80&w=800' },
-  { id: 'carrera', title: 'CARRERA MENTE', subtitle: 'MISIÓN_05', icon: 'psychology', active: true, color: 'bg-amber-500', level: 'EXPERTO', stats: '10 VIC / 2 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
+  { id: 'carrera', title: 'CARRERA MENTE', subtitle: 'MISIÓN_05', icon: 'psychology', active: true, color: 'bg-amber-500', level: 'EXPERTO', stats: '10 VIC / 2 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800', recommendedSectors: ['LOGÍSTICA', 'ALMACÉN', 'TRANSPORTE'] },
   { id: 'escape', title: 'ESCAPE ROOM', subtitle: 'MISIÓN_06', icon: 'lock_open', active: true, color: 'bg-yellow-500', level: 'INTERMEDIO', stats: '30 VIC / 1 RGO', img: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800' },
   { id: 'memoria', title: 'MEMORY PREVENTIVO', subtitle: 'MISIÓN_07', icon: 'brain', active: false, color: 'bg-emerald-600', level: 'PRINCIPIANTE', stats: '12 VIC / 4 RGO', img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800' },
   { id: 'wordle', title: 'PREVENWORDLE', subtitle: 'MISIÓN_08', icon: 'spellcheck', active: true, color: 'bg-amber-600', level: 'INTERMEDIO', stats: '5 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&q=80&w=800' },
-  { id: 'jenga', title: 'JENGA SEGURO', subtitle: 'MISIÓN_09', icon: 'view_in_ar', active: true, color: 'bg-indigo-600', level: 'EXPERTO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
+  { id: 'jenga', title: 'JENGA SEGURO', subtitle: 'MISIÓN_09', icon: 'view_in_ar', active: true, color: 'bg-indigo-600', level: 'EXPERTO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800', recommendedSectors: ['MANTENIMIENTO', 'PRODUCCIÓN', 'TÉCNICA'] },
   { id: 'decisiones', title: 'DECISIONES SEGURAS', subtitle: 'MISIÓN_10', icon: 'fact_check', active: true, color: 'bg-purple-600', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
   { id: 'espejo', title: 'EL ESPEJO DEL TURNO', subtitle: 'MISIÓN_11', icon: 'visibility', active: true, color: 'bg-blue-600', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800', desc: 'Módulo de Integridad: Tomá decisiones ante riesgos reales y observá las consecuencias en tu reflejo.' },
-  { id: 'resolve', title: 'RESOLVÉ EN EL PUESTO', subtitle: 'MISIÓN_12', icon: 'build', active: true, color: 'bg-emerald-700', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800' },
+  { id: 'resolve', title: 'RESOLVÉ EN EL PUESTO', subtitle: 'MISIÓN_12', icon: 'build', active: true, color: 'bg-emerald-700', level: 'INTERMEDIO', stats: '0 VIC / 0 RGO', img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800', recommendedSectors: ['MANTENIMIENTO', 'PRODUCCIÓN', 'CALIDAD'] },
 ];
 
 export const GAMES_ENHANCED: Game[] = [
@@ -622,7 +622,8 @@ export const GAMES_ENHANCED: Game[] = [
       'Arrastrá los pasos para ordenarlos correctamente.',
       'Verificá antes de que se agote el tiempo.',
       'Los aciertos y el tiempo restante suman puntos.'
-    ]
+    ],
+    recommendedSectors: ['SEGURIDAD', 'BRIGADA', 'EHS']
   },
   { 
     id: 'sopa', 
@@ -679,7 +680,8 @@ export const GAMES_ENHANCED: Game[] = [
       'Seleccioná los EPP necesarios de la lista.',
       'No olvides ningún elemento crítico para ese riesgo.',
       'Validá tu selección para avanzar al siguiente nivel.'
-    ]
+    ],
+    recommendedSectors: ['PRODUCCIÓN', 'SEGURIDAD', 'MANTENIMIENTO']
   },
   { 
     id: 'stop', 

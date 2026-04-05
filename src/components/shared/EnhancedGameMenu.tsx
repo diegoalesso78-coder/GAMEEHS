@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, X, CheckCircle2, Flame, Star } from 'lucide-react';
+import { Shield, Activity, Zap, Info, Trophy, Layout, LogOut, ChevronRight, Play, X, CheckCircle2, Flame, Star, User, Wrench, Truck, MapPin, Briefcase } from 'lucide-react';
 import { PlayerData, Game, UserStats } from '../../types';
 import { GAMES_ENHANCED, CONFIG_SHEET_URL, LOGS_READ_URL, AVATARS } from '../../constants';
 import { GameCardV2 } from './UIComponents';
@@ -160,74 +160,63 @@ export const EnhancedGameMenu = ({
   return (
     <div className="min-h-screen bg-slate-950 pt-20 md:pt-24 pb-12 px-4 md:px-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-8 md:mb-12">
-          <div>
-            <div className="flex items-center gap-3 mb-3 md:mb-4">
-              <div className="w-1 h-6 md:h-8 bg-emerald-500 rounded-full" />
-              <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">
-                CENTRO DE <span className="text-emerald-500">OPERACIONES</span>
-              </h2>
-            </div>
-            <p className="text-white/40 font-mono text-[10px] md:text-xs tracking-widest uppercase max-w-xl leading-relaxed">
-              Seleccioná un módulo de entrenamiento para comenzar la validación de competencias preventivas.
-            </p>
-          </div>
-
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-3 rounded-2xl backdrop-blur-xl">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">Operador</span>
-                <span className="text-sm font-black text-white">{playerData.nombre}</span>
-              </div>
-              <div className="w-px h-8 bg-white/10" />
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">Racha</span>
-                <div className="flex items-center gap-1 text-orange-500 font-black">
-                  <Flame className="w-4 h-4 fill-current" />
-                  <span className="text-lg">{playerData.streak || 0}</span>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className={`w-20 h-20 rounded-2xl ${AVATARS.find(a => a.id === playerData.avatar)?.color || 'bg-blue-500'} flex items-center justify-center shadow-xl border-4 border-white/10`}>
+                <div className="text-white">
+                  {renderAvatarIcon(AVATARS.find(a => a.id === playerData.avatar)?.icon || 'User', 40)}
                 </div>
               </div>
-              {playerData.badges && playerData.badges.length > 0 && (
-                <>
-                  <div className="w-px h-8 bg-white/10" />
-                  <div className="flex flex-col items-start">
-                    <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">Insignias</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      {playerData.badges.slice(0, 3).map((badge, i) => (
-                        <div 
-                          key={i} 
-                          title={`${badge.title}: ${badge.description}`}
-                          className={`w-6 h-6 rounded-lg ${badge.color} flex items-center justify-center shadow-lg shadow-black/20 group/badge relative`}
-                        >
-                          {badge.icon === 'Shield' && <Shield className="w-3 h-3 text-white" />}
-                          {badge.icon === 'Trophy' && <Trophy className="w-3 h-3 text-white" />}
-                          {badge.icon === 'Zap' && <Zap className="w-3 h-3 text-white" />}
-                          {badge.icon === 'Flame' && <Flame className="w-3 h-3 text-white" />}
-                          {badge.icon === 'Star' && <Star className="w-3 h-3 text-white" />}
-                          
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 border border-white/10 rounded text-[8px] text-white whitespace-nowrap opacity-0 group-hover/badge:opacity-100 transition-opacity pointer-events-none z-50">
-                            {badge.title}
-                          </div>
-                        </div>
-                      ))}
-                      {playerData.badges.length > 3 && (
-                        <span className="text-[10px] text-white/40 font-bold ml-1">+{playerData.badges.length - 3}</span>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center text-black shadow-lg border-2 border-slate-950">
+                <Trophy size={16} />
+              </div>
             </div>
-            <button 
-              onClick={onLogout}
-              className="text-[9px] font-black text-white/20 hover:text-red-500 transition-colors tracking-[0.3em] uppercase flex items-center gap-2"
-            >
-              <LogOut className="w-3 h-3" />
-              Cerrar Sesión
-            </button>
+            <div className="text-left">
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-3xl font-black text-white uppercase tracking-tight">{playerData.nombre}</h2>
+                <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+                  NIVEL {userStats.level}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-white/40 font-mono text-[10px] tracking-widest uppercase">
+                <span className="flex items-center gap-1.5"><MapPin size={12} className="text-emerald-500/50" /> {playerData.sitio}</span>
+                <span className="w-1 h-1 rounded-full bg-white/10" />
+                <span className="flex items-center gap-1.5"><Briefcase size={12} className="text-emerald-500/50" /> {playerData.sector}</span>
+                <span className="w-1 h-1 rounded-full bg-white/10" />
+                <button 
+                  onClick={onLogout}
+                  className="flex items-center gap-1.5 text-red-500/60 hover:text-red-500 transition-colors"
+                >
+                  <LogOut size={12} /> CERRAR SESIÓN
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="flex p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
+            {/* Checklist de Sesión */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-6 backdrop-blur-sm">
+              <div className="space-y-1">
+                <div className="text-[9px] font-black text-white/30 uppercase tracking-widest">Checklist de Sesión</div>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3].map((i) => (
+                    <div 
+                      key={i}
+                      className={`w-2 h-2 rounded-full ${i <= sessionGamesCompleted.length ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`}
+                    />
+                  ))}
+                  <span className="ml-2 text-xs font-black text-white">{sessionGamesCompleted.length}/3</span>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-white/10" />
+              <div className="text-right">
+                <div className="text-[9px] font-black text-white/30 uppercase tracking-widest">Puntaje Hoy</div>
+                <div className="text-xs font-black text-emerald-500">{playerData.score.toLocaleString()} PTS</div>
+              </div>
+            </div>
+
+            <div className="flex p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
             <button
               onClick={() => setActiveTab('FLOOR')}
               className={`flex-1 md:flex-none px-4 md:px-8 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-bold tracking-[0.2em] transition-all flex items-center justify-center gap-2 md:gap-3 whitespace-nowrap ${
@@ -248,8 +237,9 @@ export const EnhancedGameMenu = ({
             </button>
           </div>
         </div>
+      </div>
 
-        <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait">
           {activeTab === 'FLOOR' ? (
             <motion.div
               key="floor"
@@ -261,7 +251,7 @@ export const EnhancedGameMenu = ({
               {(() => {
                 const normalizedMissionIds = missionIds.map(id => id.toLowerCase().replace(/[^a-z0-9]/g, ''));
                 
-                // Sort games: 1. Missions, 2. Active, 3. Inactive
+                // Sort games: 1. Missions, 2. Sector Recommended, 3. Active, 4. Inactive
                 const sortedGames = [...GAMES_ENHANCED].sort((a, b) => {
                   const isAMission = a.active && normalizedMissionIds.length > 0 && (
                     normalizedMissionIds.includes(a.id.toLowerCase().replace(/[^a-z0-9]/g, '')) || 
@@ -274,9 +264,16 @@ export const EnhancedGameMenu = ({
                     normalizedMissionIds.some(mid => b.subtitle.toLowerCase().replace(/[^a-z0-9]/g, '') === `mision${mid}`)
                   );
 
+                  const isARecommended = a.active && a.recommendedSectors?.some(s => s.toUpperCase() === playerData.sector.toUpperCase());
+                  const isBRecommended = b.active && b.recommendedSectors?.some(s => s.toUpperCase() === playerData.sector.toUpperCase());
+
                   // Missions first
                   if (isAMission && !isBMission) return -1;
                   if (!isAMission && isBMission) return 1;
+
+                  // Recommended next
+                  if (isARecommended && !isBRecommended) return -1;
+                  if (!isARecommended && isBRecommended) return 1;
 
                   // Active next
                   if (a.active && !b.active) return -1;
@@ -327,11 +324,14 @@ export const EnhancedGameMenu = ({
                         normalizedMissionIds.some(mid => normalizedSubtitle === `mision${mid}`)
                       );
                       
+                      const isRecommended = game.active && game.recommendedSectors?.some(s => s.toUpperCase() === playerData.sector.toUpperCase());
+                      
                       return (
                         <GameCardV2
                           key={game.id}
                           game={game}
                           isMission={!!isMission}
+                          isRecommended={!!isRecommended}
                           hasActiveMission={!!anyGameMatches}
                           onSelect={onSelectGame}
                           onShowRules={setSelectedGameInfo}
