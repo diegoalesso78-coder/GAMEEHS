@@ -63,6 +63,7 @@ export const DECISIONES_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2
 export const ESPEJO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1346735467&single=true&output=csv';
 export const PARE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1987480223&single=true&output=csv';
 export const PROTOCOLO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=2015417175&output=csv';
+export const STOP_PELIGRO_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1520731584&single=true&output=csv';
 export const LOGS_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw9PuaIDOyw6X3za0xGKzkK9CggUw_hs817ms18ZtpsPbBH16oF5ZGNg2mfHkuTgHqgzw/exec';
 export const LOGS_READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=463017101&single=true&output=csv';
 export const FEEDBACK_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=38170247&single=true&output=csv';
@@ -569,6 +570,89 @@ export const MEMORY_PAIRS = [
   }
 ];
 
+export const HIERARCHY_FALLBACK = [
+  {
+    id: 1,
+    riesgo: "Caída desde altura",
+    emoji_riesgo: "🏗️",
+    sector: "Mantenimiento",
+    controles: [
+      { nivel: 1, tipo: "Eliminación", control: "Rediseñar la tarea para realizarla a nivel del suelo", emoji: "🔄", costo: "Muy alto", dificultad: "Rediseño del proceso", reflexion: "Eliminar el riesgo en su origen es lo más efectivo que existe. Requiere repensar completamente cómo se hace la tarea." },
+      { nivel: 2, tipo: "Sustitución", control: "Plataforma de trabajo elevada permanente con baranda", emoji: "🏛️", costo: "Alto", dificultad: "Inversión en equipamiento", reflexion: "Sustituir la escalera por una plataforma fija elimina la variable humana. Ya no depende de que el operario haga todo bien." },
+      { nivel: 3, tipo: "Ingeniería", control: "Baranda perimetral y red de seguridad colectiva", emoji: "🔩", costo: "Moderado", dificultad: "Obra o instalación", reflexion: "Los controles de ingeniería protegen a todos independientemente de lo que haga cada persona. Eso los hace más robustos." },
+      { nivel: 4, tipo: "Administrativo", control: "Permiso de trabajo en altura + AST + capacitación anual", emoji: "📋", costo: "Bajo", dificultad: "Gestión y capacitación", reflexion: "Los procedimientos son necesarios pero dependen de que todos los cumplan siempre. Y mantener ese nivel de cumplimiento es muy difícil." },
+      { nivel: 5, tipo: "EPP", control: "Arnés certificado conectado al punto de anclaje verificado", emoji: "🦺", costo: "Mínimo", dificultad: "Depende del operario", reflexion: "El EPP es la última barrera. Si falla todo lo anterior solo queda esto. Y su efectividad depende completamente de que vos lo uses bien cada vez." }
+    ]
+  },
+  {
+    id: 2,
+    riesgo: "Atrapamiento en prensa",
+    emoji_riesgo: "⚙️",
+    sector: "Conformado de chapa",
+    controles: [
+      { nivel: 1, tipo: "Eliminación", control: "Automatizar el proceso eliminando la intervención manual", emoji: "🤖", costo: "Muy alto", dificultad: "Rediseño del proceso", reflexion: "La única forma de eliminar el riesgo de atrapamiento es eliminar la mano humana del ciclo de la prensa. Requiere inversión y rediseño total." },
+      { nivel: 2, tipo: "Sustitución", control: "Prensa con sistema de alimentación automática de piezas", emoji: "🔧", costo: "Alto", dificultad: "Inversión en equipamiento", reflexion: "Sustituir la alimentación manual por automática elimina la exposición del operario a la zona de peligro en cada ciclo." },
+      { nivel: 3, tipo: "Ingeniería", control: "Guarda con enclavamiento certificado que detiene el ciclo", emoji: "🛡️", costo: "Moderado", dificultad: "Obra o instalación", reflexion: "El enclavamiento garantiza que si la guarda está abierta la prensa no puede ciclar. Es una barrera técnica que no depende de la conducta." },
+      { nivel: 4, tipo: "Administrativo", control: "AST + estándar de operación + capacitación + supervisión", emoji: "📋", costo: "Bajo", dificultad: "Gestión y capacitación", reflexion: "El estándar define cómo hacerlo bien. Pero que todos lo sigan siempre requiere cultura, supervisión y capacitación continua. Eso cuesta tiempo." },
+      { nivel: 5, tipo: "EPP", control: "Guante anticorte + calzado de seguridad punta de acero", emoji: "🧤", costo: "Mínimo", dificultad: "Depende del operario", reflexion: "El guante reduce el daño si hay contacto pero no evita el atrapamiento. Es la última línea de defensa y la más frágil del sistema." }
+    ]
+  },
+  {
+    id: 3,
+    riesgo: "Descarga eléctrica",
+    emoji_riesgo: "⚡",
+    sector: "Mantenimiento",
+    controles: [
+      { nivel: 1, tipo: "Eliminación", control: "Rediseñar el equipo para mantenimiento sin tensión activa", emoji: "🔄", costo: "Muy alto", dificultad: "Rediseño del proceso", reflexion: "Diseñar equipos que no requieran intervención con tensión activa es la solución definitiva. Requiere ingeniería desde el origen." },
+      { nivel: 2, tipo: "Sustitución", control: "Equipo con desenergización automática previa al acceso", emoji: "🔌", costo: "Alto", dificultad: "Inversión en equipamiento", reflexion: "Un sistema que corta la energía automáticamente al abrir el acceso elimina el error humano de olvidar el CATA." },
+      { nivel: 3, tipo: "Ingeniería", control: "Sistema CATA con enclavamiento múltiple permanente", emoji: "🔒", costo: "Moderado", dificultad: "Obra o instalación", reflexion: "El enclavamiento físico garantiza que el equipo no puede energizarse mientras el acceso está abierto. No depende de que alguien recuerde el candado." },
+      { nivel: 4, tipo: "Administrativo", control: "Procedimiento CATA + permiso de trabajo + capacitación", emoji: "📋", costo: "Bajo", dificultad: "Gestión y capacitación", reflexion: "El CATA como procedimiento es efectivo cuando todos lo aplican correctamente siempre. La capacitación y la cultura sostienen ese cumplimiento." },
+      { nivel: 5, tipo: "EPP", control: "Guante dieléctrico + calzado aislante + herramienta aislada", emoji: "🧤", costo: "Mínimo", dificultad: "Depende del operario", reflexion: "El EPP dieléctrico reduce el daño si hay contacto eléctrico. Pero si el equipo está energizado y el operario lo toca el EPP es la única barrera." }
+    ]
+  },
+  {
+    id: 4,
+    riesgo: "Derrame de solvente",
+    emoji_riesgo: "🧪",
+    sector: "Inyección de plásticos",
+    controles: [
+      { nivel: 1, tipo: "Eliminación", control: "Rediseñar el proceso para eliminar el uso de solvente", emoji: "🔄", costo: "Muy alto", dificultad: "Rediseño del proceso", reflexion: "Eliminar el solvente del proceso elimina el riesgo de derrame, incendio y exposición química de raíz. Es la solución más cara y más efectiva." },
+      { nivel: 2, tipo: "Sustitución", control: "Reemplazar solvente inflamable por producto no inflamable", emoji: "🔁", costo: "Alto", dificultad: "Inversión en equipamiento", reflexion: "Cambiar el agente químico por uno de menor peligrosidad reduce el riesgo sin eliminar el proceso. Requiere validación técnica y de calidad." },
+      { nivel: 3, tipo: "Ingeniería", control: "Sistema de contención fija + extracción local de vapores", emoji: "🌀", costo: "Moderado", dificultad: "Obra o instalación", reflexion: "La bandeja de contención captura el derrame antes de que se extienda. La extracción elimina los vapores antes de que alcancen niveles peligrosos." },
+      { nivel: 4, tipo: "Administrativo", control: "Procedimiento de manejo + capacitación GHS + plan de emergencia", emoji: "📋", costo: "Bajo", dificultad: "Gestión y capacitación", reflexion: "El procedimiento define cómo manipular, almacenar y responder. Su efectividad depende de que todos lo conozcan y lo apliquen en el momento crítico." },
+      { nivel: 5, tipo: "EPP", control: "Guante de nitrilo + antiparras + delantal resistente a químicos", emoji: "🦺", costo: "Mínimo", dificultad: "Depende del operario", reflexion: "El EPP protege al operario del contacto directo con el solvente. No evita el derrame ni el incendio. Es la barrera final y la más personal." }
+    ]
+  },
+  {
+    id: 5,
+    riesgo: "Volcamiento de autoelevador",
+    emoji_riesgo: "🚛",
+    sector: "Almacén",
+    controles: [
+      { nivel: 1, tipo: "Eliminación", control: "Rediseñar el almacén eliminando rampas y desniveles", emoji: "🔄", costo: "Muy alto", dificultad: "Rediseño del proceso", reflexion: "Eliminar los desniveles elimina la principal causa de volcamiento. Requiere obra civil y rediseño completo del layout del almacén." },
+      { nivel: 2, tipo: "Sustitución", control: "Reemplazar autoelevador por sistema de transporte guiado", emoji: "🏭", costo: "Alto", dificultad: "Inversión en equipamiento", reflexion: "Un sistema de transporte guiado por raíles no puede volcarse. Elimina la variable del operador de la ecuación de seguridad." },
+      { nivel: 3, tipo: "Ingeniería", control: "Separación física permanente de carriles peatonales y de equipos", emoji: "🚧", costo: "Moderado", dificultad: "Obra o instalación", reflexion: "La barrera física entre personas y autoelevadores garantiza la separación sin depender de que nadie invada el carril equivocado." },
+      { nivel: 4, tipo: "Administrativo", control: "Límite de velocidad + pre-operativa + capacitación + señalización", emoji: "📋", costo: "Bajo", dificultad: "Gestión y capacitación", reflexion: "Las reglas de circulación solo funcionan si todos las respetan siempre. La señalización y la supervisión sostienen el cumplimiento." },
+      { nivel: 5, tipo: "EPP", control: "Cinturón de seguridad del autoelevador + calzado de seguridad", emoji: "🦺", costo: "Mínimo", dificultad: "Depende del operario", reflexion: "El cinturón retiene al operador dentro de la cabina en caso de volcamiento. Solo es efectivo si está abrochado. Eso depende de cada turno." }
+    ]
+  },
+  {
+    id: 6,
+    riesgo: "Exposición a ruido",
+    emoji_riesgo: "🔊",
+    sector: "Conformado de chapa",
+    controles: [
+      { nivel: 1, tipo: "Eliminación", control: "Rediseñar el proceso para eliminar la fuente de ruido", emoji: "🔄", costo: "Muy alto", dificultad: "Rediseño del proceso", reflexion: "Eliminar la fuente de ruido del proceso es la única solución definitiva. Requiere tecnología diferente o automatización completa del ciclo." },
+      { nivel: 2, tipo: "Sustitución", control: "Reemplazar prensa por tecnología de menor emisión acústica", emoji: "🔁", costo: "Alto", dificultad: "Inversión en equipamiento", reflexion: "Una prensa hidráulica emite significativamente menos ruido que una excéntrica. Cambiarla reduce el riesgo en la fuente sin eliminar el proceso." },
+      { nivel: 3, tipo: "Ingeniería", control: "Cabina acústica o barrera de absorción sonora en el puesto", emoji: "🏠", costo: "Moderado", dificultad: "Obra o instalación", reflexion: "El encapsulamiento de la fuente o la barrera acústica reduce la exposición de todos los operarios del sector sin depender de conductas individuales." },
+      { nivel: 4, tipo: "Administrativo", control: "Rotación de puestos + límite de tiempo en zona + monitoreo", emoji: "📋", costo: "Bajo", dificultad: "Gestión y capacitación", reflexion: "Limitar el tiempo de exposición reduce la dosis acumulada. Requiere organización del trabajo, registros y cumplimiento constante de la rotación." },
+      { nivel: 5, tipo: "EPP", control: "Protección auditiva de copa o inserción certificada clase 5", emoji: "🎧", costo: "Mínimo", dificultad: "Depende del operario", reflexion: "La protección auditiva solo funciona cuando está bien colocada durante toda la exposición. Quitársela 10 minutos anula gran parte de la protección diaria." }
+    ]
+  }
+];
+
+export const HIERARCHY_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-1bcf0ugEXafqimV7jTMtEpZ0U1TH2zGy0EMt_R_Pc3qnShewR4ogYy3vvX8MeAiMlNNej6FsIYa3/pub?gid=1223025993&single=true&output=csv';
+
 export const GAMES: Game[] = [
   { id: 'truco', title: 'TRUCO SEGURO', subtitle: 'MISIÓN_01', icon: 'precision_manufacturing', active: true, color: 'bg-emerald-500', level: 'EXPERTO', stats: '42 VIC / 12 RGO', img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800' },
   { id: 'cazador', title: 'CAZADOR DE RIESGOS', subtitle: 'MISIÓN_02', icon: 'visibility', active: false, color: 'bg-rose-500', level: 'PRINCIPIANTE', stats: '8 VIC / 5 RGO', img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800' },
@@ -701,6 +785,26 @@ export const GAMES_ENHANCED: Game[] = [
       'Gritá STOP (presioná el botón) antes de que se acabe el tiempo.',
       'Respuestas válidas suman 100 puntos. ¡Bonus por rapidez!'
     ]
+  },
+  { 
+    id: 'jerarquia', 
+    title: 'JERARQUÍA DE CONTROL', 
+    subtitle: 'MISIÓN_20', 
+    icon: 'layers', 
+    active: true, 
+    color: 'bg-indigo-700', 
+    level: 'EXPERTO', 
+    stats: '0 VIC / 0 RGO', 
+    img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    desc: 'Construí la pirámide de seguridad ordenando los controles desde el más efectivo hasta la última barrera.',
+    obj: 'Dominar la jerarquía de controles para una gestión de riesgos profesional.',
+    rules: [
+      'Se te presentará un escenario de riesgo específico.',
+      'Arrastrá los controles a su nivel correspondiente en la pirámide.',
+      'Nivel 1 es el más efectivo (Eliminación), Nivel 5 es el último recurso (EPP).',
+      'Validá tu pirámide para ver la reflexión técnica de cada medida.'
+    ],
+    recommendedSectors: ['SEGURIDAD', 'MANTENIMIENTO', 'PRODUCCIÓN', 'EHS']
   }
 ];
 

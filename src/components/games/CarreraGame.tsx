@@ -27,7 +27,7 @@ export const CarreraSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void,
         <div className="mb-8">
           <p className="text-[10px] font-headline uppercase font-black mb-4 opacity-50 text-center tracking-widest">Participantes</p>
           <div className="flex gap-4 justify-center">
-            {[2, 3, 4].map(n => (
+            {[1, 2, 3, 4].map(n => (
               <button 
                 key={n} 
                 onClick={() => setCount(n)} 
@@ -50,7 +50,7 @@ export const CarreraSetup = ({ onStart, onBack }: { onStart: (p: any[]) => void,
                 value={names[i]} 
                 onChange={e => { const n = [...names]; n[i] = e.target.value; setNames(n); }} 
                 className="w-full bg-black/40 border border-white/10 focus:border-secondary/50 outline-none py-4 pl-12 pr-4 uppercase font-headline font-black text-xs tracking-widest transition-all rounded-sm" 
-                placeholder={`ID Op ${i+1}`} 
+                placeholder={count === 1 ? "Tu Nombre / ID" : `ID Op ${i+1}`} 
               />
             </div>
           ))}
@@ -250,7 +250,9 @@ export const CarreraGame = ({ onExit, onGameOver, onFinish }: { onExit: () => vo
           {playState === 'IDLE' || playState === 'SPINNING' ? (
             <motion.div key="roulette" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="flex flex-col items-center gap-6 md:gap-12 w-full">
               <div className="text-center">
-                <p className="text-[10px] md:text-xs font-headline uppercase tracking-[0.3em] text-secondary mb-1 md:mb-2">Turno de</p>
+                <p className="text-[10px] md:text-xs font-headline uppercase tracking-[0.3em] text-secondary mb-1 md:mb-2">
+                  {players.length > 1 ? 'Turno de' : 'Jugando como'}
+                </p>
                 <h2 className="text-3xl md:text-5xl font-headline font-black uppercase tracking-tighter truncate max-w-[90vw] mx-auto">{players[currentPlayerIdx].name}</h2>
               </div>
 

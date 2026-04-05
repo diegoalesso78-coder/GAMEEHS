@@ -22,6 +22,7 @@ export type View =
   | 'GAME_TRIVIA'
   | 'GAME_EPP'
   | 'GAME_STOP'
+  | 'GAME_JERARQUIA'
   | 'GAME_MISSIONS';
 
 export type DisplayMode = 'MOBILE' | 'DESKTOP';

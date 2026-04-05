@@ -22,6 +22,7 @@ import { TriviaGame } from './components/games/TriviaGame';
 import { EPPSimulatorGame } from './components/games/EPPSimulatorGame';
 import { SopaLetrasGame } from './components/games/SopaLetrasGame';
 import { StopPeligroGame } from './components/games/StopPeligroGame';
+import { HierarchyGame } from './components/games/HierarchyGame';
 import IndustrialMemoryGame from './components/games/IndustrialMemoryGame';
 import { FeedbackCard } from './components/FeedbackCard';
 import { Trophy, X } from 'lucide-react';
@@ -204,7 +205,8 @@ export default function App() {
       'stop': 'Stop al Peligro',
       'trivia': 'Trivia de Seguridad',
       'epp': 'Simulador EPP',
-      'sopa': 'Sopa de Letras'
+      'sopa': 'Sopa de Letras',
+      'jerarquia': 'Jerarquía de Control'
     };
 
     const result = {
@@ -368,7 +370,8 @@ export default function App() {
         'sopa': 'GAME_SOPA',
         'trivia': 'GAME_TRIVIA',
         'epp': 'GAME_EPP',
-        'stop': 'GAME_STOP'
+        'stop': 'GAME_STOP',
+        'jerarquia': 'GAME_JERARQUIA'
       };
       const nextView = viewMap[id];
       if (nextView) setView(nextView);
@@ -457,6 +460,7 @@ export default function App() {
       case 'GAME_TRIVIA': return <TriviaGame {...commonProps} />;
       case 'GAME_EPP': return <EPPSimulatorGame {...commonProps} />;
       case 'GAME_STOP': return <StopPeligroGame {...commonProps} />;
+      case 'GAME_JERARQUIA': return <HierarchyGame playerData={playerData!} onFinish={handleFinish} />;
       case 'GAME_MEMORY':
       case 'GAME_MEMORY_V2':
       case 'GAME_MEMORY_V3':
