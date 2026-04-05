@@ -58,7 +58,7 @@ export const StartScreen = ({ onStart }: { onStart: (data: PlayerData) => void }
             const score = parseInt(row[scoreIdx]) || 0;
             const sector = row[sectorIdx];
 
-            if (name) playerScores[name] = (playerScores[name] || 0) + score;
+            if (name) playerScores[name] = (playerScores[name] || 0) + 1;
             if (sector && sector !== 'SITIO' && sector !== 'LUQUE') {
               sectorCounts[sector] = (sectorCounts[sector] || 0) + 1;
             }
@@ -262,7 +262,7 @@ export const StartScreen = ({ onStart }: { onStart: (data: PlayerData) => void }
                   {leaderboard.topPlayers.length > 0 ? leaderboard.topPlayers.map((p, i) => (
                     <div key={i} className="flex items-center justify-between text-[11px]">
                       <span className="text-white/60 font-mono truncate max-w-[120px]">{i + 1}. {p.name}</span>
-                      <span className="text-emerald-500 font-black">{p.score} PTS</span>
+                      <span className="text-emerald-500 font-black">{p.score} OPS</span>
                     </div>
                   )) : (
                     <div className="text-[10px] text-white/20 italic">Cargando ranking...</div>
